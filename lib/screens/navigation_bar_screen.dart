@@ -5,6 +5,7 @@ import 'trending/trending_screen.dart';
 import 'follow/follow_screen.dart';
 import 'profile/profile_screen.dart';
 import 'setting/setting_screen.dart';
+import '../widgets/mini_player.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   const NavigationBarScreen({super.key});
@@ -15,6 +16,7 @@ class NavigationBarScreen extends StatefulWidget {
 
 class _NavigationBarScreenState extends State<NavigationBarScreen> {
   int _selected = 0;
+  bool _isNavBarVisible = true;
 
   final List<AbstractScreen> _screens = [
     const HomeScreen(),
@@ -30,29 +32,41 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     });
   }
 
+  void toggleNavigationBar(bool isExpanded) {
+    setState(() {
+      _isNavBarVisible = !isExpanded;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colourScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: _screens[_selected], // Loads selected screen
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selected,
-        onTap: _onItemTapped,
-        backgroundColor: colourScheme.surface,
-        unselectedItemColor: colourScheme.onSurface,
-        selectedItemColor: colourScheme.primary,
-        showUnselectedLabels: true,
-        selectedIconTheme: IconThemeData(size: 35),
-        items: _screens.map((screen) =>
-            BottomNavigationBarItem(icon: screen.icon, label: screen.title)
-        ).toList(),
-        // items: [
-        //   BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        //   BottomNavigationBarItem(icon: Icon(Icons.timeline), label: "Trending"),
-        //   BottomNavigationBarItem(icon: Icon(Icons.subscriptions), label: "Following"),
-        //   BottomNavigationBarItem(icon: Icon(Icons.profile), label: "My Account"),
-        //   BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings")
-        // ],
+        body: Stack(
+          children: [
+            _screens[_selected],
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+            ),
+          ],
+        ),
+      bottomNavigationBar: Visibility (
+        visible: _isNavBarVisible,
+        child: BottomNavigationBar(
+          currentIndex: _selected,
+          onTap: _onItemTapped,
+          backgroundColor: colourScheme.surface,
+          unselectedItemColor: colourScheme.onSurface,
+          selectedItemColor: colourScheme.primary,
+          showUnselectedLabels: true,
+          selectedIconTheme: IconThemeData(size: 35),
+          items: _screens.map((screen) =>
+              BottomNavigationBarItem(icon: screen.icon, label: screen.title)
+          ).toList(),
+        ),
       ),
     );
   }
