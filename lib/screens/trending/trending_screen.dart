@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/trending/song_list.dart';
+import 'package:symphonia/screens/trending/trending_chart.dart';
+import 'package:symphonia/screens/trending/trending_header.dart';
+import 'package:symphonia/services/song.dart';
 import '../abstract_navigation_screen.dart';
 
 class TrendingScreen extends AbstractScreen {
@@ -17,8 +21,25 @@ class TrendingScreen extends AbstractScreen {
 class _TrendingScreenState extends State<TrendingScreen> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Trending Screen", style: TextStyle(fontSize: 24)),
+    return SafeArea(
+      child: Container(
+        color: Colors.deepPurple,
+        
+        child: Column(
+          children: [
+            // Top header
+            TrendingHeader(),
+
+            // Chart area
+            TrendingChart(),
+
+            const Divider(height: 1, color: Colors.white24),
+
+            // Song list
+            SongList(songs: SongOperations.getSongs()),
+          ],
+        )
+      )
     );
   }
 }
