@@ -16,6 +16,7 @@ class SongOptionsBottomSheet extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: Colors.white),
       title: Text(label),
+      textColor: Colors.white,
       minLeadingWidth: 0,
     );
   }

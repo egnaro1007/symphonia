@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/search/search_screen.dart';
 
 class TrendingHeader extends StatelessWidget {
   const TrendingHeader({Key? key}) : super(key: key);
@@ -28,7 +29,16 @@ class TrendingHeader extends StatelessWidget {
           const Spacer(),
           const Icon(Icons.mic, size: 24),
           const SizedBox(width: 16),
-          const Icon(Icons.search, size: 24),
+
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchScreen()),
+              );
+            },
+            child: const Icon(Icons.search, size: 24),
+          ),
         ],
       ),
     );
