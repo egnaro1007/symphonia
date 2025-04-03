@@ -11,6 +11,11 @@ class SettingScreen extends AbstractScreen {
   final Icon icon = const Icon(Icons.settings);
 
   @override
+  State<SettingScreen> createState() => _SettingScreenState();
+}
+
+class _SettingScreenState extends State<SettingScreen> {
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: Text("Settings Screen", style: TextStyle(fontSize: 24)),

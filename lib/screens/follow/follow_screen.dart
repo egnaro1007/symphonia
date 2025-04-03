@@ -11,6 +11,11 @@ class FollowScreen extends AbstractScreen {
   final Icon icon = const Icon(Icons.subscriptions);
 
   @override
+  State<FollowScreen> createState() => _FollowScreenState();
+}
+
+class _FollowScreenState extends State<FollowScreen> {
+  @override
   Widget build(BuildContext context) {
     return Center(
       child: Text("Follow Screen", style: TextStyle(fontSize: 24)),
