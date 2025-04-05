@@ -53,7 +53,10 @@ class _SearchPageState extends State<SearchScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.arrow_back),
-                  onPressed: () {},
+                  onPressed: () {
+                    // back to previous screen
+                    Navigator.pop(context);
+                  },
                 ),
                 Expanded(
                   child: Container(
