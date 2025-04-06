@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/services/playlist.dart';
 
 class PlayListComponent extends StatefulWidget {
   const PlayListComponent({super.key});
@@ -29,11 +31,28 @@ class _PlayListComponentState extends State<PlayListComponent> {
           const SizedBox(height: 16),
           _buildRecommendedPlaylistHeader(),
 
-          _buildRecommendedPlaylist('Flow Này Mượt Phết', 'Zing MP3'),
-          _buildRecommendedPlaylist('Lofi Hits', 'Zing MP3'),
-          _buildRecommendedPlaylist('Nhạc Chill Hay Nhất', 'Zing MP3'),
-          _buildRecommendedPlaylist('Lofi Một Chút Thôi', 'Zing MP3'),
-          _buildRecommendedPlaylist('Nhẹ Nhàng Cùng V-Pop', 'Zing MP3'),
+          FutureBuilder<List<BriefPlayList>>(
+            future: PlayListOperations.getPlaylists(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Text('No playlists available');
+              } else {
+                return Column(
+                  children: snapshot.data!.map((playlist) {
+                    return _buildRecommendedPlaylist(
+                      playlist.title,
+                      playlist.picture,
+                      playlist.creator,
+                    );
+                  }).toList(),
+                );
+              }
+            },
+          ),
         ],
       ),
     );
@@ -131,7 +150,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
     );
   }
 
-  Widget _buildRecommendedPlaylist(String title, String source) {
+  Widget _buildRecommendedPlaylist(String title, String picture, String creator) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -140,21 +159,30 @@ class _PlayListComponentState extends State<PlayListComponent> {
           borderRadius: BorderRadius.circular(4),
           color: Colors.grey[300],
         ),
-        // Replace with actual image
-        child: const Center(child: Icon(Icons.music_note)),
+        // Image network
+        child: Image.network(picture, fit: BoxFit.cover),
       ),
+
       title: Text(
         title,
         style: const TextStyle(
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(source),
+
+      subtitle: Text(creator),
+
       trailing: IconButton(
         icon: const Icon(Icons.favorite_border),
         onPressed: () {},
       ),
-      onTap: () {},
+
+      onTap: () {
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => ShowPlaylistScreen()),
+        // );
+      },
     );
   }
 }
