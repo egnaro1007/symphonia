@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
+import 'package:symphonia/screens/search/search_screen.dart';
 import '../abstract_navigation_screen.dart';
 
 class ProfileScreen extends AbstractScreen {
@@ -37,20 +38,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {},
           ),
 
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-
-          // ElevatedButton(
-          //   onPressed: () {
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => const SearchScreen()),
-          //     )
-          //   }
-          //   child: const Icon(Icons.search, size: 24),
-          // )
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchScreen()),
+              );
+            },
+            child: const Icon(Icons.search, color: Colors.black),
+          )
         ],
       ),
       body: SingleChildScrollView(
