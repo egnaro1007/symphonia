@@ -67,7 +67,7 @@ class SongList extends StatelessWidget {
                   child: SizedBox(
                     width: 56,
                     height: 56,
-                    child: Image.asset(
+                    child: Image.network(
                       song.imagePath,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
