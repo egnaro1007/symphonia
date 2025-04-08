@@ -25,7 +25,7 @@ class _TrendingScreenState extends State<TrendingScreen> {
   @override
   void initState() {
     super.initState();
-    _futureSongs = SongOperations.getSongs(); // initialize once
+    _futureSongs = SongOperations.getTrendingSongs(); // initialize once
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
-import 'package:symphonia/screens/profile/playlist_detail_screen.dart';
+import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 
 class PlayListComponent extends StatefulWidget {
@@ -55,6 +55,8 @@ class _PlayListComponentState extends State<PlayListComponent> {
               }
             },
           ),
+
+          const SizedBox(height: 80),
         ],
       ),
     );
@@ -152,7 +154,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
     );
   }
 
-  Widget _buildRecommendedPlaylist(int id, String title, String picture, String creator) {
+  Widget _buildRecommendedPlaylist(String id, String title, String picture, String creator) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -182,7 +184,9 @@ class _PlayListComponentState extends State<PlayListComponent> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PlaylistDetailScreen(playlistID: id)),
+          MaterialPageRoute(
+            builder: (context) => PlaylistScreen(playlistID: id),
+          ),
         );
       },
     );

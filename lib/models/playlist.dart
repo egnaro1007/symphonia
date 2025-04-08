@@ -1,7 +1,7 @@
 import 'package:symphonia/models/song.dart';
 
 class BriefPlayList {
-  int id;
+  String id;
   String title;
   String picture;
   String creator;
@@ -15,7 +15,7 @@ class BriefPlayList {
 }
 
 class PlayList {
-  int id;
+  String id;
   String title;
   String description;
   int duration;

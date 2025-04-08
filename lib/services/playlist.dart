@@ -3,21 +3,30 @@ import 'dart:convert';
 import 'package:symphonia/models/playlist.dart';
 import 'package:http/http.dart' as http;
 import 'package:symphonia/models/song.dart';
+import 'package:symphonia/services/song.dart';
+import 'package:symphonia/services/spotify_token.dart';
 
 class PlayListOperations {
   PlayListOperations._();
 
   static Future<List<BriefPlayList>> getPlaylists() async {
-    // fetch this link: https://api.deezer.com/chart
-    final url = Uri.parse('https://api.deezer.com/chart');
-
     try {
-      final response = await http.get(url);
+      final username = 'midnightstudios'; // 'chilledcow';
+      final limit = 10;
+      final offset = 0;
+      final token = await SpotifyToken.getTokens();
+      final url = Uri.parse('https://api.spotify.com/v1/users/$username/playlists?limit=$limit&offset=$offset');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        }
+      );
 
       if (response.statusCode == 200) {
         // Parse the JSON response
         final data = jsonDecode(response.body);
-        var playlistData = data['playlists']['data'];
+        var playlistData = data['items'];
 
         // for all JSON in JSONArray songData
         List<BriefPlayList> playlists = [];
@@ -27,9 +36,9 @@ class PlayListOperations {
 
           playlists.add(BriefPlayList(
             id: playlist['id'],
-            title: playlist['title'],
-            picture: playlist['picture'],
-            creator: playlist['user']['name'],
+            title: playlist['name'],
+            picture: playlist['images'][0]['url'],
+            creator: 'symphonia' // playlist['user']['name'],
           ));
         }
 
@@ -43,14 +52,21 @@ class PlayListOperations {
     }
   }
 
-  static Future<PlayList> getPlaylist(int id) async {
-    // fetch this link: https://api.deezer.com/playlist/{id}
-    final url = Uri.parse('https://api.deezer.com/playlist/$id');
-
-    print(url);
+  static Future<PlayList> getPlaylist(String id) async {
+    if (id == "symchart") {
+      return getTrendingPlaylist(id);
+    }
 
     try {
-      final response = await http.get(url);
+      final token = await SpotifyToken.getTokens();
+      final url = Uri.parse("https://api.spotify.com/v1/playlists/$id");
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+        }
+      );
 
       if (response.statusCode == 200) {
         // Parse the JSON response
@@ -58,22 +74,34 @@ class PlayListOperations {
         var playlistData = data;
 
         List<Song> songs = [];
-        for (var song in playlistData['tracks']['data']) {
+        var songID = 0;
+        int duration = 0;
+        
+        print("Data: $data");
+
+        for (var track in playlistData['tracks']['items']) {
+          ++songID;
+          print("Song ID: $songID");
+
+          duration += track['track']['duration_ms'] as int;
+
           songs.add(Song(
-            rank: song['rank'].toString(),
-            title: song['title'],
-            artist: song['artist']['name'],
-            imagePath: song['album']['cover'],
+            rank: songID.toString(),
+            title: track['track']['name'],
+            artist: track['track']['artists']
+                .map((artist) => artist['name'])
+                .join(', '),
+            imagePath: track['track']['album']['images'][0]['url'],
           ));
         }
 
         PlayList playlists = PlayList(
           id: playlistData['id'],
-          title: playlistData['title'],
+          title: playlistData['name'],
           description: playlistData['description'],
-          duration: playlistData['duration'],
-          picture: playlistData['picture'],
-          creator: playlistData['creator']['name'],
+          duration: duration,
+          picture: playlistData['images'][0]['url'],
+          creator: playlistData['owner']['display_name'],
           songs: songs,
         );
 
@@ -82,6 +110,28 @@ class PlayListOperations {
         throw Exception('Failed to load playlists');
       }
     } catch (e) {
+      print("Error: $e");
+      throw Exception('Failed to load playlists');
+    }
+  }
+
+  static Future<PlayList> getTrendingPlaylist(String id) async {
+    try {
+      List<Song> songs = await SongOperations.getTrendingSongs();
+
+      PlayList playlists = PlayList(
+        id: '0aiBKNSqiPnhtcw1QlXK5s',
+        title: '#symchart',
+        description: '#symchart là BXH thời gian thực của Symphonia, được cập nhật hàng giờ.',
+        duration: 3600,
+        picture: 'https://as2.ftcdn.net/v2/jpg/01/43/42/83/1000_F_143428338_gcxw3Jcd0tJpkvvb53pfEztwtU9sxsgT.jpg',
+        creator: 'Symphonia',
+        songs: songs,
+      );
+
+      return playlists;
+    } catch (e) {
+      print("Error: $e");
       throw Exception('Failed to load playlists');
     }
   }

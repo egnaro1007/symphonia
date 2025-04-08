@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
 import 'package:symphonia/screens/search/search_screen.dart';
 import '../abstract_navigation_screen.dart';
@@ -91,11 +92,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _buildRecentItem('Bài Hát Nghe\nGần Đây', Colors.blue.shade800, Colors.purple),
+                    _buildRecentItem('Bài Hát Nghe\nGần Đây', Colors.blue.shade800, Colors.purple,  onTap: () {
+                      return PlaylistScreen(playlistID: "symchart");
+                    }),
                     const SizedBox(width: 12),
-                    _buildRecentItem('#zingchart', Colors.purple, Colors.purple),
+                    _buildRecentItem('#zingchart', Colors.purple, Colors.purple, onTap: () {
+                      return PlaylistScreen(playlistID: "symchart");
+                    }),
                     const SizedBox(width: 12),
-                    _buildRecentItem('My playlist', Colors.grey.shade800, Colors.grey.shade800),
+                    _buildRecentItem('My playlist', Colors.grey.shade800, Colors.grey.shade800,  onTap: () {
+                      return PlaylistScreen(playlistID: "symchart");
+                    }),
                   ],
                 ),
               ),
@@ -139,46 +146,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildRecentItem(String title, Color startColor, Color endColor) {
-    return Container(
-      width: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        gradient: LinearGradient(
-          colors: [startColor, endColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildRecentItem(
+      String title,
+      Color startColor,
+      Color endColor, {
+        required Widget Function() onTap,
+      }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => onTap()),
+        );
+      },
+      child: Container(
+        width: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          gradient: LinearGradient(
+            colors: [startColor, endColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (title != '#zingchart')
-            const Icon(
-              Icons.schedule,
-              color: Colors.orange,
-              size: 32,
-            ),
-          if (title == '#zingchart')
-            const Text(
-              '#zingchart',
-              style: TextStyle(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (title != '#zingchart')
+              const Icon(
+                Icons.schedule,
+                color: Colors.orange,
+                size: 32,
+              ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
               ),
             ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 }

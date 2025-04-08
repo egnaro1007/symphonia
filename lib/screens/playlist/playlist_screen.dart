@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/screens/navigation_bar_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 
-import '../navigation_bar_screen.dart';
-
-class PlaylistDetailScreen extends StatefulWidget {
-  final int playlistID;
-  const PlaylistDetailScreen({super.key, required this.playlistID});
+class PlaylistScreen extends AbstractScreen {
+  final String playlistID;
+  const PlaylistScreen({super.key, required this.playlistID});
 
   @override
-  State<PlaylistDetailScreen> createState() => _PlaylistDetailScreenState();
+  State<PlaylistScreen> createState() => _PlaylistScreenState();
+
+  @override
+  // TODO: implement icon
+  Icon get icon => const Icon(Icons.playlist_play);
+
+  @override
+  // TODO: implement title
+  String get title => "Playlist";
 }
 
-class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
+class _PlaylistScreenState extends State<PlaylistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +29,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () {
+            // Navigate back to the previous screen
+            Navigator.pop(context);
+          },
         ),
         actions: [
           IconButton(
@@ -31,24 +42,25 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         ],
       ),
       body: Column(
-        children: [
-          FutureBuilder(
-            future: PlayListOperations.getPlaylist(widget.playlistID),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData) {
-                return const Center(child: Text('No data available'));
-              } else {
-                final playlist = snapshot.data!;
-                return _buildPlaylistBody(playlist);
-              }
-            }
-          )
-        ]
+          children: [
+            FutureBuilder(
+                future: PlayListOperations.getPlaylist(widget.playlistID),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData) {
+                    return const Center(child: Text('No data available'));
+                  } else {
+                    final playlist = snapshot.data!;
+                    return _buildPlaylistBody(playlist);
+                  }
+                }
+            )
+          ]
       ),
+      // bottomNavigationBar: NavigationBarScreen(hasBody: false,),
     );
   }
 

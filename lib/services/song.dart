@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 class SongOperations {
   SongOperations._();
 
-  static Future<List<Song>> getSongs() async {
+  static Future<List<Song>> getTrendingSongs() async {
     try {
       final id = '0aiBKNSqiPnhtcw1QlXK5s';
       final token = await SpotifyToken.getTokens();
@@ -56,7 +56,7 @@ class SongOperations {
 }
 
 void main() async {
-  List<Song> songs = await SongOperations.getSongs();
+  List<Song> songs = await SongOperations.getTrendingSongs();
   for (var song in songs) {
     print('Song: ${song.title}, Artist: ${song.artist}, Image: ${song.imagePath}');
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import '../abstract_navigation_screen.dart';
 
 class HomeScreen extends AbstractScreen {
@@ -20,6 +22,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // Define song data
     final List<List<Map<String, String>>> songGroups = [
+      [
+        {
+          'thumbnail': 'assets/song1.jpg',
+          'title': 'Gói Xôi Vội',
+          'artists': 'Đạt G, DuUyen',
+        },
+        {
+          'thumbnail': 'assets/song2.jpg',
+          'title': 'Trúc Xinh',
+          'artists': 'Minh Vương M4U, VIET., ACV',
+        },
+        {
+          'thumbnail': 'assets/song3.jpg',
+          'title': 'Chạm Khẽ Tim Anh Một Chút Thôi',
+          'artists': 'Noo Phước Thịnh',
+        },
+      ],
       [
         {
           'thumbnail': 'assets/song1.jpg',
@@ -77,25 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.color_lens, color: Colors.purple.shade400),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Chủ đề',
-                                style: TextStyle(color: Colors.purple.shade400),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.mic),
                         const SizedBox(width: 10),
                         const Icon(Icons.search),
                       ],
@@ -206,71 +206,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   children: [
                     _buildPlaylistItem(
-                      image: 'assets/playlist1.jpg',
-                      title: 'Top Vietnamese',
-                      description: 'Những bài hát Việt hot nhất',
-                    ),
-                    _buildPlaylistItem(
-                      image: 'assets/playlist2.jpg',
-                      title: 'Chill Music',
-                      description: 'Thư giãn với những bản nhạc nhẹ nhàng',
-                    ),
-                    _buildPlaylistItem(
-                      image: 'assets/playlist3.jpg',
-                      title: 'EDM Mix',
-                      description: 'Năng lượng với những bản EDM hot',
-                    ),
-                  ],
-                ),
-              ),
-
-              // Recently Played Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Nghe gần đây',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                      playlist: BriefPlayList(
+                        id: '616iSon5fJRnCwYbAJZ9kE',
+                        title: 'Vietnam Top 100',
+                        picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
+                        creator: 'Top 100 Tops'
                       ),
+                      description: "The most popular songs in Vietnam",
+                      onTap: (playlistID) {
+                        return PlaylistScreen(playlistID: playlistID);
+                      },
+
+                      // image: 'assets/playlist1.jpg',
+                      // title: 'Top Vietnamese',
+                      // description: 'Những bài hát Việt hot nhất',
                     ),
-                    Icon(Icons.chevron_right),
+                    // _buildPlaylistItem(
+                    //   image: 'assets/playlist2.jpg',
+                    //   title: 'Chill Music',
+                    //   description: 'Thư giãn với những bản nhạc nhẹ nhàng',
+                    // ),
+                    // _buildPlaylistItem(
+                    //   image: 'assets/playlist3.jpg',
+                    //   title: 'EDM Mix',
+                    //   description: 'Năng lượng với những bản EDM hot',
+                    // ),
                   ],
                 ),
               ),
 
-              // Recently Played Horizontal Scrollable
-              SizedBox(
-                height: 140,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  children: [
-                    _buildRecentItem(
-                      icon: Icons.history,
-                      gradient: [Colors.blue, Colors.purple],
-                      title: 'Bài Hát Nghe\nGần Đây',
-                    ),
-                    _buildRecentItem(
-                      label: '#zingchart',
-                      hasPlayButton: true,
-                      gradient: [Colors.purple.shade800, Colors.purple.shade300],
-                      title: '#zingchart',
-                    ),
-                    _buildRecentItem(
-                      icon: Icons.music_note,
-                      iconColor: Colors.grey.shade300,
-                      backgroundColor: Colors.grey.shade100,
-                      title: 'My playlist',
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 100),
+              const SizedBox(height: 80),
             ],
           ),
         )
@@ -348,50 +313,61 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildPlaylistItem({
-    required String image,
-    required String title,
-    required String description
+    required BriefPlayList playlist,
+    required String description,
+    required Widget Function(String playlistID) onTap,
   }) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Playlist cover image
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: AssetImage(image),
-                fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => onTap(playlist.id),
+          ),
+        );
+      },
+      child: Container(
+        width: 160,
+        margin: const EdgeInsets.only(right: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Playlist cover image
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  image: Image.network(playlist.picture).image,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Flexible(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              )
+            const SizedBox(height: 8),
+            Flexible(
+              child: Text(
+                playlist.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
             ),
-          ),
-          Flexible(
-            child: Text(
-              description,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              )
+            Flexible(
+              child: Text(
+                'Description',
+                // playlist.description,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildRecentItem({
     IconData? icon,
