@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/navigation_bar_screen.dart';
 
 void main() {
+  dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
