@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/home/flash/Downloads/flutter_linux_3.29.0-stable/flutter"
-export "FLUTTER_APPLICATION_PATH=/home/flash/StudioProjects/untitled"
+export "FLUTTER_ROOT=/home/flash/snap/flutter/common/flutter"
+export "FLUTTER_APPLICATION_PATH=/home/flash/symphonia"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"
