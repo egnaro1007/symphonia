@@ -79,31 +79,27 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   Widget build(BuildContext context) {
     final colourScheme = Theme.of(context).colorScheme;
     return Scaffold(
-        body: Stack(
-          children: [
-            _screens[_selectedBody],
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+      body: _screens[_selectedBody],
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+          Visibility(
+            visible: _isNavBarVisible,
+            child: BottomNavigationBar(
+              currentIndex: _selectedBottom,
+              onTap: _onItemTapped,
+              backgroundColor: colourScheme.surface,
+              unselectedItemColor: colourScheme.onSurface,
+              selectedItemColor: colourScheme.primary,
+              showUnselectedLabels: true,
+              selectedIconTheme: IconThemeData(size: 35),
+              items: _screens.take(5).map((screen) =>
+                  BottomNavigationBarItem(icon: screen.icon, label: screen.title)
+              ).toList(),
             ),
-          ],
-        ),
-      bottomNavigationBar: Visibility (
-        visible: _isNavBarVisible,
-        child: BottomNavigationBar(
-          currentIndex: _selectedBottom,
-          onTap: _onItemTapped,
-          backgroundColor: colourScheme.surface,
-          unselectedItemColor: colourScheme.onSurface,
-          selectedItemColor: colourScheme.primary,
-          showUnselectedLabels: true,
-          selectedIconTheme: IconThemeData(size: 35),
-          items: _screens.take(5).map((screen) =>
-              BottomNavigationBarItem(icon: screen.icon, label: screen.title)
-          ).toList(),
-        ),
+          ),
+        ],
       ),
     );
   }

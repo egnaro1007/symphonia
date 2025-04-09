@@ -18,7 +18,7 @@ class TrendingHeader extends StatelessWidget {
               end: Alignment.centerRight,
             ).createShader(bounds),
             child: const Text(
-              '#zingchart',
+              '#symchart',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -26,8 +26,8 @@ class TrendingHeader extends StatelessWidget {
               ),
             ),
           ),
-          const Spacer(),
-          const Icon(Icons.mic, size: 24),
+          // const Spacer(),
+          // const Icon(Icons.mic, size: 24),
           const SizedBox(width: 16),
 
           // ElevatedButton(

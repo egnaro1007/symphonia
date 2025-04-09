@@ -34,10 +34,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
 
         actions: [
-          IconButton(
-            icon: const Icon(Icons.mic, color: Colors.black),
-            onPressed: () {},
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.mic, color: Colors.black),
+          //   onPressed: () {},
+          // ),
 
           // ElevatedButton(
           //   onPressed: () {

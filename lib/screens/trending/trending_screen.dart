@@ -59,8 +59,6 @@ class _TrendingScreenState extends State<TrendingScreen> {
                 return SongList(songs: songs);
               },
             ),
-
-            const SizedBox(height: 80),
           ],
         ),
       ),
