@@ -100,10 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SearchScreen()),
-                            );
+                            widget.onTabSelected(6, "");
                           },
                           child: const Icon(Icons.search, size: 24),
                         )

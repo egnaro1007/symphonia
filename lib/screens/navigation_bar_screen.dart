@@ -6,6 +6,7 @@ import 'trending/trending_screen.dart';
 import 'follow/follow_screen.dart';
 import 'profile/profile_screen.dart';
 import 'setting/setting_screen.dart';
+import 'search/search_screen.dart';
 import '../widgets/mini_player.dart';
 
 class NavigationBarScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
+      SearchScreen(onTabSelected: _onPlaylistSelected)
     ];
   }
 
@@ -49,15 +51,19 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     print("Selected Playlist ID: $playlistID");
 
     setState(() {
-      _playlistID = playlistID;
       _selectedBody = index; // Navigate to the Playlist screen
       if (_selectedBody >= 0 && _selectedBody < 5) {
         _selectedBottom = index;
       }
-      _screens[5] = PlaylistScreen(
-        playlistID: _playlistID,
-        onTabSelected: _onPlaylistSelected,
-      );
+
+      if (playlistID != "") {
+        _playlistID = playlistID;
+
+        _screens[5] = PlaylistScreen(
+          playlistID: _playlistID,
+          onTabSelected: _onPlaylistSelected,
+        );
+      }
     });
 
     print("Selected Playlist ID: $_playlistID");

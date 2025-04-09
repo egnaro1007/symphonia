@@ -39,15 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {},
           ),
 
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SearchScreen()),
-              );
-            },
-            child: const Icon(Icons.search, color: Colors.black),
-          )
+          // ElevatedButton(
+          //   onPressed: () {
+          //     widget.onTabSelected(6, "");
+          //   },
+          //   child: const Icon(Icons.search, color: Colors.black),
+          // )
         ],
       ),
       body: SingleChildScrollView(
