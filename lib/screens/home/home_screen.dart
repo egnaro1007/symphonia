@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
+import 'package:symphonia/screens/search/search_screen.dart';
 import '../abstract_navigation_screen.dart';
 
 class HomeScreen extends AbstractScreen {
@@ -97,7 +98,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         const SizedBox(width: 10),
-                        const Icon(Icons.search),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SearchScreen()),
+                            );
+                          },
+                          child: const Icon(Icons.search, size: 24),
+                        )
                       ],
                     ),
                   ],
@@ -212,22 +221,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
                         creator: 'Top 100 Tops'
                       ),
-                      description: "The most popular songs in Vietnam"
-
-                      // image: 'assets/playlist1.jpg',
-                      // title: 'Top Vietnamese',
-                      // description: 'Những bài hát Việt hot nhất',
+                      description: "Top những bài hát hot nhất Việt Nam"
                     ),
-                    // _buildPlaylistItem(
-                    //   image: 'assets/playlist2.jpg',
-                    //   title: 'Chill Music',
-                    //   description: 'Thư giãn với những bản nhạc nhẹ nhàng',
-                    // ),
-                    // _buildPlaylistItem(
-                    //   image: 'assets/playlist3.jpg',
-                    //   title: 'EDM Mix',
-                    //   description: 'Năng lượng với những bản EDM hot',
-                    // ),
+                    _buildPlaylistItem(
+                      playlist: BriefPlayList(
+                        id: '7hJfYpKLDQwmeHIPTmNS5y',
+                        title: 'Chill Music',
+                        picture: 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84c409e9623b8aad2f27a80040',
+                        creator: 'chill songs'
+                      ),
+                      description: 'Thư giãn với những bản nhạc nhẹ nhàng'
+                    ),
+                    _buildPlaylistItem(
+                      playlist: BriefPlayList(
+                        id: '1dvoCOb3vso33rTd4FWqRW',
+                        title: 'EDM Mix',
+                        picture: 'https://mosaic.scdn.co/640/ab67616d00001e021a5eb771120e2ee3f6a44ed7ab67616d00001e02941dd3b3343d9cb9329d37bfab67616d00001e029cfe80c0c05ce104f7bab18eab67616d00001e02ffb343926530168be4724dd4',
+                        creator: 'Akhil Sagar'
+                      ),
+                      description: 'Năng lượng với những bản EDM hot'
+                    ),
+                    _buildPlaylistItem(
+                      playlist: BriefPlayList(
+                        id: '4ckPlRonCUjkAhVnOXV6Ne',
+                        title: 'Love Songs',
+                        picture: 'https://mosaic.scdn.co/640/ab67616d00001e022ceedc8c879a1f6784fbeef5ab67616d00001e026f6fd002ef1fc6b1f3f90c87ab67616d00001e02a36f994bf8ef9912143d9a23ab67616d00001e02ad2852df5956130426085520',
+                        creator: 'Ramsey Kouri'
+                      ),
+                      description: 'Những bản tình ca ngọt ngào'
+                    ),
                   ],
                 ),
               ),
@@ -346,8 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Flexible(
               child: Text(
-                'Description',
-                // playlist.description,
+                description,
                 style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 12,
