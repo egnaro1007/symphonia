@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 abstract class AbstractScreen extends StatefulWidget {
-  const AbstractScreen({super.key});
+  final void Function(int, String) onTabSelected;
+  const AbstractScreen({super.key, required this.onTabSelected});
 
   String get title;
   Icon get icon;

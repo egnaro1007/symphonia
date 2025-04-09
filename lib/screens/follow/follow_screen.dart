@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../abstract_navigation_screen.dart';
 
 class FollowScreen extends AbstractScreen {
-  const FollowScreen({super.key});
-
   @override
   final String title = "Follow";
 
   @override
   final Icon icon = const Icon(Icons.subscriptions);
+
+  FollowScreen({required super.onTabSelected});
 
   @override
   State<FollowScreen> createState() => _FollowScreenState();

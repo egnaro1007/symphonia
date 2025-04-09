@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'abstract_navigation_screen.dart';
 import 'home/home_screen.dart';
 import 'trending/trending_screen.dart';
@@ -15,21 +16,51 @@ class NavigationBarScreen extends StatefulWidget {
 }
 
 class _NavigationBarScreenState extends State<NavigationBarScreen> {
-  int _selected = 0;
+  int _selectedBody = 0;
+  int _selectedBottom = 0;
+  String _playlistID = "";
   bool _isNavBarVisible = true;
+  late final List<AbstractScreen> _screens;
 
-  final List<AbstractScreen> _screens = [
-    const HomeScreen(),
-    const TrendingScreen(),
-    const FollowScreen(),
-    const ProfileScreen(),
-    const SettingScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(onTabSelected: _onPlaylistSelected),
+      TrendingScreen(onTabSelected: _onPlaylistSelected),
+      FollowScreen(onTabSelected: _onPlaylistSelected),
+      ProfileScreen(onTabSelected: _onPlaylistSelected),
+      SettingScreen(onTabSelected: _onPlaylistSelected),
+      PlaylistScreen(
+        playlistID: _playlistID,
+        onTabSelected: _onPlaylistSelected,
+      ),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
-      _selected = index;
+      _selectedBottom = index;
+      _selectedBody = index;
     });
+  }
+
+  void _onPlaylistSelected(int index, String playlistID) {
+    print("Selected Playlist ID: $playlistID");
+
+    setState(() {
+      _playlistID = playlistID;
+      _selectedBody = index; // Navigate to the Playlist screen
+      if (_selectedBody >= 0 && _selectedBody < 5) {
+        _selectedBottom = index;
+      }
+      _screens[5] = PlaylistScreen(
+        playlistID: _playlistID,
+        onTabSelected: _onPlaylistSelected,
+      );
+    });
+
+    print("Selected Playlist ID: $_playlistID");
   }
 
   void toggleNavigationBar(bool isExpanded) {
@@ -44,7 +75,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     return Scaffold(
         body: Stack(
           children: [
-            _screens[_selected],
+            _screens[_selectedBody],
             Positioned(
               bottom: 0,
               left: 0,
@@ -56,14 +87,14 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       bottomNavigationBar: Visibility (
         visible: _isNavBarVisible,
         child: BottomNavigationBar(
-          currentIndex: _selected,
+          currentIndex: _selectedBottom,
           onTap: _onItemTapped,
           backgroundColor: colourScheme.surface,
           unselectedItemColor: colourScheme.onSurface,
           selectedItemColor: colourScheme.primary,
           showUnselectedLabels: true,
           selectedIconTheme: IconThemeData(size: 35),
-          items: _screens.map((screen) =>
+          items: _screens.take(5).map((screen) =>
               BottomNavigationBarItem(icon: screen.icon, label: screen.title)
           ).toList(),
         ),

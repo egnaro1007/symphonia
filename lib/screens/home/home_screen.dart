@@ -4,13 +4,13 @@ import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import '../abstract_navigation_screen.dart';
 
 class HomeScreen extends AbstractScreen {
-  const HomeScreen({super.key});
-
   @override
   final String title = "Home";
 
   @override
   final Icon icon = const Icon(Icons.home);
+
+  HomeScreen({required super.onTabSelected});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -212,10 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
                         creator: 'Top 100 Tops'
                       ),
-                      description: "The most popular songs in Vietnam",
-                      onTap: (playlistID) {
-                        return PlaylistScreen(playlistID: playlistID);
-                      },
+                      description: "The most popular songs in Vietnam"
 
                       // image: 'assets/playlist1.jpg',
                       // title: 'Top Vietnamese',
@@ -314,16 +311,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPlaylistItem({
     required BriefPlayList playlist,
-    required String description,
-    required Widget Function(String playlistID) onTap,
+    required String description
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => onTap(playlist.id),
-          ),
-        );
+        widget.onTabSelected(5, playlist.id);
       },
       child: Container(
         width: 160,

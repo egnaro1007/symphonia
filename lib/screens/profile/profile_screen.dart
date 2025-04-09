@@ -5,13 +5,13 @@ import 'package:symphonia/screens/search/search_screen.dart';
 import '../abstract_navigation_screen.dart';
 
 class ProfileScreen extends AbstractScreen {
-  const ProfileScreen({super.key});
-
   @override
   final String title = "Profile";
 
   @override
   final Icon icon = const Icon(Icons.person);
+
+  ProfileScreen({required super.onTabSelected});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -92,17 +92,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _buildRecentItem('Bài Hát Nghe\nGần Đây', Colors.blue.shade800, Colors.purple,  onTap: () {
-                      return PlaylistScreen(playlistID: "symchart");
-                    }),
+                    _buildRecentItem('Bài Hát Nghe\nGần Đây', Colors.blue.shade800, Colors.purple),
                     const SizedBox(width: 12),
-                    _buildRecentItem('#zingchart', Colors.purple, Colors.purple, onTap: () {
-                      return PlaylistScreen(playlistID: "symchart");
-                    }),
+                    _buildRecentItem('#zingchart', Colors.purple, Colors.purple),
                     const SizedBox(width: 12),
-                    _buildRecentItem('My playlist', Colors.grey.shade800, Colors.grey.shade800,  onTap: () {
-                      return PlaylistScreen(playlistID: "symchart");
-                    }),
+                    _buildRecentItem('My playlist', Colors.grey.shade800, Colors.grey.shade800),
                   ],
                 ),
               ),
@@ -110,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 24),
 
               // Playlists Section
-              PlayListComponent()
+              PlayListComponent(onTabSelected: widget.onTabSelected),
             ],
           ),
         ),
@@ -146,18 +140,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildRecentItem(
-      String title,
-      Color startColor,
-      Color endColor, {
-        required Widget Function() onTap,
-      }) {
+  Widget _buildRecentItem(String title, Color startColor, Color endColor) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => onTap()),
-        );
+        widget.onTabSelected(5, "symchart");
       },
       child: Container(
         width: 120,

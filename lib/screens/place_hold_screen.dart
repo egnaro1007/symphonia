@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'abstract_navigation_screen.dart';
 
 class PlaceHoldScreen extends AbstractScreen {
-  const PlaceHoldScreen({super.key});
+  const PlaceHoldScreen({super.key, required super.onTabSelected});
 
   @override
   final String title = "PlaceHold";

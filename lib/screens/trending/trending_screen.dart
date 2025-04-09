@@ -7,13 +7,13 @@ import '../../models/song.dart';
 import '../abstract_navigation_screen.dart';
 
 class TrendingScreen extends AbstractScreen {
-  const TrendingScreen({super.key});
-
   @override
   final String title = "Trending";
 
   @override
   final Icon icon = const Icon(Icons.timeline);
+
+  TrendingScreen({required super.onTabSelected});
 
   @override
   State<TrendingScreen> createState() => _TrendingScreenState();

@@ -6,7 +6,11 @@ import 'package:symphonia/services/playlist.dart';
 
 class PlaylistScreen extends AbstractScreen {
   final String playlistID;
-  const PlaylistScreen({super.key, required this.playlistID});
+  const PlaylistScreen({
+    super.key,
+    required this.playlistID,
+    required super.onTabSelected,
+  });
 
   @override
   State<PlaylistScreen> createState() => _PlaylistScreenState();
@@ -23,6 +27,9 @@ class PlaylistScreen extends AbstractScreen {
 class _PlaylistScreenState extends State<PlaylistScreen> {
   @override
   Widget build(BuildContext context) {
+    // Print the playlist ID for debugging
+    print("Playlist ID: ${widget.playlistID}");
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -31,7 +38,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             // Navigate back to the previous screen
-            Navigator.pop(context);
+            widget.onTabSelected(3, "symchart");
           },
         ),
         actions: [

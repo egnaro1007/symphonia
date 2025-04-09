@@ -4,7 +4,9 @@ import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 
 class PlayListComponent extends StatefulWidget {
-  const PlayListComponent({super.key});
+  final void Function(int, String) onTabSelected;
+
+  const PlayListComponent({super.key, required this.onTabSelected});
 
   @override
   State<PlayListComponent> createState() => _PlayListComponentState();
@@ -180,14 +182,8 @@ class _PlayListComponentState extends State<PlayListComponent> {
         icon: const Icon(Icons.favorite_border),
         onPressed: () {},
       ),
-
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PlaylistScreen(playlistID: id),
-          ),
-        );
+      onTap: () => {
+        widget.onTabSelected(5, id),
       },
     );
   }
