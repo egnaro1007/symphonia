@@ -56,9 +56,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
                 );
               }
             },
-          ),
-
-          const SizedBox(height: 80),
+          )
         ],
       ),
     );
