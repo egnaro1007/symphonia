@@ -4,17 +4,15 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
 
 class SearchScreen extends AbstractScreen {
-  SearchScreen({required super.onTabSelected});
+  const SearchScreen({super.key, required super.onTabSelected});
 
   @override
   _SearchPageState createState() => _SearchPageState();
 
   @override
-  // TODO: implement icon
   Icon get icon => Icon(Icons.search);
 
   @override
-  // TODO: implement title
   String get title => "Search";
 }
 
@@ -22,12 +20,12 @@ class _SearchPageState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController(text: "");
   List<String> _searchSuggestions = [];
   List<SearchResult> _searchResults = [];
+  bool _isSearchSubmitted = false;
 
   @override
   void initState() {
     super.initState();
-    // Initial search when the page loads
-    _updateSearchResults(_searchController.text);
+    _updateSearchSuggestions(_searchController.text);
   }
 
   @override
@@ -36,12 +34,19 @@ class _SearchPageState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _updateSearchResults(String query) async {
-     var results = await Searching.searchResults(query);
-
+  void _updateSearchSuggestions(String query) {
+    var suggestions = Searching.searchSuggestions(query);
     setState(() {
-      _searchSuggestions = Searching.searchSuggestions(query);
+      _searchSuggestions = suggestions;
+      _isSearchSubmitted = false;
+    });
+  }
+
+  void _updateSearchResults(String query) async {
+    var results = await Searching.searchResults(query);
+    setState(() {
       _searchResults = results;
+      _isSearchSubmitted = true;
     });
   }
 
@@ -88,6 +93,9 @@ class _SearchPageState extends State<SearchScreen> {
                               hintText: "Search",
                             ),
                             onChanged: (value) {
+                              _updateSearchSuggestions(value);
+                            },
+                            onSubmitted: (value) {
                               _updateSearchResults(value);
                             },
                           ),
@@ -96,7 +104,10 @@ class _SearchPageState extends State<SearchScreen> {
                           icon: Icon(Icons.close),
                           onPressed: () {
                             _searchController.clear();
-                            _updateSearchResults("");
+                            setState(() {
+                              _isSearchSubmitted = false;
+                              _searchResults = [];
+                            });
                           },
                         ),
                       ],
@@ -110,77 +121,91 @@ class _SearchPageState extends State<SearchScreen> {
           Divider(height: 1),
 
           // Search results
-          Expanded(
-            child: _searchController.text.isEmpty
-                ? Center(
-              child: Text("Enter text to search"),
-            )
-                : ListView(
-              children: [
-                // Suggestions
-                ..._searchSuggestions.map((suggestion) =>
-                    _buildSearchSuggestion(suggestion)),
-
-                // Results
-                ..._searchResults.map((result) {
-                  if (result is SongSearchResult) {
-                    return _buildSearchResult(
-                      result.name,
-                      result.artist,
-                      result.image,
-                    );
-                  } else if (result is ArtistSearchResult) {
-                    return _buildArtistProfile(
-                      result.name,
-                      "Nghệ sĩ",
-                      result.image,
-                    );
-                  } else if (result is PlaylistSearchResult) {
-                    return buildPlaylistResult(
-                      result.name,
-                      result.artist,
-                      result.image,
-                    );
-                  }
-                  return Container();
-                }),
-
-                if (_searchResults.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: Text(
-                        "Xem tất cả kết quả",
-                        style: TextStyle(
-                          color: Colors.purple,
-                          fontSize: 16,
-                        ),
+          if (_isSearchSubmitted)
+            Expanded(
+              flex: 2,
+              child: DefaultTabController(
+                length: 3,
+                child: Column(
+                  children: [
+                    TabBar(
+                      labelColor: Colors.black,
+                      unselectedLabelColor: Colors.grey,
+                      indicatorColor: Colors.deepPurple,
+                      tabs: [
+                        Tab(text: "Songs"),
+                        Tab(text: "Artists"),
+                        Tab(text: "Albums"),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          // Songs tab
+                          _buildResultsTab<SongSearchResult>(
+                            (result) => _buildSongResult(
+                              result.name,
+                              result.artist,
+                              result.image,
+                            ),
+                          ),
+                          // Artists tab
+                          _buildResultsTab<ArtistSearchResult>(
+                            (result) => _buildArtistResult(
+                              result.name,
+                              "Artist",
+                              result.image,
+                            ),
+                          ),
+                          // Albums tab
+                          _buildResultsTab<PlaylistSearchResult>(
+                            (result) => _buildPlaylistResult(
+                              result.name,
+                              result.artist,
+                              result.image,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
+            )
+          // Suggestions
+          else
+            Expanded(
+              flex: 1,
+              child: ListView(
+                children: _searchSuggestions.map((suggestion) {
+                  return ListTile(
+                    leading: Icon(Icons.search, color: Colors.grey),
+                    title: Text(suggestion),
+                    dense: true,
+                    onTap: () {
+                      _searchController.text = suggestion;
+                      _updateSearchResults(suggestion);
+                    },
+                  );
+                }).toList(),
+              ),
             ),
-          ),
         ],
-      )
+      ),
     );
   }
 
-  Widget _buildSearchSuggestion(String text) {
-    return ListTile(
-      leading: Icon(Icons.search, color: Colors.grey),
-      title: Text(text),
-      dense: true,
-      onTap: () {
-        setState(() {
-          _searchController.text = text;
-          _updateSearchResults(text);
-        });
-      },
+  Widget _buildResultsTab<T>(Widget Function(T result) builder) {
+    final filteredResults = _searchResults.whereType<T>().cast<T>().toList();
+    if (filteredResults.isEmpty) {
+      return Center(child: Text("No results found"));
+    }
+    return ListView(
+      children: filteredResults.map(builder).toList(),
     );
   }
 
-  Widget _buildSearchResult(String title, String artist, String imagePath) {
+  Widget _buildSongResult(String title, String artist, String imagePath) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -210,7 +235,7 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildArtistProfile(String name, String subtitle, String imagePath) {
+  Widget _buildArtistResult(String name, String subtitle, String imagePath) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -232,7 +257,7 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  Widget buildPlaylistResult(String name, String artist, String imagePath) {
+  Widget _buildPlaylistResult(String name, String artist, String imagePath) {
     return ListTile(
       leading: Container(
         width: 50,

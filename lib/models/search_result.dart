@@ -1,41 +1,64 @@
 abstract class SearchResult {
-  String id;
-  String name;
-  String image;
+  final String _id;
+  final String _name;
+  final String _image;
 
   SearchResult({
-    required this.id,
-    required this.name,
-    required this.image,
-  });
+    required String id,
+    required String name,
+    required String image,
+  })  : _id = id,
+        _name = name,
+        _image = image;
+
+  String get id => _id;
+  String get name => _name;
+  String get image => _image;
 }
 
 class SongSearchResult extends SearchResult {
-  String artist;
+  final String _artist;
 
   SongSearchResult({
-    required String id,
-    required String name,
-    required this.artist,
-    required String image,
-  }) : super(id: id, name: name, image: image);
+    required super.id,
+    required super.name,
+    required super.image,
+    required String artist,
+  })  : _artist = artist;
+
+  String get artist => _artist;
 }
 
 class ArtistSearchResult extends SearchResult {
   ArtistSearchResult({
-    required String id,
-    required String name,
-    required String image,
-  }) : super(id: id, name: name, image: image);
+    required super.id,
+    required super.name,
+    required super.image,
+  });
+}
+
+class AlbumSearchResult extends SearchResult {
+  final String _artist;
+
+  AlbumSearchResult({
+    required super.id,
+    required super.name,
+    required super.image,
+    required String artist,
+  })  : _artist = artist;
+
+  String get artist => _artist;
 }
 
 class PlaylistSearchResult extends SearchResult {
-  String artist;
+  final String _artist;
 
   PlaylistSearchResult({
-    required String id,
-    required String name,
-    required String image,
-    required this.artist,
-  }) : super(id: id, name: name, image: image);
+    required super.id,
+    required super.name,
+    required super.image,
+    required String artist,
+  })  : _artist = artist;
+
+  String get artist => _artist;
 }
