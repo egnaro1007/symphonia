@@ -1,32 +1,37 @@
 abstract class SearchResult {
-  final String _id;
+  final int _id;
   final String _name;
   final String _image;
 
   SearchResult({
-    required String id,
+    required int id,
     required String name,
     required String image,
   })  : _id = id,
         _name = name,
         _image = image;
 
-  String get id => _id;
+  int get id => _id;
   String get name => _name;
   String get image => _image;
 }
 
 class SongSearchResult extends SearchResult {
   final String _artist;
+  final String _audio_url;
 
   SongSearchResult({
     required super.id,
     required super.name,
     required super.image,
     required String artist,
-  })  : _artist = artist;
+    required String audio_url,
+  })  : _artist = artist,
+        _audio_url = audio_url;
 
   String get artist => _artist;
+  String get audio_url => _audio_url;
+
 }
 
 class ArtistSearchResult extends SearchResult {

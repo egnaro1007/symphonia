@@ -158,8 +158,8 @@ class _SearchPageState extends State<SearchScreen> {
                             ),
                           ),
                           // Albums tab
-                          _buildResultsTab<PlaylistSearchResult>(
-                            (result) => _buildPlaylistResult(
+                          _buildResultsTab<AlbumSearchResult>(
+                            (result) => _buildAlbumResult(
                               result.name,
                               result.artist,
                               result.image,
@@ -254,6 +254,36 @@ class _SearchPageState extends State<SearchScreen> {
       ),
       subtitle: Text(subtitle),
       trailing: Icon(Icons.chevron_right),
+    );
+  }
+
+  Widget _buildAlbumResult(String name, String artist, String imagePath) {
+    return ListTile(
+      leading: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Icon(Icons.playlist_play),
+        ),
+      ),
+      title: Text(
+        name,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(artist),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.play_circle_outline),
+          SizedBox(width: 16),
+          Icon(Icons.more_vert),
+        ],
+      ),
     );
   }
 

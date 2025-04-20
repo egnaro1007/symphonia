@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/spotify_token.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,17 +26,58 @@ class Searching {
     }
   }
 
-  // Mock function for search results
   static Future<List<SearchResult>> searchResults(String word) async {
-    // This would typically be an API call or database query
-    if (word.length > 0) {
-      List<SearchResult> results = [];
-      results.addAll(await getSongSearchResults(word));
-      results.addAll(await getArtistSearchResults(word));
-      results.addAll(await getPlaylistSearchResults(word));
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    final String encodedWord = Uri.encodeComponent(word);
+    final int maxResults = 5;
 
+    List<SearchResult> results = [];
+
+    final uri = Uri.parse(
+        '$serverUrl/api/library/search/?query=$encodedWord&max_results=$maxResults');
+
+    try {
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        for (var song in data['songs']) {
+          results.add(SongSearchResult(
+            id: song['id'],
+            name: song['title'],
+            artist: song['artist']
+                .map((artist) => artist['name'])
+                .join(', '),
+            image: song['cover_art'] ?? '',
+            audio_url: song['audio']
+          ));
+        }
+
+        for (var artist in data['artists']) {
+          results.add(ArtistSearchResult(
+              id: artist['id'],
+              name: artist['name'],
+              image: artist['artist_picture'] ?? ''
+          ));
+        }
+
+        for (var song in data['albums']) {
+          results.add(AlbumSearchResult(
+              id: song['id'],
+              name: song['title'],
+              artist: song['artist']
+                  .map((artist) => artist['name'])
+                  .join(', '),
+              image: song['cover_art'] ?? ''
+          ));
+        }
+      }
+      print (results);
       return results;
-    } else {
+    }
+    catch (e) {
+      print(e);
       return [];
     }
   }
@@ -67,6 +109,7 @@ class Searching {
                 .map((artist) => artist['name'])
                 .join(', '),
             image: track['album']['images'][0]['url'],
+            audio_url: 'example.com',
           ));
         }
         return songs;
