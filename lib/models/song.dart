@@ -1,13 +1,13 @@
 class Song {
-  String rank;
   String title;
   String artist;
   String imagePath;
+  String audioUrl;
 
   Song({
-    required this.rank,
-    required this.title,
-    required this.artist,
-    required this.imagePath,
+    this.title = "",
+    this.artist = "",
+    this.imagePath = "",
+    this.audioUrl = "",
   });
 }

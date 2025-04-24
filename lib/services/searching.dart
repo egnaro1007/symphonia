@@ -49,8 +49,10 @@ class Searching {
             artist: song['artist']
                 .map((artist) => artist['name'])
                 .join(', '),
-            image: song['cover_art'] ?? '',
-            audio_url: song['audio']
+            image: song['cover_art'] != null && song['cover_art'].isNotEmpty
+                ? serverUrl + song['cover_art']
+                : '',
+            audio_url: serverUrl + song['audio']
           ));
         }
 
@@ -73,7 +75,6 @@ class Searching {
           ));
         }
       }
-      print (results);
       return results;
     }
     catch (e) {

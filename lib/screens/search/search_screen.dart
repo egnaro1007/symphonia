@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
+import '../../controller/player_controller.dart';
 
 class SearchScreen extends AbstractScreen {
   const SearchScreen({super.key, required super.onTabSelected});
@@ -144,9 +146,7 @@ class _SearchPageState extends State<SearchScreen> {
                           // Songs tab
                           _buildResultsTab<SongSearchResult>(
                             (result) => _buildSongResult(
-                              result.name,
-                              result.artist,
-                              result.image,
+                              result
                             ),
                           ),
                           // Artists tab
@@ -205,7 +205,7 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSongResult(String title, String artist, String imagePath) {
+  Widget _buildSongResult(SongSearchResult result) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -220,14 +220,25 @@ class _SearchPageState extends State<SearchScreen> {
         ),
       ),
       title: Text(
-        title,
+        result.name,
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      subtitle: Text(artist),
+      subtitle: Text(result.artist),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.play_circle_outline),
+          IconButton(
+            icon: Icon(Icons.play_circle_outline),
+            onPressed: () {
+              Song song = Song(
+                title: result.name,
+                artist: result.artist,
+                imagePath: result.image,
+                audioUrl: result.audio_url,
+              );
+              PlayerController.getInstance().loadSong(song);
+            }
+          ),
           SizedBox(width: 16),
           Icon(Icons.more_vert),
         ],

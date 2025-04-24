@@ -86,12 +86,13 @@ class PlayListOperations {
           duration += track['track']['duration_ms'] as int;
 
           songs.add(Song(
-            rank: songID.toString(),
+            // rank: songID.toString(),
             title: track['track']['name'],
             artist: track['track']['artists']
                 .map((artist) => artist['name'])
                 .join(', '),
             imagePath: track['track']['album']['images'][0]['url'],
+            audioUrl: "",
           ));
         }
 

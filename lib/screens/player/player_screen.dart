@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/controller/player_controller.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:symphonia/models/song.dart';
 
 class PlayerScreen extends StatefulWidget {
   final VoidCallback closePlayer;
@@ -14,6 +15,7 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   final PlayerController _playerController = PlayerController.getInstance();
   bool _isPlaying = false;
+  Song playingSong = Song();
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
@@ -22,28 +24,52 @@ class _PlayerScreenState extends State<PlayerScreen> {
     super.initState();
 
     // Load the song
-    _playerController.loadSongFromUrl("http://192.168.1.111:8000/song.mp3");
+    // _playerController.loadSongFromUrl("http://192.168.1.111:8000/song.mp3");
     // _playerController.loadSongFromFile(filePath);
+
+    _isPlaying = _playerController.isPlaying();
+    _playerController.getDuration().then((duration) {
+      if (mounted) {
+        setState(() {
+          _totalDuration = duration;
+        });
+      }
+    });
 
     // Listen to position updates
     _playerController.onPositionChanged.listen((position) {
-      setState(() {
-        _currentPosition = position;
-      });
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }
     });
 
     // Listen to state changes
     _playerController.onPlayerStateChanged.listen((state) {
-      setState(() {
-        _isPlaying = state == PlayerState.playing;
-      });
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
     });
 
     // Listen to total duration
     _playerController.onDurationChanged.listen((duration) {
-      setState(() {
-        _totalDuration = duration;
-      });
+      if (mounted) {
+        setState(() {
+          _totalDuration = duration;
+        });
+      }
+    });
+
+    // Listen to song info change
+    _playerController.onSongChange.listen((song) {
+      if (mounted) {
+        setState(() {
+          playingSong = song;
+        });
+      }
     });
   }
 
@@ -63,14 +89,38 @@ class _PlayerScreenState extends State<PlayerScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Container(
-              height: 200,
-              width: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.music_note, size: 100, color: Colors.white),
+            child: Column(
+              children: [
+                Container(
+                  height: 200,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _playerController.playingSong.imagePath.isEmpty
+                    ? Icon(Icons.music_note, size: 100, color: Colors.white)
+                    : ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        _playerController.playingSong.imagePath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.music_note, size: 100, color: Colors.white),
+                      ),
+                    ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _playerController.playingSong.title,
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  _playerController.playingSong.artist,
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
           Padding(
@@ -78,10 +128,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
             child: Column(
               children: [
                 Slider(
-                  value: _currentPosition.inSeconds.toDouble(),
-                  max: _totalDuration.inSeconds.toDouble(),
+                  value: _totalDuration.inSeconds > 0 ? _currentPosition.inSeconds.toDouble() : 0.0,
+                  max: _totalDuration.inSeconds > 0 ? _totalDuration.inSeconds.toDouble() : 1.0,
                   onChanged: (value) {
-                    _playerController.seek(Duration(seconds: value.toInt()));
+                    if (_totalDuration.inSeconds > 0) {
+                      _playerController.seek(Duration(seconds: value.toInt()));
+                    }
                   },
                   activeColor: Colors.white,
                   inactiveColor: Colors.grey,
@@ -143,6 +195,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _playerController.onPositionChanged.drain();
+    _playerController.onPlayerStateChanged.drain();
+    _playerController.onDurationChanged.drain();
+    super.dispose();
   }
 
   String _formatDuration(Duration duration) {

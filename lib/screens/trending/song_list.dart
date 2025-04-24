@@ -53,7 +53,7 @@ class SongList extends StatelessWidget {
                 SizedBox(
                   width: 24,
                   child: Text(
-                    song.rank,
+                    song.title,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
