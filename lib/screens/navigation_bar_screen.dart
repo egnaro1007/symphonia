@@ -79,11 +79,18 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   Widget build(BuildContext context) {
     final colourScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: _screens[_selectedBody],
+      body: Column(
+        children: [
+          if (_isNavBarVisible)
+            Expanded(
+              child: _screens[_selectedBody],
+            ),
+          MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+        ]
+      ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          MiniPlayer(expandPlayerCallback: toggleNavigationBar),
           Visibility(
             visible: _isNavBarVisible,
             child: BottomNavigationBar(
