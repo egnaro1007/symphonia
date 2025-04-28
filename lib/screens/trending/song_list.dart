@@ -32,6 +32,7 @@ class SongList extends StatelessWidget {
 
   Widget buildSongItem(BuildContext context, {
     required Song song,
+    required int rank,
     bool isSelected = false
   }) {
     return
@@ -53,7 +54,7 @@ class SongList extends StatelessWidget {
                 SizedBox(
                   width: 24,
                   child: Text(
-                    song.title,
+                    rank.toString(),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -124,6 +125,7 @@ class SongList extends StatelessWidget {
             for (var i = 0; i < songs.length; i++)
               buildSongItem(
                 context,
+                rank: i + 1,
                 song: songs[i],
                 isSelected: i == 0,
               ),
