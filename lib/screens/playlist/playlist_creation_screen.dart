@@ -192,6 +192,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                   onPressed: _isButtonActive ? () async {
                     // Get the playlist name
                     String playlistName = _nameController.text;
+                    print("Playlist: $playlistName");
 
                     // Call the addPlaylist function from the Playlist class
                     bool success = await PlayListOperations.addPlaylist(playlistName, _isPrivate);

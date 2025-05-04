@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:symphonia/mock_data/playlist/playlist.dart';
 
 import 'package:symphonia/models/playlist.dart';
 import 'package:http/http.dart' as http;
@@ -143,17 +142,24 @@ class PlayListOperations {
   static Future<bool> addPlaylist(String name, bool public) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
-      final url = Uri.parse('$serverUrl/api/library/playlists');
-      print("Url: $url");
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': name,
-          'description': '',
-          'share_permission': (public) ? 'public' : 'private',
-        }),
-      );
+      final url = Uri.parse('$serverUrl/api/library/playlists/');  // Removed trailing slash
+        print("Url: $url");
+
+        final response = await http.post(
+          url,
+          headers: {
+            "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+            "Content-Type": "application/json",  // Added content type header
+          },
+          body: jsonEncode({
+            'name': name,
+            'description': 'Playlist is created by API',
+            'songs': [],
+            'share_permission': (public) ? 'public' : 'private',
+          }),
+        );
+
+      print("Response: $response");
 
       if (response.statusCode == 201) {
         return true;
@@ -277,6 +283,41 @@ class PlayListOperations {
           //playlist['creator'],
           songs: []
       ); // Fallback to mock data
+    }
+  }
+
+  static Future<bool> addSongToPlaylist(String playlistID, String songID) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/add-song-to-playlist/');
+      print("Url: $url");
+
+      print("Song ID: $songID");
+      print("Playlist ID: $playlistID");
+
+      final response = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+          "Content-Type": "application/json",  // Added content type header
+        },
+        body: jsonEncode({
+          'song_id': songID,
+          'playlist_id': playlistID,
+        }),
+      );
+
+      print("Response: $response");
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return true;
+      } else {
+        print('Failed to add song to playlist: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error adding song to playlist: $e');
+      return false;
     }
   }
 }

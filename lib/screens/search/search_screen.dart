@@ -245,7 +245,7 @@ class _SearchPageState extends State<SearchScreen> {
           IconButton(
             icon: Icon(Icons.more_vert),
             onPressed: () {
-              _showSongOptions(context, result.name);
+              _showSongOptions(context, result.id.toString());
             },
           ),
         ],
@@ -253,7 +253,7 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  void _showSongOptions(BuildContext context, String songTitle) {
+  void _showSongOptions(BuildContext context, String songID) {
     showModalBottomSheet(
       context: context,
       builder: (_) {
@@ -287,8 +287,9 @@ class _SearchPageState extends State<SearchScreen> {
                           title: Text(localPlaylists[index].title),
                           onTap: () {
                             // Add song to the selected playlist
-                            // PlayListOperations.addSongToPlaylist(songTitle, localPlaylists[index]);
-                            // Navigator.pop(context);
+                            print("Song ID: $songID");
+                            PlayListOperations.addSongToPlaylist(localPlaylists[index].id, songID);
+                            Navigator.pop(context);
                           },
                         );
                       },
