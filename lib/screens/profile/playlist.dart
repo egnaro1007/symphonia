@@ -134,29 +134,60 @@ class _PlayListComponentState extends State<PlayListComponent> {
   }
 
   Widget _buildPlaylistTile(PlayList playlist) {
-    return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          color: Colors.grey[300],
-        ),
-        // Replace with actual image
-        child: const Center(child: Icon(Icons.music_note)),
-      ),
-      title: Text(
-        playlist.title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: Text(playlist.creator),
-      onTap: () {
-        widget.onTabSelected(6, playlist.id);
-      },
-    );
-  }
+        return ListTile(
+          leading: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              color: Colors.grey[300],
+            ),
+            // Replace with actual image
+            child: const Center(child: Icon(Icons.music_note)),
+          ),
+          title: Text(
+            playlist.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(playlist.creator),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.grey),
+            onPressed: () async {
+              // Show confirmation dialog
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Xóa playlist'),
+                    content: Text('Bạn có chắc chắn muốn xóa playlist "${playlist.title}"?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Hủy'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (confirm == true) {
+                print("Deleted playlist with ID: ${playlist.id}");
+                await PlayListOperations.deletePlaylist(playlist.id);
+                _loadPlaylists();
+              }
+            },
+          ),
+          onTap: () {
+            widget.onTabSelected(6, playlist.id);
+          },
+        );
+      }
 
   Widget _buildRecommendedPlaylistHeader() {
     return Padding(

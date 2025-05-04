@@ -173,6 +173,34 @@ class PlayListOperations {
     }
   }
 
+  // Delete playlist
+  static Future<bool> deletePlaylist(String id) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/playlists/$id/');  // Removed trailing slash
+      print("Url: $url");
+
+      final response = await http.delete(
+        url,
+        headers: {
+          "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+        },
+      );
+
+      print("Response: $response");
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print('Failed to delete playlist: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error deleting playlist: $e');
+      return false;
+    }
+  }
+
   static Future<List<PlayList>> getLocalPlaylists() async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
