@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:symphonia/mock_data/playlist/playlist.dart';
 
 import 'package:symphonia/models/playlist.dart';
 import 'package:http/http.dart' as http;
@@ -134,6 +136,147 @@ class PlayListOperations {
     } catch (e) {
       print("Error: $e");
       throw Exception('Failed to load playlists');
+    }
+  }
+
+  // Add playlist
+  static Future<bool> addPlaylist(String name, bool public) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/playlists');
+      print("Url: $url");
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'description': '',
+          'share_permission': (public) ? 'public' : 'private',
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print('Failed to add playlist: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error adding playlist: $e');
+      return false;
+    }
+  }
+
+  static Future<List<PlayList>> getLocalPlaylists() async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/playlists');
+      print("Url: $url");
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${dotenv.env['ACCESS_TOKEN']}',
+        },
+      );
+
+      print("Response: $response");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print("Data: $data");
+        List<PlayList> playlists = [];
+        for (var playlist in data) {
+          playlists.add(PlayList(
+            id: playlist['id'].toString(),
+            title: playlist['name'],
+            description: playlist['description'],
+            duration: 0,
+            picture: '', //playlist['picture'],
+            creator: 'Thanh', //playlist['creator'],
+            songs: []
+          ));
+        }
+
+        return playlists;
+      } else {
+        print('Failed to load local playlists: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching local playlists: $e');
+      return []; // Fallback to mock data
+    }
+  }
+
+  static Future<PlayList> getLocalPlaylist(String id) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/playlists/$id');
+      print("Url: $url");
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${dotenv.env['ACCESS_TOKEN']}',
+        },
+      );
+
+      print("Response: $response");
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        print("Data: $data");
+
+        var playlist = PlayList(
+            id: data['id'].toString(),
+            title: data['name'],
+            description: data['description'],
+            duration: 0,
+            picture: '',
+            //playlist['picture'],
+            creator: 'Thanh',
+            //playlist['creator'],
+            songs: []
+        );
+
+        for (var song in data['songs']) {
+          int id = song['id'];
+
+          playlist.songs.add(Song(
+            title: song['title'],
+            artist: song['artist'][0]['name'],
+            imagePath: song['cover_art'] ?? 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png',
+            audioUrl: 'http://${dotenv.env['SERVER_URL']}/api/library/songs/$id/',
+          ));
+        }
+
+        return playlist;
+      } else {
+        print('Failed to load local playlists: ${response.statusCode}');
+        return PlayList(
+            id: id,
+            title: '',
+            description: '',
+            duration: 0,
+            picture: '',
+            //playlist['picture'],
+            creator: 'Thanh',
+            //playlist['creator'],
+            songs: []
+        );
+      }
+    } catch (e) {
+      print('Error fetching local playlists: $e');
+      return PlayList(
+          id: id,
+          title: '',
+          description: '',
+          duration: 0,
+          picture: '',
+          //playlist['picture'],
+          creator: 'Thanh',
+          //playlist['creator'],
+          songs: []
+      ); // Fallback to mock data
     }
   }
 }

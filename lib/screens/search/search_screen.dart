@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/searching.dart';
 import '../../controller/player_controller.dart';
 
@@ -240,9 +242,74 @@ class _SearchPageState extends State<SearchScreen> {
             }
           ),
           SizedBox(width: 16),
-          Icon(Icons.more_vert),
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: () {
+              _showSongOptions(context, result.name);
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  void _showSongOptions(BuildContext context, String songTitle) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.download),
+              title: Text('Tải về'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: Icon(Icons.favorite_border),
+              title: Text('Thêm vào thư viện'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: Icon(Icons.playlist_add),
+              title: Text('Thêm vào playlist'),
+              onTap: () async {
+                // Get all local playlists
+                List<PlayList> localPlaylists = await PlayListOperations.getLocalPlaylists();
+
+                // Show playlist options
+                showModalBottomSheet(
+                  context: context,
+                  builder: (_) {
+                    return ListView.builder(
+                      itemCount: localPlaylists.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(localPlaylists[index].title),
+                          onTap: () {
+                            // Add song to the selected playlist
+                            // PlayListOperations.addSongToPlaylist(songTitle, localPlaylists[index]);
+                            // Navigator.pop(context);
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.auto_awesome),
+              title: Text('Phát bài hát & nội dung tương tự'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: Icon(Icons.queue_music),
+              title: Text('Thêm vào danh sách phát'),
+              onTap: () {},
+            ),
+          ],
+        );
+      },
     );
   }
 

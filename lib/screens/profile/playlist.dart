@@ -3,6 +3,8 @@ import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 
+import '../playlist/playlist_creation_screen.dart';
+
 class PlayListComponent extends StatefulWidget {
   final void Function(int, String) onTabSelected;
 
@@ -13,6 +15,21 @@ class PlayListComponent extends StatefulWidget {
 }
 
 class _PlayListComponentState extends State<PlayListComponent> {
+  late List<PlayList> playlists = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlaylists();
+  }
+
+  Future<void> _loadPlaylists() async {
+    final loadedPlaylists = await PlayListOperations.getLocalPlaylists();
+    setState(() {
+      playlists = loadedPlaylists;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -28,8 +45,12 @@ class _PlayListComponentState extends State<PlayListComponent> {
           const Divider(),
           _buildCreatePlaylistTile(),
 
-          _buildPlaylistTile('My playlist', 'Thanh', 'assets/album1.jpg'),
-          _buildPlaylistTile('download', 'Thanh', 'assets/album2.jpg'),
+          const Divider(),
+          ...playlists.map((playlist) {
+            return _buildPlaylistTile(
+              playlist
+            );
+          }).toList(),
 
           const SizedBox(height: 16),
           _buildRecommendedPlaylistHeader(),
@@ -101,11 +122,18 @@ class _PlayListComponentState extends State<PlayListComponent> {
           fontWeight: FontWeight.w500,
         ),
       ),
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlaylistCreationScreen(),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildPlaylistTile(String title, String creator, String image) {
+  Widget _buildPlaylistTile(PlayList playlist) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -118,13 +146,15 @@ class _PlayListComponentState extends State<PlayListComponent> {
         child: const Center(child: Icon(Icons.music_note)),
       ),
       title: Text(
-        title,
+        playlist.title,
         style: const TextStyle(
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(creator),
-      onTap: () {},
+      subtitle: Text(playlist.creator),
+      onTap: () {
+        widget.onTabSelected(6, playlist.id);
+      },
     );
   }
 

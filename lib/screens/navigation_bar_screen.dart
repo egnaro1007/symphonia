@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'abstract_navigation_screen.dart';
 import 'home/home_screen.dart';
@@ -10,15 +11,16 @@ import 'search/search_screen.dart';
 import '../widgets/mini_player.dart';
 
 class NavigationBarScreen extends StatefulWidget {
-  const NavigationBarScreen({super.key});
+  int selectedBottom;
+  NavigationBarScreen({super.key, required this.selectedBottom});
 
   @override
   State<StatefulWidget> createState() => _NavigationBarScreenState();
 }
 
 class _NavigationBarScreenState extends State<NavigationBarScreen> {
-  int _selectedBody = 0;
-  int _selectedBottom = 0;
+  int _selectedBody = -1;
+  int _selectedBottom = -1;
   String _playlistID = "";
   bool _isNavBarVisible = true;
   late final List<AbstractScreen> _screens;
@@ -33,6 +35,10 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       ProfileScreen(onTabSelected: _onPlaylistSelected),
       SettingScreen(onTabSelected: _onPlaylistSelected),
       PlaylistScreen(
+        playlistID: _playlistID,
+        onTabSelected: _onPlaylistSelected,
+      ),
+      PlaylistLocalScreen(
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
@@ -59,10 +65,17 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       if (playlistID != "") {
         _playlistID = playlistID;
 
-        _screens[5] = PlaylistScreen(
-          playlistID: _playlistID,
-          onTabSelected: _onPlaylistSelected,
-        );
+        if (_selectedBody == 5) {
+          _screens[5] = PlaylistScreen(
+            playlistID: _playlistID,
+            onTabSelected: _onPlaylistSelected,
+          );
+        } else if (_selectedBody == 6) {
+          _screens[6] = PlaylistLocalScreen(
+            playlistID: _playlistID,
+            onTabSelected: _onPlaylistSelected,
+          );
+        }
       }
     });
 
@@ -77,6 +90,10 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedBottom == -1 && _selectedBody == -1) {
+      _selectedBottom = _selectedBody = widget.selectedBottom;
+    }
+
     final colourScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Column(

@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            widget.onTabSelected(6, "");
+                            widget.onTabSelected(7, "");
                           },
                           child: const Icon(Icons.search, size: 24),
                         )
