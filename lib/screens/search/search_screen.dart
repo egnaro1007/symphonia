@@ -154,6 +154,7 @@ class _SearchPageState extends State<SearchScreen> {
                           // Artists tab
                           _buildResultsTab<ArtistSearchResult>(
                             (result) => _buildArtistResult(
+                              result.id.toString(),
                               result.name,
                               "Artist",
                               result.image,
@@ -314,7 +315,7 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildArtistResult(String name, String subtitle, String imagePath) {
+  Widget _buildArtistResult(String id, String name, String subtitle, String imagePath) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -333,6 +334,10 @@ class _SearchPageState extends State<SearchScreen> {
       ),
       subtitle: Text(subtitle),
       trailing: Icon(Icons.chevron_right),
+      onTap: () {
+        print("Artist ID: $id");
+        widget.onTabSelected(8, id);
+      },
     );
   }
 

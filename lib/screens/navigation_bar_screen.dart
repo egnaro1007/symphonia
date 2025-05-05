@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/screens/artist/artist_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'abstract_navigation_screen.dart';
@@ -42,7 +43,8 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
-      SearchScreen(onTabSelected: _onPlaylistSelected)
+      SearchScreen(onTabSelected: _onPlaylistSelected),
+      ArtistScreen(onTabSelected: _onPlaylistSelected),
     ];
   }
 
