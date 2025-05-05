@@ -78,36 +78,43 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   @override
   Widget build(BuildContext context) {
     final colourScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      body: Column(
-        children: [
-          if (_isNavBarVisible)
-            Expanded(
-              child: _screens[_selectedBody],
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: _isNavBarVisible
+                      ? _screens[_selectedBody]
+                      : Container(), // hoặc giữ nguyên widget tĩnh nào đó
+                ),
+                SizedBox(height: 70), // chừa chỗ cho MiniPlayer
+              ],
             ),
-          MiniPlayer(expandPlayerCallback: toggleNavigationBar),
-        ]
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Visibility(
-            visible: _isNavBarVisible,
-            child: BottomNavigationBar(
-              currentIndex: _selectedBottom,
-              onTap: _onItemTapped,
-              backgroundColor: colourScheme.surface,
-              unselectedItemColor: colourScheme.onSurface,
-              selectedItemColor: colourScheme.primary,
-              showUnselectedLabels: true,
-              selectedIconTheme: IconThemeData(size: 35),
-              items: _screens.take(5).map((screen) =>
-                  BottomNavigationBarItem(icon: screen.icon, label: screen.title)
-              ).toList(),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      bottomNavigationBar: _isNavBarVisible
+          ? BottomNavigationBar(
+        currentIndex: _selectedBottom,
+        onTap: _onItemTapped,
+        backgroundColor: colourScheme.surface,
+        unselectedItemColor: colourScheme.onSurface,
+        selectedItemColor: colourScheme.primary,
+        showUnselectedLabels: true,
+        selectedIconTheme: IconThemeData(size: 35),
+        items: _screens.take(5).map((screen) =>
+            BottomNavigationBarItem(icon: screen.icon, label: screen.title)
+        ).toList(),
+      )
+          : null,
     );
   }
+
 }

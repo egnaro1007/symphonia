@@ -77,125 +77,126 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(
-        children: [
-          AppBar(
-            backgroundColor: Colors.black,
-            leading: IconButton(
-              icon: Icon(Icons.expand_more, color: Colors.white),
-              onPressed: widget.closePlayer,
-            ),
-            title: Text("Player", style: TextStyle(color: Colors.white)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                Container(
-                  height: 200,
-                  width: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(10),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Container(
+                    color: Colors.black,
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AppBar(
+                          backgroundColor: Colors.black,
+                          leading: IconButton(
+                            icon: Icon(Icons.expand_more, color: Colors.white),
+                            onPressed: widget.closePlayer,
+                          ),
+                          title: Text("Player", style: TextStyle(color: Colors.white)),
+                        ),
+                        Container(
+                          height: 200,
+                          width: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: _playerController.playingSong.imagePath.isEmpty
+                              ? Icon(Icons.music_note, size: 100, color: Colors.white)
+                              : ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              _playerController.playingSong.imagePath,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(Icons.music_note, size: 100, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _playerController.playingSong.title,
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          _playerController.playingSong.artist,
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Slider(
+                          value: _totalDuration.inSeconds > 0 ? _currentPosition.inSeconds.toDouble() : 0.0,
+                          max: _totalDuration.inSeconds > 0 ? _totalDuration.inSeconds.toDouble() : 1.0,
+                          onChanged: (value) {
+                            if (_totalDuration.inSeconds > 0) {
+                              _playerController.seek(Duration(seconds: value.toInt()));
+                            }
+                          },
+                          activeColor: Colors.white,
+                          inactiveColor: Colors.grey,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDuration(_currentPosition),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            Text(
+                              _formatDuration(_totalDuration),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                        Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                // Handle previous
+                              },
+                              icon: Icon(Icons.skip_previous, size: 50, color: Colors.white),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                if (_isPlaying) {
+                                  _playerController.pause();
+                                } else {
+                                  _playerController.play();
+                                }
+                              },
+                              icon: Icon(
+                                _isPlaying ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                                size: 70,
+                                color: Colors.white,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                // Handle next
+                              },
+                              icon: Icon(Icons.skip_next, size: 50, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: _playerController.playingSong.imagePath.isEmpty
-                    ? Icon(Icons.music_note, size: 100, color: Colors.white)
-                    : ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        _playerController.playingSong.imagePath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(Icons.music_note, size: 100, color: Colors.white),
-                      ),
-                    ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  _playerController.playingSong.title,
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                Text(
-                  _playerController.playingSong.artist,
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              children: [
-                Slider(
-                  value: _totalDuration.inSeconds > 0 ? _currentPosition.inSeconds.toDouble() : 0.0,
-                  max: _totalDuration.inSeconds > 0 ? _totalDuration.inSeconds.toDouble() : 1.0,
-                  onChanged: (value) {
-                    if (_totalDuration.inSeconds > 0) {
-                      _playerController.seek(Duration(seconds: value.toInt()));
-                    }
-                  },
-                  activeColor: Colors.white,
-                  inactiveColor: Colors.grey,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _formatDuration(_currentPosition),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    Text(
-                      _formatDuration(_totalDuration),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        // Handle previous
-                      },
-                      icon: Icon(Icons.skip_previous, size: 50, color: Colors.white),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        if (_isPlaying) {
-                          _playerController.pause();
-                        } else {
-                          _playerController.play();
-                        }
-                      },
-                      icon: Icon(
-                        _isPlaying ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                        size: 70,
-                        color: Colors.white,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // Handle next
-                      },
-                      icon: Icon(Icons.skip_next, size: 50, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
+
 
   @override
   void dispose() {
