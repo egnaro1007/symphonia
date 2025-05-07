@@ -7,7 +7,7 @@ import 'follow/follow_screen.dart';
 import 'profile/profile_screen.dart';
 import 'setting/setting_screen.dart';
 import 'search/search_screen.dart';
-import '../widgets/mini_player.dart';
+import 'player/mini_player.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   const NavigationBarScreen({super.key});
