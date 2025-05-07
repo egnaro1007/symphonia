@@ -14,7 +14,9 @@ class PlayerController {
     audioUrl: "",
   );
 
-  PlayerController._internal() : _audioPlayer = AudioPlayer();
+  PlayerController._internal() : _audioPlayer = AudioPlayer() {
+    _audioPlayer.setReleaseMode(ReleaseMode.stop);
+  }
 
   factory PlayerController() {
     _instance ??= PlayerController._internal();
@@ -52,6 +54,11 @@ class PlayerController {
 
   bool isPlaying() {
     return _audioPlayer.state == PlayerState.playing;
+  }
+
+  Future<Duration> getCurrentPosition() async {
+    final position = await _audioPlayer.getCurrentPosition();
+    return position ?? Duration.zero;
   }
 
   Future<Duration> getDuration() async {
