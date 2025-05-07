@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:symphonia/services/token_manager.dart';
 import 'screens/navigation_bar_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure platform bindings are ready
 
   await dotenv.load(fileName: ".env");
+  await TokenManager.login(
+    dotenv.env['USERNAME'] ?? '',
+    dotenv.env['PASSWORD'] ?? '',
+  );
+
+  print("Access token: ${TokenManager.accessToken}");
+
   runApp(const MyApp());
 }
 

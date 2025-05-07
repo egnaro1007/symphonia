@@ -113,7 +113,7 @@ class TokenManager {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
 
     final response = await http.post(
-      Uri.parse('$serverUrl/api/auth/login'),
+      Uri.parse('$serverUrl/api/auth/token/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'username': username, 'password': password}),
     );

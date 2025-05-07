@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/song.dart';
 import 'package:symphonia/services/spotify_token.dart';
+import 'package:symphonia/services/token_manager.dart';
 
 class PlayListOperations {
   PlayListOperations._();
@@ -148,7 +149,7 @@ class PlayListOperations {
         final response = await http.post(
           url,
           headers: {
-            "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+            "Authorization": "Bearer ${TokenManager.accessToken}",
             "Content-Type": "application/json",  // Added content type header
           },
           body: jsonEncode({
@@ -183,7 +184,7 @@ class PlayListOperations {
       final response = await http.delete(
         url,
         headers: {
-          "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+          "Authorization": "Bearer ${TokenManager.accessToken}",
         },
       );
 
@@ -209,7 +210,7 @@ class PlayListOperations {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer ${dotenv.env['ACCESS_TOKEN']}',
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
         },
       );
 
@@ -250,7 +251,7 @@ class PlayListOperations {
       final response = await http.get(
         url,
         headers: {
-          'Authorization': 'Bearer ${dotenv.env['ACCESS_TOKEN']}',
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
         },
       );
 
@@ -326,7 +327,7 @@ class PlayListOperations {
       final response = await http.post(
         url,
         headers: {
-          "Authorization": "Bearer ${dotenv.env['ACCESS_TOKEN']}",
+          "Authorization": "Bearer ${TokenManager.accessToken}",
           "Content-Type": "application/json",  // Added content type header
         },
         body: jsonEncode({
