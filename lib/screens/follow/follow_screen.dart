@@ -72,9 +72,7 @@ class _FollowScreenState extends State<FollowScreen> {
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.black),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Thông báo được nhấn')),
-                  );
+                  widget.onTabSelected(9, "");
                 },
               ),
               if (numberOfFriendRequests > 0)
