@@ -10,7 +10,7 @@ class FollowScreen extends AbstractScreen {
   @override
   final Icon icon = const Icon(Icons.subscriptions);
 
-  FollowScreen({required super.onTabSelected});
+  const FollowScreen({super.key, required super.onTabSelected});
 
   @override
   State<FollowScreen> createState() => _FollowScreenState();
@@ -60,9 +60,7 @@ class _FollowScreenState extends State<FollowScreen> {
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tìm kiếm được nhấn')),
-              );
+              widget.onTabSelected(10, "");
             },
           ),
           // Nút thông báo
@@ -126,82 +124,73 @@ class _FollowScreenState extends State<FollowScreen> {
             itemCount: friends.length,
             itemBuilder: (context, index) {
               final friend = friends[index];
-              return FriendListItem(friend: friend);
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  leading: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.blue.shade100,
+                        child: const Text('👤', style: TextStyle(fontSize: 24)),
+                      ),
+                    ],
+                  ),
+                  title: GestureDetector(
+                    onTap: () {
+                      widget.onTabSelected(8, friend.id);
+                    },
+                    child: Text(
+                      friend.username,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  trailing: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[100],
+                      foregroundColor: Colors.red[800],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Hủy kết bạn"),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Xác nhận"),
+                          content: Text("Bạn có chắc muốn hủy kết bạn với ${friend.username}?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Hủy"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Đã hủy kết bạn với ${friend.username}')),
+                                );
+                              },
+                              child: const Text("Xác nhận"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-class FriendListItem extends StatelessWidget {
-  final User friend;
-
-  const FriendListItem({
-    Key? key,
-    required this.friend,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.blue.shade100,
-              child: Text('👤', style: TextStyle(fontSize: 24)),
-            ),
-          ],
-        ),
-        title: Text(
-          friend.username,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        trailing: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red[100],
-            foregroundColor: Colors.red[800],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: const Text("Hủy kết bạn"),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text("Xác nhận"),
-                content: Text("Bạn có chắc muốn hủy kết bạn với ${friend.username}?"),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("Hủy"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Đã hủy kết bạn với ${friend.username}')),
-                      );
-                    },
-                    child: const Text("Xác nhận"),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
       ),
     );
   }

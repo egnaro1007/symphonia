@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:symphonia/screens/artist/artist_screen.dart';
+import 'package:symphonia/screens/follow/user_screen.dart';
 import 'package:symphonia/screens/follow/friend_request_screen.dart';
+import 'package:symphonia/screens/follow/search_user_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'abstract_navigation_screen.dart';
@@ -45,8 +46,15 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         onTabSelected: _onPlaylistSelected,
       ),
       SearchScreen(onTabSelected: _onPlaylistSelected),
-      ArtistScreen(onTabSelected: _onPlaylistSelected),
+      UserScreen(
+        userID: "1",
+        searchQuery: "",
+        onTabSelected: _onPlaylistSelected
+      ),
       FriendRequestsScreen(onTabSelected: _onPlaylistSelected),
+      SearchUserScreen(
+          onTabSelected: _onPlaylistSelected
+      )
     ];
   }
 
@@ -77,6 +85,12 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         } else if (_selectedBody == 6) {
           _screens[6] = PlaylistLocalScreen(
             playlistID: _playlistID,
+            onTabSelected: _onPlaylistSelected,
+          );
+        } else if (_selectedBody == 8) {
+          _screens[8] = UserScreen(
+            userID: _playlistID,
+            searchQuery: "",
             onTabSelected: _onPlaylistSelected,
           );
         }

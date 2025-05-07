@@ -205,7 +205,7 @@ class PlayListOperations {
   static Future<List<PlayList>> getLocalPlaylists() async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
-      final url = Uri.parse('$serverUrl/api/library/playlists');
+      final url = Uri.parse('$serverUrl/api/library/playlists/');
       print("Url: $url");
       final response = await http.get(
         url,
@@ -226,7 +226,7 @@ class PlayListOperations {
             title: playlist['name'],
             description: playlist['description'],
             duration: 0,
-            picture: '', //playlist['picture'],
+            picture: 'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg', //playlist['picture'],
             creator: 'Thanh', //playlist['creator'],
             songs: []
           ));

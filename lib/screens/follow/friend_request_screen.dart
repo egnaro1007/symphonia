@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/models/friend_request.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/services/friend.dart';
 
 class FriendRequestsScreen extends AbstractScreen {
   @override
@@ -8,69 +10,30 @@ class FriendRequestsScreen extends AbstractScreen {
   @override
   final Icon icon = const Icon(Icons.person_add);
 
-  FriendRequestsScreen({required super.onTabSelected});
+  const FriendRequestsScreen({super.key, required super.onTabSelected});
 
   @override
   State<FriendRequestsScreen> createState() => _FriendRequestsScreenState();
 }
 
 class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
-  // Danh sách lời mời kết bạn mẫu
-  final List<FriendRequest> _friendRequests = [
-    FriendRequest(
-      id: '1',
-      name: 'Nguyễn Văn A',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/11.jpg',
-      mutualFriends: 5,
-      timeAgo: '2 giờ trước',
-    ),
-    FriendRequest(
-      id: '2',
-      name: 'Trần Thị B',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/12.jpg',
-      mutualFriends: 2,
-      timeAgo: '5 giờ trước',
-    ),
-    FriendRequest(
-      id: '3',
-      name: 'Lê Văn C',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/13.jpg',
-      mutualFriends: 8,
-      timeAgo: '1 ngày trước',
-    ),
-    FriendRequest(
-      id: '4',
-      name: 'Phạm Thị D',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/14.jpg',
-      mutualFriends: 0,
-      timeAgo: '2 ngày trước',
-    ),
-    FriendRequest(
-      id: '5',
-      name: 'Hoàng Văn E',
-      avatarUrl: 'https://randomuser.me/api/portraits/men/15.jpg',
-      mutualFriends: 3,
-      timeAgo: '3 ngày trước',
-    ),
-    FriendRequest(
-      id: '6',
-      name: 'Ngô Thị F',
-      avatarUrl: 'https://randomuser.me/api/portraits/women/16.jpg',
-      mutualFriends: 1,
-      timeAgo: '1 tuần trước',
-    ),
-  ];
+  late List<FriendRequest> _friendRequests = [];
 
-  // Danh sách id của các lời mời đã xử lý
-  final List<String> _processedRequests = [];
+  @override
+  void initState() {
+    super.initState();
+    _loadFriendRequests();
+  }
+
+  Future<void> _loadFriendRequests() async {
+    final requests = await FriendOperations.getFriendRequests();
+    setState(() {
+      _friendRequests = requests;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Lọc ra các lời mời chưa xử lý
-    final activeRequests = _friendRequests
-        .where((request) => !_processedRequests.contains(request.id))
-        .toList();
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -86,14 +49,11 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            // Xử lý khi nhấn nút quay lại
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Quay lại màn hình trước')),
-            );
+            widget.onTabSelected(2, "");
           },
         ),
       ),
-      body: activeRequests.isEmpty
+      body: _friendRequests.isEmpty
           ? const Center(
         child: Text(
           'Không có lời mời kết bạn nào',
@@ -110,7 +70,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Text(
-              '${activeRequests.length} lời mời kết bạn',
+              '${_friendRequests.length} lời mời kết bạn',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -122,15 +82,15 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: activeRequests.length,
+            itemCount: _friendRequests.length,
             itemBuilder: (context, index) {
-              final request = activeRequests[index];
+              final request = _friendRequests[index];
               return FriendRequestCard(
                 request: request,
-                onAccept: () {
-                  setState(() {
-                    _processedRequests.add(request.id);
-                  });
+                onAccept: () async {
+                  await FriendOperations.responseFriendRequest(_friendRequests[index].id, "accept");
+                  _loadFriendRequests();
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Đã chấp nhận lời mời từ ${request.name}'),
@@ -138,10 +98,10 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                     ),
                   );
                 },
-                onDecline: () {
-                  setState(() {
-                    _processedRequests.add(request.id);
-                  });
+                onDecline: () async {
+                  await FriendOperations.responseFriendRequest(_friendRequests[index].id, "reject");
+                  _loadFriendRequests();
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Đã từ chối lời mời từ ${request.name}'),
@@ -164,11 +124,11 @@ class FriendRequestCard extends StatelessWidget {
   final VoidCallback onDecline;
 
   const FriendRequestCard({
-    Key? key,
+    super.key,
     required this.request,
     required this.onAccept,
     required this.onDecline,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -202,23 +162,6 @@ class FriendRequestCard extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      if (request.mutualFriends > 0)
-                        Text(
-                          '${request.mutualFriends} bạn chung',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      Text(
-                        request.timeAgo,
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -270,20 +213,4 @@ class FriendRequestCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class FriendRequest {
-  final String id;
-  final String name;
-  final String avatarUrl;
-  final int mutualFriends;
-  final String timeAgo;
-
-  FriendRequest({
-    required this.id,
-    required this.name,
-    required this.avatarUrl,
-    required this.mutualFriends,
-    required this.timeAgo,
-  });
 }

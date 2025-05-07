@@ -335,8 +335,7 @@ class _SearchPageState extends State<SearchScreen> {
       subtitle: Text(subtitle),
       trailing: Icon(Icons.chevron_right),
       onTap: () {
-        print("Artist ID: $id");
-        widget.onTabSelected(8, id);
+
       },
     );
   }
