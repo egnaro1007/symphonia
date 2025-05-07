@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/user.dart';
+import 'package:symphonia/services/friend.dart';
 import '../abstract_navigation_screen.dart';
 
 class FollowScreen extends AbstractScreen {
@@ -16,15 +17,29 @@ class FollowScreen extends AbstractScreen {
 }
 
 class _FollowScreenState extends State<FollowScreen> {
-  // Danh sách bạn bè mẫu
-  final List<User> _friends = [
-    User(id: '1', username: 'Nguyễn Văn A'),
-    User(id: '2', username: 'Trần Thị B'),
-    User(id: '3', username: 'Lê Văn C'),
-    User(id: '4', username: 'Phạm Thị D'),
-    User(id: '5', username: 'Nguyễn Văn E'),
-    User(id: '6', username: 'Trần Thị F'),
-  ];
+  List<User> friends = [];
+  int numberOfFriendRequests = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFriends();
+    _loadNumberOfFriendRequests();
+  }
+
+  Future<void> _loadFriends() async {
+    final loadedFriends = await FriendOperations.getFriends();
+    setState(() {
+      friends = loadedFriends;
+    });
+  }
+
+  Future<void> _loadNumberOfFriendRequests() async {
+    final loadedNumberOfFriendRequests = await FriendOperations.getNumberOfFriendRequests();
+    setState(() {
+      numberOfFriendRequests = loadedNumberOfFriendRequests;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,13 +66,43 @@ class _FollowScreenState extends State<FollowScreen> {
             },
           ),
           // Nút thông báo
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.black),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Thông báo được nhấn')),
-              );
-            },
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.black),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Thông báo được nhấn')),
+                  );
+                },
+              ),
+              if (numberOfFriendRequests > 0)
+                Positioned(
+                  right: 4,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      numberOfFriendRequests > 99 ? '99+' : numberOfFriendRequests.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -80,9 +125,9 @@ class _FollowScreenState extends State<FollowScreen> {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _friends.length,
+            itemCount: friends.length,
             itemBuilder: (context, index) {
-              final friend = _friends[index];
+              final friend = friends[index];
               return FriendListItem(friend: friend);
             },
           ),
