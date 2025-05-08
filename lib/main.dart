@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/token_manager.dart';
+import 'package:symphonia/services/user_info_manager.dart';
 import 'screens/navigation_bar_screen.dart';
 
 Future<void> main() async {
@@ -11,6 +12,8 @@ Future<void> main() async {
     dotenv.env['USERNAME'] ?? '',
     dotenv.env['PASSWORD'] ?? '',
   );
+
+  await UserInfoManager.fetchUserInfo();
 
   print("Access token: ${TokenManager.accessToken}");
 

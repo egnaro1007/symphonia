@@ -3,75 +3,73 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'user_info_manager.dart';
 
 class TokenManager {
   static String? _accessToken;
   static String? _refreshToken;
 
+  static final String _tokenFile = 'tokens.json';
 
-  static Future<void> saveAccessToken(String token) async {
-    _accessToken = token;
+  static Future<void> _saveTokens(String accessToken, [String? refreshToken]) async {
+    _accessToken = accessToken;
+
+    if (refreshToken == null) {
+      if (_refreshToken == null) {
+        throw Exception('Refresh token is required');
+      } else {
+        refreshToken = _refreshToken;
+      }
+    } else {
+      _refreshToken = refreshToken;
+    }
+
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/access_token.txt');
-    await file.writeAsString(token);
+    final file = File('${directory.path}/$_tokenFile');
+
+    final tokens = {
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+    };
+
+    await file.writeAsString(jsonEncode(tokens));
   }
 
-  static Future<void> loadAccessToken() async {
+  static Future<void> loadTokens() async {
     final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/access_token.txt');
+    final file = File('${directory.path}/$_tokenFile');
+
     if (await file.exists()) {
-      _accessToken = await file.readAsString();
+      final content = await file.readAsString();
+      final tokens = jsonDecode(content);
+
+      _accessToken = tokens['access_token'];
+      _refreshToken = tokens['refresh_token'];
     } else {
       _accessToken = null;
-    }
-  }
-
-  static Future<void> saveRefreshToken(String token) async {
-    _refreshToken = token;
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/refresh_token.txt');
-    await file.writeAsString(token);
-  }
-
-  static Future<void> loadRefreshToken() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/refresh_token.txt');
-    if (await file.exists()) {
-      _refreshToken = await file.readAsString();
-    } else {
       _refreshToken = null;
     }
   }
 
-  static Future<void> saveTokens(String accessToken, String refreshToken) async {
-    await saveAccessToken(accessToken);
-    await saveRefreshToken(refreshToken);
+  static Future<void> _clearTokens() async {
+    _accessToken = null;
+    _refreshToken = null;
+
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$_tokenFile');
+
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 
 
   static String? get accessToken => _accessToken;
-
   static String? get refreshToken => _refreshToken;
 
 
-  static Future<void> clearTokens() async {
-    _accessToken = null;
-    _refreshToken = null;
-    final directory = await getApplicationDocumentsDirectory();
-    final accessFile = File('${directory.path}/access_token.txt');
-    final refreshFile = File('${directory.path}/refresh_token.txt');
-    if (await accessFile.exists()) {
-      await accessFile.delete();
-    }
-    if (await refreshFile.exists()) {
-      await refreshFile.delete();
-    }
-  }
-
-
   static Future<bool> verifyToken() async {
-    await loadAccessToken();
-    await loadRefreshToken();
+    await loadTokens();
 
     final String? accessToken = TokenManager.accessToken;
     final String? refreshToken = TokenManager.refreshToken;
@@ -101,13 +99,15 @@ class TokenManager {
       if (refreshResponse.statusCode == 200) {
         final data = jsonDecode(refreshResponse.body);
         final newAccessToken = data['access'];
-        await saveAccessToken(newAccessToken);
+        await _saveTokens(newAccessToken);
         return true;
       }
     }
 
+    await _clearTokens();
     return false;
   }
+
 
   static Future<void> login(String username, String password) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
@@ -122,13 +122,16 @@ class TokenManager {
       final data = jsonDecode(response.body);
       final accessToken = data['access'];
       final refreshToken = data['refresh'];
-      await saveTokens(accessToken, refreshToken);
+      await _saveTokens(accessToken, refreshToken);
+
+      UserInfoManager.fetchUserInfo();
     } else {
       throw Exception('Failed to login');
     }
   }
 
   static Future<void> logout() async {
-    await clearTokens();
+    await _clearTokens();
+    await UserInfoManager.clearUserInfo();
   }
 }
