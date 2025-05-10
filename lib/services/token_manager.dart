@@ -108,6 +108,19 @@ class TokenManager {
     return false;
   }
 
+  static Future<void> signup(String username, String password) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+
+    final response = await http.post(
+      Uri.parse('$serverUrl/api/auth/register/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to signup');
+    }
+  }
 
   static Future<void> login(String username, String password) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';

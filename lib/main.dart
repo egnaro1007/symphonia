@@ -13,7 +13,7 @@ Future<void> main() async {
   //   dotenv.env['PASSWORD'] ?? '',
   // );
 
-  // await UserInfoManager.fetchUserInfo();
+  await UserInfoManager.fetchUserInfo();
 
   print("Access token: ${TokenManager.accessToken}");
 

@@ -74,23 +74,40 @@ class _LoginScreenState extends State<LoginScreen> {
     await UserInfoManager.fetchUserInfo();
 
     if (mounted) {
-      Navigator.push(
-        context,
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => NavigationBarScreen(selectedBottom: 3),
         ),
+            (Route<dynamic> route) => false, // This removes all previous routes
       );
     }
   }
 
   Future<void> _signup() async {
-    // Add your signup logic here
-    // This should call a method in TokenManager or a different service to register the user
-    // For example:
-    // await UserService.register(_usernameController.text.trim(), _passwordController.text);
+    await TokenManager.signup(
+      _usernameController.text.trim(),
+      _passwordController.text,
+    );
 
-    // After successful signup, automatically log the user in
-    await _login();
+    if (mounted) {
+      setState(() {
+        _isLoginMode = true;
+        _errorMessage = null;
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully! Please log in.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Clear password fields
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+    }
   }
 
   @override
