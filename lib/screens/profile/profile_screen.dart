@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
+import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
 import 'package:symphonia/screens/search/search_screen.dart';
+import 'package:symphonia/services/token_manager.dart';
 import '../../services/user_info_manager.dart';
 import '../abstract_navigation_screen.dart';
 
@@ -185,27 +187,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
+      ),child: Row(
         children: [
-          Text.rich(
-            TextSpan(
-              text: 'Welcome, ',
-              style: const TextStyle(fontSize: 18),
-              children: [
-                TextSpan(
-                  text: UserInfoManager.username,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(
-                  text: '!',
-                  style: const TextStyle(fontWeight: FontWeight.normal),
-                ),
-              ],
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                text: 'Welcome, ',
+                style: const TextStyle(fontSize: 18),
+                children: [
+                  TextSpan(
+                    text: UserInfoManager.username,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: '!',
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (UserInfoManager.username == "Guest") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                ).then((value) {
+                  setState(() {});
+                }
+                );
+              } else {
+                // Logout functionality
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text("Logout"),
+                      content: const Text("Are you sure you want to logout?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await TokenManager.logout();
+                            Navigator.pop(context);
+                            setState(() {});
+                          },
+                          child: const Text("Logout"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: UserInfoManager.username == "Guest" ? Colors.green : Colors.red,
+            ),
+            child: Text(
+              UserInfoManager.username == "Guest" ? "Login" : "Logout",
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
       ),
+
     );
   }
 }

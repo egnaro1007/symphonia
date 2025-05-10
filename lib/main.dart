@@ -8,12 +8,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure platform bindings are ready
 
   await dotenv.load(fileName: ".env");
-  await TokenManager.login(
-    dotenv.env['USERNAME'] ?? '',
-    dotenv.env['PASSWORD'] ?? '',
-  );
+  // await TokenManager.login(
+  //   dotenv.env['USERNAME'] ?? '',
+  //   dotenv.env['PASSWORD'] ?? '',
+  // );
 
-  await UserInfoManager.fetchUserInfo();
+  // await UserInfoManager.fetchUserInfo();
 
   print("Access token: ${TokenManager.accessToken}");
 
