@@ -5,14 +5,11 @@ import 'dart:async';
 class PlayerController {
   static PlayerController? _instance;
   final AudioPlayer _audioPlayer;
-  final StreamController<Song> _songChangeController = StreamController<Song>.broadcast();
+  final StreamController<Song> _songChangeController =
+      StreamController<Song>.broadcast();
+  bool _hasSong = false;
 
-  Song _playingSong = Song(
-    title: "",
-    artist: "",
-    imagePath: "",
-    audioUrl: "",
-  );
+  Song _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
 
   PlayerController._internal() : _audioPlayer = AudioPlayer() {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
@@ -29,15 +26,17 @@ class PlayerController {
   }
 
   Stream<Duration> get onPositionChanged => _audioPlayer.onPositionChanged;
-  Stream<PlayerState> get onPlayerStateChanged => _audioPlayer.onPlayerStateChanged;
+  Stream<PlayerState> get onPlayerStateChanged =>
+      _audioPlayer.onPlayerStateChanged;
   Stream<Duration> get onDurationChanged => _audioPlayer.onDurationChanged;
   Stream<Song> get onSongChange => _songChangeController.stream;
   Song get playingSong => _playingSong;
+  bool get hasSong => _hasSong;
 
   Future<void> loadSongFromUrl(String url) async {
     print("Loading song from URL: $url");
     _songChangeController.add(_playingSong);
-    print ("Playing: ${_playingSong.title}");
+    print("Playing: ${_playingSong.title}");
     await _audioPlayer.setSourceUrl(url);
     await play();
   }
@@ -49,6 +48,7 @@ class PlayerController {
   Future<void> loadSong(Song song) async {
     _playingSong = song;
     await loadSongFromUrl(song.audioUrl);
+    _hasSong = true;
     await play();
   }
 
