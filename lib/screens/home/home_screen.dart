@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
-import 'package:symphonia/screens/playlist/playlist_screen.dart';
-import 'package:symphonia/screens/search/search_screen.dart';
+import 'package:symphonia/models/song.dart';
+import 'package:symphonia/services/song.dart';
 import '../abstract_navigation_screen.dart';
 
 class HomeScreen extends AbstractScreen {
@@ -18,63 +18,34 @@ class HomeScreen extends AbstractScreen {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  List<Song> suggestedSongs = [];
+  int _currentPageIndex = 0;
+
+  Future<void> _loadSuggestedSongs() async {
+    final songs = await SongOperations.getSuggestedSongs();
+    setState(() {
+      suggestedSongs = songs;
+    });
+  }
+
   @override
+  void initState() {
+    super.initState();
+    _loadSuggestedSongs();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Define song data
-    final List<List<Map<String, String>>> songGroups = [
-      [
-        {
-          'thumbnail': 'assets/song1.jpg',
-          'title': 'Gói Xôi Vội',
-          'artists': 'Đạt G, DuUyen',
-        },
-        {
-          'thumbnail': 'assets/song2.jpg',
-          'title': 'Trúc Xinh',
-          'artists': 'Minh Vương M4U, VIET., ACV',
-        },
-        {
-          'thumbnail': 'assets/song3.jpg',
-          'title': 'Chạm Khẽ Tim Anh Một Chút Thôi',
-          'artists': 'Noo Phước Thịnh',
-        },
-      ],
-      [
-        {
-          'thumbnail': 'assets/song1.jpg',
-          'title': 'Gói Xôi Vội',
-          'artists': 'Đạt G, DuUyen',
-        },
-        {
-          'thumbnail': 'assets/song2.jpg',
-          'title': 'Trúc Xinh',
-          'artists': 'Minh Vương M4U, VIET., ACV',
-        },
-        {
-          'thumbnail': 'assets/song3.jpg',
-          'title': 'Chạm Khẽ Tim Anh Một Chút Thôi',
-          'artists': 'Noo Phước Thịnh',
-        },
-      ],
-      [
-        {
-          'thumbnail': 'assets/song4.jpg',
-          'title': 'Ai Chờ Ai',
-          'artists': 'Hương Ly, Jombie',
-        },
-        {
-          'thumbnail': 'assets/song5.jpg',
-          'title': 'Ngày Đầu Tiên',
-          'artists': 'Đức Phúc',
-        },
-        {
-          'thumbnail': 'assets/song6.jpg',
-          'title': 'Chìm Sâu',
-          'artists': 'MCK, Trung Trần',
-        },
-      ],
-    ];
+    final List<List<Song>> suggestedSongGroups = [];
+
+    for (int i = 0; i < suggestedSongs.length; i += 3) {
+      final group = suggestedSongs.sublist(
+        i,
+        i + 3 > suggestedSongs.length ? suggestedSongs.length : i + 3,
+      );
+
+      suggestedSongGroups.add(group);
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -159,9 +130,14 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(
                 height: 250,
                 child: PageView.builder(
-                  itemCount: songGroups.length,
+                  itemCount: suggestedSongGroups.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPageIndex = index;
+                    });
+                  },
                   itemBuilder: (context, groupIndex) {
-                    return _buildSongGroup(songGroups[groupIndex]);
+                    return _buildSongGroup(suggestedSongGroups[groupIndex]);
                   },
                 ),
               ),
@@ -172,13 +148,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    songGroups.length,
-                        (index) => Container(
-                      width: index == 0 ? 20 : 6,
+                    suggestedSongGroups.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: _currentPageIndex == index ? 20 : 6,
                       height: 6,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
-                        color: index == 0 ? Colors.purple.shade400 : Colors.grey.shade300,
+                        color: _currentPageIndex == index
+                            ? Colors.purple.shade400
+                            : Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -224,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       playlist: BriefPlayList(
                         id: '7hJfYpKLDQwmeHIPTmNS5y',
                         title: 'Chill Music',
-                        picture: 'https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84c409e9623b8aad2f27a80040',
+                        picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8473a121591cf84842f9383b93',
                         creator: 'chill songs'
                       ),
                       description: 'Thư giãn với những bản nhạc nhẹ nhàng'
@@ -257,24 +236,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSongGroup(List<Map<String, String>> songs) {
+  Widget _buildSongGroup(List<Song> songs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
-        children: songs.map((song) => _buildSongItem(
-          thumbnail: song['thumbnail']!,
-          title: song['title']!,
-          artists: song['artists']!,
-        )).toList(),
+        children: songs.map((song) => _buildSongItem(song)).toList(),
       ),
     );
   }
 
-  Widget _buildSongItem({
-    required String thumbnail,
-    required String title,
-    required String artists
-  }) {
+  Widget _buildSongItem(Song suggestedSong) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -285,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
-                image: AssetImage(thumbnail),
+                image: NetworkImage(suggestedSong.imagePath),
                 fit: BoxFit.cover,
               ),
             ),
@@ -296,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  suggestedSong.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -306,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  artists,
+                  suggestedSong.artist,
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: 14,

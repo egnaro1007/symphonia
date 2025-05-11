@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/spotify_token.dart';
 
 import '../models/song.dart';
@@ -51,6 +52,38 @@ class SongOperations {
       }
     } catch (e) {
       print(e);
+      return [];
+    }
+  }
+
+  static Future<List<Song>> getSuggestedSongs() async {
+    var serverUrl = dotenv.env['SERVER_URL'];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$serverUrl/api/library/songs'),
+      );
+
+      if (response.statusCode == 200) {
+        var data = response.body;
+        var jsonData = jsonDecode(data);
+
+        List<Song> songs = [];
+        for (var song in jsonData) {
+          songs.add(Song(
+            title: song['title'],
+            artist: song['artist'][0]['name'],
+            imagePath: song['cover_art'] ?? "https://pngimg.com/uploads/music_notes/music_notes_PNG46.png",
+            audioUrl: song['audio'],
+          ));
+        }
+
+        return songs;
+      } else {
+        throw Exception('Failed to load songs');
+      }
+    } catch (e) {
+      print('Error: $e');
       return [];
     }
   }
