@@ -49,12 +49,10 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       UserScreen(
         userID: "1",
         searchQuery: "",
-        onTabSelected: _onPlaylistSelected
+        onTabSelected: _onPlaylistSelected,
       ),
       FriendRequestsScreen(onTabSelected: _onPlaylistSelected),
-      SearchUserScreen(
-          onTabSelected: _onPlaylistSelected
-      )
+      SearchUserScreen(onTabSelected: _onPlaylistSelected),
     ];
   }
 
@@ -115,41 +113,53 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     final colourScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
+      body: Stack(
+        children: [
+          // Main content with SafeArea
+          SafeArea(
+            child: Column(
               children: [
                 Expanded(
-                  child: _isNavBarVisible
-                      ? _screens[_selectedBody]
-                      : Container(), // hoặc giữ nguyên widget tĩnh nào đó
+                  child:
+                      _selectedBody >= 0
+                          ? _screens[_selectedBody]
+                          : Container(),
                 ),
-                SizedBox(height: 70), // chừa chỗ cho MiniPlayer
+                // Only add spacing when navigation bar is visible
+                if (_isNavBarVisible)
+                  SizedBox(height: 70), // chừa chỗ cho MiniPlayer
               ],
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
-            ),
-          ],
-        ),
+          ),
+          // Mini player doesn't need to be in the SafeArea
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+          ),
+        ],
       ),
-      bottomNavigationBar: _isNavBarVisible
-          ? BottomNavigationBar(
-        currentIndex: _selectedBottom,
-        onTap: _onItemTapped,
-        backgroundColor: colourScheme.surface,
-        unselectedItemColor: colourScheme.onSurface,
-        selectedItemColor: colourScheme.primary,
-        showUnselectedLabels: true,
-        selectedIconTheme: IconThemeData(size: 35),
-        items: _screens.take(5).map((screen) =>
-            BottomNavigationBarItem(icon: screen.icon, label: screen.title)
-        ).toList(),
-      )
-          : null,
+      bottomNavigationBar:
+          _isNavBarVisible
+              ? BottomNavigationBar(
+                currentIndex: _selectedBottom,
+                onTap: _onItemTapped,
+                backgroundColor: colourScheme.surface,
+                unselectedItemColor: colourScheme.onSurface,
+                selectedItemColor: colourScheme.primary,
+                showUnselectedLabels: true,
+                selectedIconTheme: IconThemeData(size: 35),
+                items:
+                    _screens
+                        .take(5)
+                        .map(
+                          (screen) => BottomNavigationBarItem(
+                            icon: screen.icon,
+                            label: screen.title,
+                          ),
+                        )
+                        .toList(),
+              )
+              : null,
     );
   }
-
 }

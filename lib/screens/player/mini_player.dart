@@ -19,8 +19,13 @@ class MiniPlayerState extends State<MiniPlayer>
   late AnimationController _controller;
   bool _isExpanded = false;
   bool _isPlaying = false;
+  double _progress = 0.0;
+  Duration _currentPosition = Duration.zero;
+  Duration _totalDuration = Duration.zero;
   StreamSubscription? _songChangeSubscription;
   StreamSubscription? _playerStateSubscription;
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _durationSubscription;
 
   @override
   void initState() {
@@ -33,7 +38,10 @@ class MiniPlayerState extends State<MiniPlayer>
     // Listen for song changes
     _songChangeSubscription = _playerController.onSongChange.listen((_) {
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _progress = 0.0;
+          _currentPosition = Duration.zero;
+        });
       }
     });
 
@@ -48,8 +56,43 @@ class MiniPlayerState extends State<MiniPlayer>
       }
     });
 
+    // Listen for position changes
+    _positionSubscription = _playerController.onPositionChanged.listen((
+      position,
+    ) {
+      if (mounted && _playerController.hasSong) {
+        setState(() {
+          _currentPosition = position;
+          if (_totalDuration.inMilliseconds > 0) {
+            _progress =
+                _currentPosition.inMilliseconds / _totalDuration.inMilliseconds;
+          }
+        });
+      }
+    });
+
+    // Listen for duration changes
+    _durationSubscription = _playerController.onDurationChanged.listen((
+      duration,
+    ) {
+      if (mounted) {
+        setState(() {
+          _totalDuration = duration;
+        });
+      }
+    });
+
     // Initialize playing state
     _isPlaying = _playerController.isPlaying();
+
+    // Get initial duration
+    _playerController.getDuration().then((duration) {
+      if (mounted) {
+        setState(() {
+          _totalDuration = duration;
+        });
+      }
+    });
   }
 
   @override
@@ -57,6 +100,8 @@ class MiniPlayerState extends State<MiniPlayer>
     _controller.dispose();
     _songChangeSubscription?.cancel();
     _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
     super.dispose();
   }
 
@@ -90,108 +135,131 @@ class MiniPlayerState extends State<MiniPlayer>
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      height:
+      duration: Duration(
+        milliseconds: 300,
+      ), // Reduced from 1000ms for smoother transition
+      height: _isExpanded ? screenHeight : 80,
+      width: screenWidth,
+      child:
           _isExpanded
-              ? MediaQuery.of(context).size.height
-              : 80, // Expands to full height
-      width: MediaQuery.of(context).size.width,
-      child: GestureDetector(
-        onTap: _playerController.hasSong ? _togglePlayer : null,
-        child:
-            _isExpanded
-                ? PlayerScreen(closePlayer: _togglePlayer)
-                : _buildMiniPlayer(),
-      ),
+              ? SizedBox(
+                height: screenHeight,
+                child: PlayerScreen(closePlayer: _togglePlayer),
+              )
+              : GestureDetector(
+                onTap: _playerController.hasSong ? _togglePlayer : null,
+                child: _buildMiniPlayer(),
+              ),
     );
   }
 
   Widget _buildMiniPlayer() {
-    return Container(
-      height: 80,
-      padding: const EdgeInsets.only(left: 15, right: 15),
-      decoration: BoxDecoration(color: const Color(0xFF202020)),
-      child: Row(
-        children: [
-          // Ảnh cover
-          Container(
-            width: 60,
-            height: 60,
-            margin: const EdgeInsets.only(right: 15),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child:
-                _playerController.hasSong &&
-                        _playerController.playingSong.imagePath.isNotEmpty
-                    ? Image.network(
-                      _playerController.playingSong.imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              Icon(Icons.music_note, color: Colors.white),
-                    )
-                    : Icon(Icons.music_note, color: Colors.white),
-          ),
-
-          // Tiêu đề và tên nghệ sĩ
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _playerController.hasSong
-                        ? _playerController.playingSong.title
-                        : "Không có gì đang phát",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (_playerController.hasSong &&
-                      _playerController.playingSong.artist.isNotEmpty)
-                    Text(
-                      _playerController.playingSong.artist,
-                      style: TextStyle(color: Colors.grey[400], fontSize: 17),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Play/Pause button
-          Opacity(
-            opacity: _playerController.hasSong ? 1.0 : 0.5,
-            child: GestureDetector(
-              onTapDown:
-                  (details) => _handlePlayPauseInteraction(down: details),
-              onTapUp: (_) => _handlePlayPauseInteraction(),
-              onTapCancel: () => _handlePlayPauseInteraction(cancel: true),
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 50),
-                padding: EdgeInsets.all(6),
+    return Column(
+      children: [
+        Container(
+          height: 76,
+          padding: const EdgeInsets.only(left: 15, right: 15),
+          decoration: BoxDecoration(color: Colors.grey[900]),
+          child: Row(
+            children: [
+              // Ảnh cover
+              Container(
+                width: 60,
+                height: 60,
+                margin: const EdgeInsets.only(right: 15),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isPressed ? Colors.white24 : Colors.transparent,
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                child: Icon(
-                  _isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 30,
+                child:
+                    _playerController.hasSong &&
+                            _playerController.playingSong.imagePath.isNotEmpty
+                        ? Image.network(
+                          _playerController.playingSong.imagePath,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  Icon(Icons.music_note, color: Colors.white),
+                        )
+                        : Icon(Icons.music_note, color: Colors.white),
+              ),
+
+              // Tiêu đề và tên nghệ sĩ
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _playerController.hasSong
+                            ? _playerController.playingSong.title
+                            : "Không có gì đang phát",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (_playerController.hasSong &&
+                          _playerController.playingSong.artist.isNotEmpty)
+                        Text(
+                          _playerController.playingSong.artist,
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 17,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+
+              // Play/Pause button
+              Opacity(
+                opacity: _playerController.hasSong ? 1.0 : 0.5,
+                child: GestureDetector(
+                  onTapDown:
+                      (details) => _handlePlayPauseInteraction(down: details),
+                  onTapUp: (_) => _handlePlayPauseInteraction(),
+                  onTapCancel: () => _handlePlayPauseInteraction(cancel: true),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 50),
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _isPressed ? Colors.white24 : Colors.transparent,
+                    ),
+                    child: Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        // Song progress bar
+        Container(
+          height: 4,
+          width: double.infinity,
+          color: Colors.grey[900],
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: _progress.clamp(0.0, 1.0),
+            child: Container(color: Colors.red),
+          ),
+        ),
+      ],
     );
   }
 }
