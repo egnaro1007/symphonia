@@ -105,13 +105,13 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('$serverUrl/api/auth/send_friend_request/'),
+        Uri.parse('$serverUrl/api/auth/friend_request/'),
         headers: {
           'Authorization': 'Bearer ${TokenManager.accessToken}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          "receiver_id": userId,
+          "id": userId,
         }),
       );
 
