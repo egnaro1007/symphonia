@@ -20,30 +20,46 @@ class SearchScreen extends AbstractScreen {
   String get title => "Search";
 }
 
-class _SearchPageState extends State<SearchScreen> {
-  final TextEditingController _searchController = TextEditingController(text: "");
+class _SearchPageState extends State<SearchScreen>
+    with SingleTickerProviderStateMixin {
+  final TextEditingController _searchController = TextEditingController(
+    text: "",
+  );
   List<String> _searchSuggestions = [];
   List<SearchResult> _searchResults = [];
   bool _isSearchSubmitted = false;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _updateSearchSuggestions(_searchController.text);
+    _tabController = TabController(length: 3, vsync: this);
+    if (_searchController.text.isNotEmpty) {
+      _updateSearchSuggestions(_searchController.text);
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  void _updateSearchSuggestions(String query) {
-    var suggestions = Searching.searchSuggestions(query);
-    setState(() {
-      _searchSuggestions = suggestions;
-      _isSearchSubmitted = false;
-    });
+  void _updateSearchSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchSuggestions = [];
+        _isSearchSubmitted = false;
+      });
+      return;
+    }
+    var suggestions = await Searching.searchSuggestions(query);
+    if (mounted && !_isSearchSubmitted) {
+      setState(() {
+        _searchSuggestions = suggestions;
+      });
+    }
   }
 
   void _updateSearchResults(String query) async {
@@ -52,6 +68,21 @@ class _SearchPageState extends State<SearchScreen> {
       _searchResults = results;
       _isSearchSubmitted = true;
     });
+
+    final songsCount = _searchResults.whereType<SongSearchResult>().length;
+    final artistsCount = _searchResults.whereType<ArtistSearchResult>().length;
+    final albumsCount = _searchResults.whereType<AlbumSearchResult>().length;
+
+    int targetTabIndex = 0;
+    if (songsCount > 0) {
+      targetTabIndex = 0;
+    } else if (artistsCount > 0) {
+      targetTabIndex = 1;
+    } else if (albumsCount > 0) {
+      targetTabIndex = 2;
+    }
+
+    _tabController.animateTo(targetTabIndex);
   }
 
   @override
@@ -60,10 +91,7 @@ class _SearchPageState extends State<SearchScreen> {
       backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(0),
-        child: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-        ),
+        child: AppBar(backgroundColor: Colors.white, elevation: 0),
       ),
       body: Column(
         children: [
@@ -75,6 +103,15 @@ class _SearchPageState extends State<SearchScreen> {
                 IconButton(
                   icon: Icon(Icons.arrow_back),
                   onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    // Reset search state
+                    _searchController.clear();
+                    setState(() {
+                      _searchSuggestions = [];
+                      _searchResults = [];
+                      _isSearchSubmitted = false;
+                    });
+                    // Navigate back
                     widget.onTabSelected(0, "");
                   },
                 ),
@@ -97,9 +134,13 @@ class _SearchPageState extends State<SearchScreen> {
                               hintText: "Search",
                             ),
                             onChanged: (value) {
+                              setState(() {
+                                _isSearchSubmitted = false;
+                              });
                               _updateSearchSuggestions(value);
                             },
                             onSubmitted: (value) {
+                              FocusScope.of(context).unfocus();
                               _updateSearchResults(value);
                             },
                           ),
@@ -128,51 +169,48 @@ class _SearchPageState extends State<SearchScreen> {
           if (_isSearchSubmitted)
             Expanded(
               flex: 2,
-              child: DefaultTabController(
-                length: 3,
-                child: Column(
-                  children: [
-                    TabBar(
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.deepPurple,
-                      tabs: [
-                        Tab(text: "Songs"),
-                        Tab(text: "Artists"),
-                        Tab(text: "Albums"),
+              child: Column(
+                children: [
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.deepPurple,
+                    tabs: [
+                      Tab(text: "Songs"),
+                      Tab(text: "Artists"),
+                      Tab(text: "Albums"),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Songs tab
+                        _buildResultsTab<SongSearchResult>(
+                          (result) => _buildSongResult(result),
+                        ),
+                        // Artists tab
+                        _buildResultsTab<ArtistSearchResult>(
+                          (result) => _buildArtistResult(
+                            result.id.toString(),
+                            result.name,
+                            "Artist",
+                            result.image,
+                          ),
+                        ),
+                        // Albums tab
+                        _buildResultsTab<AlbumSearchResult>(
+                          (result) => _buildAlbumResult(
+                            result.name,
+                            result.artist,
+                            result.image,
+                          ),
+                        ),
                       ],
                     ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
-                          // Songs tab
-                          _buildResultsTab<SongSearchResult>(
-                            (result) => _buildSongResult(
-                              result
-                            ),
-                          ),
-                          // Artists tab
-                          _buildResultsTab<ArtistSearchResult>(
-                            (result) => _buildArtistResult(
-                              result.id.toString(),
-                              result.name,
-                              "Artist",
-                              result.image,
-                            ),
-                          ),
-                          // Albums tab
-                          _buildResultsTab<AlbumSearchResult>(
-                            (result) => _buildAlbumResult(
-                              result.name,
-                              result.artist,
-                              result.image,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             )
           // Suggestions
@@ -180,17 +218,19 @@ class _SearchPageState extends State<SearchScreen> {
             Expanded(
               flex: 1,
               child: ListView(
-                children: _searchSuggestions.map((suggestion) {
-                  return ListTile(
-                    leading: Icon(Icons.search, color: Colors.grey),
-                    title: Text(suggestion),
-                    dense: true,
-                    onTap: () {
-                      _searchController.text = suggestion;
-                      _updateSearchResults(suggestion);
-                    },
-                  );
-                }).toList(),
+                children:
+                    _searchSuggestions.map((suggestion) {
+                      return ListTile(
+                        leading: Icon(Icons.search, color: Colors.grey),
+                        title: Text(suggestion),
+                        dense: true,
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                          _searchController.text = suggestion;
+                          _updateSearchResults(suggestion);
+                        },
+                      );
+                    }).toList(),
               ),
             ),
         ],
@@ -203,9 +243,7 @@ class _SearchPageState extends State<SearchScreen> {
     if (filteredResults.isEmpty) {
       return Center(child: Text("No results found"));
     }
-    return ListView(
-      children: filteredResults.map(builder).toList(),
-    );
+    return ListView(children: filteredResults.map(builder).toList());
   }
 
   Widget _buildSongResult(SongSearchResult result) {
@@ -213,19 +251,59 @@ class _SearchPageState extends State<SearchScreen> {
       leading: Container(
         width: 50,
         height: 50,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(4),
-        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: Icon(Icons.music_note),
+          child:
+              (result.image != null && result.image.isNotEmpty)
+                  ? Image.network(
+                    result.image,
+                    fit: BoxFit.cover,
+                    width: 50,
+                    height: 50,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback in case of error loading image
+                      return Container(
+                        width: 50,
+                        height: 50,
+                        color: Colors.grey.shade300,
+                        child: Icon(
+                          Icons.music_note,
+                          color: Colors.grey.shade700,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (
+                      BuildContext context,
+                      Widget child,
+                      ImageChunkEvent? loadingProgress,
+                    ) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: 50,
+                        height: 50,
+                        color: Colors.grey.shade300,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value:
+                                loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                  : Container(
+                    // Fallback if no image URL
+                    width: 50,
+                    height: 50,
+                    color: Colors.grey.shade300,
+                    child: Icon(Icons.music_note, color: Colors.grey.shade700),
+                  ),
         ),
       ),
-      title: Text(
-        result.name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(result.name, style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(result.artist),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -240,7 +318,7 @@ class _SearchPageState extends State<SearchScreen> {
                 audioUrl: result.audio_url,
               );
               PlayerController.getInstance().loadSong(song);
-            }
+            },
           ),
           SizedBox(width: 16),
           IconButton(
@@ -275,7 +353,8 @@ class _SearchPageState extends State<SearchScreen> {
               title: Text('Thêm vào playlist'),
               onTap: () async {
                 // Get all local playlists
-                List<PlayList> localPlaylists = await PlayListOperations.getLocalPlaylists();
+                List<PlayList> localPlaylists =
+                    await PlayListOperations.getLocalPlaylists();
 
                 // Show playlist options
                 showModalBottomSheet(
@@ -289,7 +368,10 @@ class _SearchPageState extends State<SearchScreen> {
                           onTap: () {
                             // Add song to the selected playlist
                             print("Song ID: $songID");
-                            PlayListOperations.addSongToPlaylist(localPlaylists[index].id, songID);
+                            PlayListOperations.addSongToPlaylist(
+                              localPlaylists[index].id,
+                              songID,
+                            );
                             Navigator.pop(context);
                           },
                         );
@@ -315,7 +397,12 @@ class _SearchPageState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildArtistResult(String id, String name, String subtitle, String imagePath) {
+  Widget _buildArtistResult(
+    String id,
+    String name,
+    String subtitle,
+    String imagePath,
+  ) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -324,19 +411,12 @@ class _SearchPageState extends State<SearchScreen> {
           color: Colors.grey.shade300,
           shape: BoxShape.circle,
         ),
-        child: ClipOval(
-          child: Icon(Icons.person),
-        ),
+        child: ClipOval(child: Icon(Icons.person)),
       ),
-      title: Text(
-        name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
       trailing: Icon(Icons.chevron_right),
-      onTap: () {
-
-      },
+      onTap: () {},
     );
   }
 
@@ -354,10 +434,7 @@ class _SearchPageState extends State<SearchScreen> {
           child: Icon(Icons.playlist_play),
         ),
       ),
-      title: Text(
-        name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(artist),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -384,10 +461,7 @@ class _SearchPageState extends State<SearchScreen> {
           child: Icon(Icons.playlist_play),
         ),
       ),
-      title: Text(
-        name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(artist),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

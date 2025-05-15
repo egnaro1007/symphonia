@@ -14,8 +14,8 @@ import 'search/search_screen.dart';
 import 'player/mini_player.dart';
 
 class NavigationBarScreen extends StatefulWidget {
-  int selectedBottom;
-  NavigationBarScreen({super.key, required this.selectedBottom});
+  final int selectedBottom;
+  const NavigationBarScreen({super.key, required this.selectedBottom});
 
   @override
   State<StatefulWidget> createState() => _NavigationBarScreenState();
@@ -27,11 +27,9 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   String _playlistID = "";
   bool _isNavBarVisible = true;
   late final List<AbstractScreen> _screens;
-  // Keep track of non-tab screens separately
   late final List<AbstractScreen> _mainTabScreens;
   late final List<AbstractScreen> _extraScreens;
 
-  // Store navigation stack per tab
   final Map<int, List<int>> _tabNavigationStacks = {
     0: [], // Home tab
     1: [], // Trending tab
@@ -40,16 +38,12 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     4: [], // Setting tab
   };
 
-  // Track previous tab before switching
-  int _previousTab = -1;
-
-  // Track the source tab for each non-main screen
-  final Map<int, int> _screenSourceTabs = {};
+  final Map<int, int> _screenSourceTabs =
+      {}; // Track the source tab for each non-main screen
 
   @override
   void initState() {
     super.initState();
-    // Initialize the main tab screens (these will be in the IndexedStack)
     _mainTabScreens = [
       HomeScreen(onTabSelected: _onPlaylistSelected),
       TrendingScreen(onTabSelected: _onPlaylistSelected),
@@ -58,7 +52,6 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       SettingScreen(onTabSelected: _onPlaylistSelected),
     ];
 
-    // Initialize extra screens that are accessed from tabs
     _extraScreens = [
       PlaylistScreen(
         playlistID: _playlistID,
@@ -78,10 +71,8 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       SearchUserScreen(onTabSelected: _onPlaylistSelected),
     ];
 
-    // Combine all screens for the old interface to work
     _screens = [..._mainTabScreens, ..._extraScreens];
 
-    // Initialize stacks with default screens
     for (int i = 0; i < 5; i++) {
       _tabNavigationStacks[i] = [i];
     }
@@ -89,20 +80,14 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
   void _onItemTapped(int index) {
     if (_selectedBottom == index) {
-      // Tapped the same tab again, reset to root screen of this tab
       setState(() {
         _tabNavigationStacks[index] = [index];
-        _previousTab = _selectedBottom;
         _selectedBottom = index;
         _selectedBody = index;
       });
     } else {
-      // Switched to a different tab
       setState(() {
-        _previousTab = _selectedBottom;
         _selectedBottom = index;
-
-        // Restore the last screen of the selected tab
         if (_tabNavigationStacks[index]!.isNotEmpty) {
           _selectedBody = _tabNavigationStacks[index]!.last;
         } else {
@@ -114,63 +99,40 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   }
 
   void _onPlaylistSelected(int index, String playlistID) {
-    print("Selected Playlist ID: $playlistID");
-
-    // Trường hợp đặc biệt: index = -1 nghĩa là "quay về tab nguồn"
-    // (được gọi từ nút back trên PlaylistScreen)
     if (index == -1) {
       setState(() {
-        // Lấy tab nguồn của màn hình hiện tại (mặc định là 0 nếu không tìm thấy)
         int sourceTab = _screenSourceTabs[_selectedBody] ?? 0;
-
-        // Cập nhật tab hiện tại
         _selectedBottom = sourceTab;
-
-        // Xóa màn hình hiện tại khỏi stack nếu có
         if (_tabNavigationStacks[sourceTab]!.contains(_selectedBody)) {
           _tabNavigationStacks[sourceTab]!.remove(_selectedBody);
         }
-
-        // Đảm bảo stack không rỗng
         if (_tabNavigationStacks[sourceTab]!.isEmpty) {
           _tabNavigationStacks[sourceTab]!.add(sourceTab);
         }
-
-        // Hiển thị màn hình cuối cùng trong stack
         _selectedBody = _tabNavigationStacks[sourceTab]!.last;
-
-        // Xóa thông tin nguồn gốc
         _screenSourceTabs.remove(_selectedBody);
       });
-
-      print(
-        "Navigating back to source tab. Current tab: $_selectedBottom, Current screen: $_selectedBody",
-      );
-      print("Tab stacks: $_tabNavigationStacks");
       return;
     }
 
     setState(() {
-      // Add the new screen to the current tab's navigation stack
       if (_selectedBottom >= 0 && _selectedBottom < 5) {
         if (index >= 0 && index < 5) {
-          // If navigating to a main tab, update everything
           _selectedBottom = index;
           _tabNavigationStacks[index] = [index];
           _selectedBody = index;
+          _screenSourceTabs.removeWhere(
+            (key, value) => value == index && key != index,
+          );
         } else {
-          // If navigating to an extra screen, add to current tab's stack
           _tabNavigationStacks[_selectedBottom]!.add(index);
           _selectedBody = index;
-
-          // Record which tab this screen came from
           _screenSourceTabs[index] = _selectedBottom;
         }
       }
 
-      if (playlistID != "") {
+      if (playlistID.isNotEmpty) {
         _playlistID = playlistID;
-
         if (index == 5) {
           _screens[5] = PlaylistScreen(
             playlistID: _playlistID,
@@ -193,10 +155,6 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         }
       }
     });
-
-    print("Selected Playlist ID: $_playlistID");
-    print("Tab stacks: $_tabNavigationStacks");
-    print("Screen source tabs: $_screenSourceTabs");
   }
 
   void toggleNavigationBar(bool isExpanded) {
@@ -205,88 +163,83 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     });
   }
 
-  // Handle back button presses
-  Future<bool> _onWillPop() async {
-    if (_selectedBottom >= 0 && _selectedBottom < 5) {
-      // If we have screens in the stack besides the root
-      if (_tabNavigationStacks[_selectedBottom]!.length > 1) {
-        setState(() {
-          // Remove the current screen
-          int currentScreen =
-              _tabNavigationStacks[_selectedBottom]!.removeLast();
-
-          // Show the previous screen
-          _selectedBody = _tabNavigationStacks[_selectedBottom]!.last;
-
-          // Clean up the source tab record if needed
-          _screenSourceTabs.remove(currentScreen);
-        });
-        // Prevent default back button behavior
-        return false;
-      }
-    } else {
-      // We're in a non-tab screen (like a playlist), go back to the source tab
-      int sourceTab =
-          _screenSourceTabs[_selectedBody] ??
-          0; // Default to Home tab if not found
-
-      setState(() {
-        _selectedBottom = sourceTab;
-
-        // If the source tab's stack has this screen, remove it
-        if (_tabNavigationStacks[sourceTab]!.contains(_selectedBody)) {
-          _tabNavigationStacks[sourceTab]!.remove(_selectedBody);
-        }
-
-        // If stack is empty (shouldn't happen), put the main tab screen
-        if (_tabNavigationStacks[sourceTab]!.isEmpty) {
-          _tabNavigationStacks[sourceTab]!.add(sourceTab);
-        }
-
-        // Show the previous screen from the source tab
-        _selectedBody = _tabNavigationStacks[sourceTab]!.last;
-
-        // Clean up the source tab record
-        _screenSourceTabs.remove(_selectedBody);
-      });
-
-      return false; // Prevent default back behavior
+  bool _canHandlePopInternally() {
+    int currentEffectiveTab = _selectedBottom;
+    if (_selectedBody >= 5 && _screenSourceTabs.containsKey(_selectedBody)) {
+      currentEffectiveTab = _screenSourceTabs[_selectedBody]!;
     }
-    // Allow default back button behavior (exit app)
-    return true;
+
+    if (currentEffectiveTab >= 0 && currentEffectiveTab < 5) {
+      if (_tabNavigationStacks.containsKey(currentEffectiveTab) &&
+          _tabNavigationStacks[currentEffectiveTab]!.length > 1) {
+        return true; // Can pop from internal stack
+      }
+    }
+    return false; // Cannot handle internally, let system pop
+  }
+
+  void _performInternalPop() {
+    // Assumes _canHandlePopInternally() was true
+    int currentEffectiveTab = _selectedBottom;
+    if (_selectedBody >= 5 && _screenSourceTabs.containsKey(_selectedBody)) {
+      currentEffectiveTab = _screenSourceTabs[_selectedBody]!;
+    }
+
+    setState(() {
+      int poppedScreen =
+          _tabNavigationStacks[currentEffectiveTab]!.removeLast();
+      _selectedBody = _tabNavigationStacks[currentEffectiveTab]!.last;
+      _screenSourceTabs.remove(poppedScreen);
+      if (_selectedBody < 5) {
+        _selectedBottom = _selectedBody;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     if (_selectedBottom == -1 && _selectedBody == -1) {
-      _selectedBottom = _selectedBody = widget.selectedBottom;
-      _tabNavigationStacks[_selectedBottom] = [_selectedBottom];
+      _selectedBottom = widget.selectedBottom;
+      _selectedBody = widget.selectedBottom;
+      if (_tabNavigationStacks.containsKey(widget.selectedBottom) &&
+          _tabNavigationStacks[widget.selectedBottom]!.isEmpty) {
+        _tabNavigationStacks[widget.selectedBottom] = [widget.selectedBottom];
+      } else if (!_tabNavigationStacks.containsKey(widget.selectedBottom)) {
+        _tabNavigationStacks[widget.selectedBottom] = [widget.selectedBottom];
+      }
     }
 
     final colourScheme = Theme.of(context).colorScheme;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: !_canHandlePopInternally(),
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          return; // System handled pop or PopScope allowed it.
+        }
+        // If didPop is false, canPop was false, so we perform internal pop.
+        _performInternalPop();
+      },
       child: Scaffold(
         body: Stack(
           children: [
-            // Main content with SafeArea
             SafeArea(
               child: Column(
                 children: [
                   Expanded(
                     child: IndexedStack(
-                      index: _selectedBody,
+                      index:
+                          _selectedBody >= 0 && _selectedBody < _screens.length
+                              ? _selectedBody
+                              : 0,
                       children: _screens,
                     ),
                   ),
-                  // Only add spacing when navigation bar is visible
                   if (_isNavBarVisible)
-                    SizedBox(height: 70), // chừa chỗ cho MiniPlayer
+                    const SizedBox(height: 70), // Space for MiniPlayer
                 ],
               ),
             ),
-            // Mini player doesn't need to be in the SafeArea
             Align(
               alignment: Alignment.bottomCenter,
               child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
@@ -302,7 +255,8 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
                   unselectedItemColor: colourScheme.onSurface,
                   selectedItemColor: colourScheme.primary,
                   showUnselectedLabels: true,
-                  selectedIconTheme: IconThemeData(size: 35),
+                  type: BottomNavigationBarType.fixed,
+                  selectedIconTheme: const IconThemeData(size: 35),
                   items:
                       _screens
                           .take(5)
