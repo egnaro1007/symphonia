@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:symphonia/models/song.dart';
+import 'package:symphonia/models/playlist.dart';
 import 'dart:async';
 
 class PlayerController {
@@ -10,6 +11,18 @@ class PlayerController {
   bool _hasSong = false;
 
   Song _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
+
+  PlayList _currentPlaylist = PlayList(
+      id: "",
+      title: "",
+      description: "",
+      duration: 0,
+      picture: "",
+      creator: "",
+      songs: []
+  );
+  int _currentSongIndex = 0;
+
 
   PlayerController._internal() : _audioPlayer = AudioPlayer() {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
@@ -25,32 +38,17 @@ class PlayerController {
     return _instance!;
   }
 
+  // Stream for listening to audio player events
   Stream<Duration> get onPositionChanged => _audioPlayer.onPositionChanged;
   Stream<PlayerState> get onPlayerStateChanged =>
       _audioPlayer.onPlayerStateChanged;
   Stream<Duration> get onDurationChanged => _audioPlayer.onDurationChanged;
   Stream<Song> get onSongChange => _songChangeController.stream;
+
+  // Getters
   Song get playingSong => _playingSong;
+
   bool get hasSong => _hasSong;
-
-  Future<void> loadSongFromUrl(String url) async {
-    print("Loading song from URL: $url");
-    _songChangeController.add(_playingSong);
-    print("Playing: ${_playingSong.title}");
-    await _audioPlayer.setSourceUrl(url);
-    await play();
-  }
-
-  Future<void> loadSongFromFile(String filePath) async {
-    await _audioPlayer.setSourceDeviceFile(filePath);
-  }
-
-  Future<void> loadSong(Song song) async {
-    _playingSong = song;
-    await loadSongFromUrl(song.audioUrl);
-    _hasSong = true;
-    await play();
-  }
 
   bool isPlaying() {
     return _audioPlayer.state == PlayerState.playing;
@@ -66,6 +64,49 @@ class PlayerController {
     return duration ?? Duration.zero;
   }
 
+  Future<void> loadSongFromUrl(String url) async {
+    print("Loading song from URL: $url");
+    _songChangeController.add(_playingSong);
+    print("Playing: ${_playingSong.title}");
+    await _audioPlayer.setSourceUrl(url);
+    await play();
+  }
+
+  Future<void> loadSongFromFile(String filePath) async {
+    await _audioPlayer.setSourceDeviceFile(filePath);
+  }
+
+
+  Future<void> _playSong(Song song) async {
+    _playingSong = song;
+    await loadSongFromUrl(song.audioUrl);
+    print(_currentSongIndex);
+    _hasSong = true;
+    await play();
+  }
+
+
+  // Load song from song object
+  // models.song.dart
+  Future<void> loadSong(Song song, [bool resetQueue = true]) async {
+    if (resetQueue) {
+      _currentPlaylist.songs.clear();
+    }
+    _currentPlaylist.songs.add(song);
+    _currentSongIndex = 0;
+    await _playSong(_currentPlaylist.songs[_currentSongIndex]);
+  }
+
+  // models.playlist.dart
+  Future<void> loadPlaylist(PlayList playlist, [int index = 0]) async {
+    _currentPlaylist.songs.clear();
+    _currentPlaylist.songs.addAll(playlist.songs);
+    _currentSongIndex = index;
+    await _playSong(_currentPlaylist.songs[_currentSongIndex]);
+  }
+
+
+  // Controls
   Future<void> play() async {
     await _audioPlayer.resume();
   }
@@ -76,6 +117,23 @@ class PlayerController {
 
   Future<void> seek(Duration position) async {
     await _audioPlayer.seek(position);
+  }
+
+  Future<void> gotoIndex(int index) async {
+    if (index < 0 || index >= _currentPlaylist.songs.length) {
+      return;
+    }
+    _currentSongIndex = index;
+    _playingSong = _currentPlaylist.songs[index];
+    await _playSong(_playingSong);
+  }
+
+  Future<void> next() async {
+    gotoIndex(_currentSongIndex+1);
+  }
+
+  Future<void> previous() async {
+    gotoIndex(_currentSongIndex-1);
   }
 
   void dispose() {

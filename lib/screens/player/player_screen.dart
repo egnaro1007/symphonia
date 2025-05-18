@@ -368,7 +368,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
         IconButton(
           onPressed: () {
-            // Previous track (not implemented yet)
+            _playerController.previous();
           },
           icon: Icon(Icons.skip_previous, size: 40, color: Colors.white),
         ),
@@ -396,7 +396,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
         IconButton(
           onPressed: () {
-            // Next track (not implemented yet)
+            _playerController.next();
           },
           icon: Icon(Icons.skip_next, size: 40, color: Colors.white),
         ),
