@@ -254,7 +254,7 @@ class _SearchPageState extends State<SearchScreen>
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child:
-              (result.image != null && result.image.isNotEmpty)
+              (result.image.isNotEmpty)
                   ? Image.network(
                     result.image,
                     fit: BoxFit.cover,
@@ -345,7 +345,7 @@ class _SearchPageState extends State<SearchScreen>
             ),
             ListTile(
               leading: Icon(Icons.favorite_border),
-              title: Text('Thêm vào thư viện'),
+              title: Text('Thêm vào yêu thích'),
               onTap: () {},
             ),
             ListTile(
@@ -380,16 +380,6 @@ class _SearchPageState extends State<SearchScreen>
                   },
                 );
               },
-            ),
-            ListTile(
-              leading: Icon(Icons.auto_awesome),
-              title: Text('Phát bài hát & nội dung tương tự'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: Icon(Icons.queue_music),
-              title: Text('Thêm vào danh sách phát'),
-              onTap: () {},
             ),
           ],
         );
