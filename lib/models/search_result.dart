@@ -3,13 +3,10 @@ abstract class SearchResult {
   final String _name;
   final String _image;
 
-  SearchResult({
-    required int id,
-    required String name,
-    required String image,
-  })  : _id = id,
-        _name = name,
-        _image = image;
+  SearchResult({required int id, required String name, required String image})
+    : _id = id,
+      _name = name,
+      _image = image;
 
   int get id => _id;
   String get name => _name;
@@ -26,12 +23,11 @@ class SongSearchResult extends SearchResult {
     required super.image,
     required String artist,
     required String audio_url,
-  })  : _artist = artist,
-        _audio_url = audio_url;
+  }) : _artist = artist,
+       _audio_url = audio_url;
 
   String get artist => _artist;
   String get audio_url => _audio_url;
-
 }
 
 class ArtistSearchResult extends SearchResult {
@@ -50,7 +46,7 @@ class AlbumSearchResult extends SearchResult {
     required super.name,
     required super.image,
     required String artist,
-  })  : _artist = artist;
+  }) : _artist = artist;
 
   String get artist => _artist;
 }
@@ -63,7 +59,7 @@ class PlaylistSearchResult extends SearchResult {
     required super.name,
     required super.image,
     required String artist,
-  })  : _artist = artist;
+  }) : _artist = artist;
 
   String get artist => _artist;
 }
