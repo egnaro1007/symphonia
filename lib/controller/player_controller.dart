@@ -26,6 +26,12 @@ class PlayerController {
 
   PlayerController._internal() : _audioPlayer = AudioPlayer() {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
+
+    _audioPlayer.onPlayerComplete.listen((event) {
+      if (_currentSongIndex + 1 < _currentPlaylist.songs.length) {
+        next();
+      }
+    });
   }
 
   factory PlayerController() {
@@ -105,6 +111,12 @@ class PlayerController {
     await _playSong(_currentPlaylist.songs[_currentSongIndex]);
   }
 
+  Future<void> loadSongs(List<Song> songs, [int index = 0]) async {
+    _currentPlaylist.songs.clear();
+    _currentPlaylist.songs.addAll(songs);
+    _currentSongIndex = index;
+    await _playSong(_currentPlaylist.songs[_currentSongIndex]);
+  }
 
   // Controls
   Future<void> play() async {

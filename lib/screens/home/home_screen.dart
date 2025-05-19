@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/song.dart';
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: const [
+                      children: [
                         Text(
                           'Gợi ý cho bạn',
                           style: TextStyle(
@@ -97,16 +98,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.chevron_right, color: Colors.grey),
+                        Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface),
                       ],
                     ),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(20),
+                        TextButton(
+                          onPressed: () {
+                            PlayerController.getInstance().loadSongs(suggestedSongs);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                           child: Row(
                             children: const [
@@ -118,7 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.refresh),
-                          onPressed: () {},
+                          onPressed: () {
+                            // TODO: Implement refresh functionality
+                          },
                         ),
                       ],
                     ),
@@ -156,8 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: _currentPageIndex == index
-                            ? Colors.purple.shade400
-                            : Colors.grey.shade300,
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -279,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   suggestedSong.artist,
                   style: TextStyle(
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 14,
                   ),
                   maxLines: 1,
@@ -335,8 +343,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Flexible(
               child: Text(
                 description,
-                style: const TextStyle(
-                  color: Colors.grey,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
