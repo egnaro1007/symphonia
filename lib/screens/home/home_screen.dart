@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         id: '616iSon5fJRnCwYbAJZ9kE',
                         title: 'Vietnam Top 100',
                         picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
-                        creator: 'Top 100 Tops'
+                        creator: 'Top 100'
                       ),
                       description: "Top những bài hát hot nhất Việt Nam"
                     ),

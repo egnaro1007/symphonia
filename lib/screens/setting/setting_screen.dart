@@ -3,7 +3,7 @@ import '../abstract_navigation_screen.dart';
 
 class SettingScreen extends AbstractScreen {
   @override
-  final String title = "settings";
+  final String title = "Settings";
 
   @override
   final Icon icon = const Icon(Icons.settings);

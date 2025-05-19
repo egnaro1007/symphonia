@@ -1,5 +1,4 @@
 import 'dart:convert';
-// import 'package:dotenv/dotenv.dart' as dotenv;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -7,27 +6,26 @@ class SpotifyToken {
   SpotifyToken._();
 
   static Future<String> getTokens() async {
-    // var env = dotenv.DotEnv(includePlatformEnvironment: true)..load(['/home/flash/symphonia/.env']);
-
     String CLIENT_ID = dotenv.env['CLIENT_ID'] ?? '';
     String CLIENT_SECRET = dotenv.env['CLIENT_SECRET'] ?? '';
 
     print("CLIENT_ID: $CLIENT_ID");
     print("CLIENT_SECRET: $CLIENT_SECRET");
 
-    String urlString =
-        'https://accounts.spotify.com/api/token';
+    String urlStringBasic = 'https://accounts.spotify.com/api/token';
+
+    String market = 'VN'; // Thay đổi mã quốc gia tại đây
+    String urlString = '$urlStringBasic?market=$market';
 
     try {
       final response = await http.post(
         Uri.parse(urlString),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Basic ${base64Encode(utf8.encode('$CLIENT_ID:$CLIENT_SECRET'))}',
+          'Authorization':
+              'Basic ${base64Encode(utf8.encode('$CLIENT_ID:$CLIENT_SECRET'))}',
         },
-        body: {
-          'grant_type': 'client_credentials',
-        },
+        body: {'grant_type': 'client_credentials'},
       );
 
       if (response.statusCode == 200) {
