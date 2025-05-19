@@ -3,6 +3,8 @@ import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'dart:async';
 
+enum RepeatMode { noRepeat, repeatOne, repeatAll }
+
 class PlayerController {
   static PlayerController? _instance;
   final AudioPlayer _audioPlayer;
@@ -22,13 +24,14 @@ class PlayerController {
       songs: []
   );
   int _currentSongIndex = 0;
+  RepeatMode _repeatMode = RepeatMode.noRepeat;
 
 
   PlayerController._internal() : _audioPlayer = AudioPlayer() {
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
 
     _audioPlayer.onPlayerComplete.listen((event) {
-      if (_currentSongIndex + 1 < _currentPlaylist.songs.length) {
+      if (_currentSongIndex + 1 <= _currentPlaylist.songs.length) {
         next();
       }
     });
@@ -51,7 +54,7 @@ class PlayerController {
   Stream<Duration> get onDurationChanged => _audioPlayer.onDurationChanged;
   Stream<Song> get onSongChange => _songChangeController.stream;
 
-  // Getters
+  // Getters and Setters
   Song get playingSong => _playingSong;
 
   bool get hasSong => _hasSong;
@@ -70,6 +73,12 @@ class PlayerController {
     return duration ?? Duration.zero;
   }
 
+  RepeatMode get repeatMode => _repeatMode;
+  set repeatMode(RepeatMode mode) {
+    _repeatMode = mode;
+  }
+
+
   Future<void> loadSongFromUrl(String url) async {
     print("Loading song from URL: $url");
     _songChangeController.add(_playingSong);
@@ -84,6 +93,10 @@ class PlayerController {
 
 
   Future<void> _playSong(Song song) async {
+    if (_playingSong == song) {
+      await _audioPlayer.seek(Duration.zero);
+      await play();
+    }
     _playingSong = song;
     await loadSongFromUrl(song.audioUrl);
     print(_currentSongIndex);
@@ -141,11 +154,36 @@ class PlayerController {
   }
 
   Future<void> next() async {
-    gotoIndex(_currentSongIndex+1);
+    if (_repeatMode == RepeatMode.repeatOne) {
+      await _playSong(_playingSong);
+    } else {
+      int nextIndex = (_repeatMode == RepeatMode.repeatAll)
+          ? (_currentSongIndex + 1) % _currentPlaylist.songs.length
+          : _currentSongIndex + 1;
+      await gotoIndex(nextIndex);
+    }
   }
 
   Future<void> previous() async {
     gotoIndex(_currentSongIndex-1);
+  }
+
+  void changeRepeatMode([RepeatMode? mode]) {
+    if (mode != null) {
+      _repeatMode = mode;
+    } else {
+      switch (_repeatMode) {
+        case RepeatMode.noRepeat:
+          _repeatMode = RepeatMode.repeatAll;
+          break;
+        case RepeatMode.repeatAll:
+          _repeatMode = RepeatMode.repeatOne;
+          break;
+        case RepeatMode.repeatOne:
+          _repeatMode = RepeatMode.noRepeat;
+          break;
+      }
+    }
   }
 
   void dispose() {

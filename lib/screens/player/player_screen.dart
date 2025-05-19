@@ -402,9 +402,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
         IconButton(
           onPressed: () {
-            // Repeat functionality (not implemented yet)
+            PlayerController.getInstance().changeRepeatMode();
           },
-          icon: Icon(Icons.repeat, size: 28, color: Colors.white),
+          icon: Icon(
+            _playerController.repeatMode == RepeatMode.repeatOne
+              ? Icons.repeat_one
+              : Icons.repeat,
+            size: 28,
+            color: _playerController.repeatMode == RepeatMode.noRepeat
+              ? Colors.white
+              : Theme.of(context).colorScheme.primary),
         ),
       ],
     );
