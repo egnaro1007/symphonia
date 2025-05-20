@@ -95,5 +95,58 @@ class LikeOperations {
     }
   }
 
+  static Future<List<Song>> getLikeSongs() async {
+    String? serverUrl = dotenv.env['SERVER_URL'];
+    if (serverUrl == null) {
+      print("Error: SERVER_URL is not defined in the environment variables.");
+      return [];
+    }
 
+    try {
+      final url = Uri.parse('$serverUrl/api/library/like/');
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      final List<Song> songs = [];
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        for (dynamic songData in data) {
+          int id = songData['id'];
+          String title = songData['title'];
+          String imagePath = songData['cover_art'] ?? '';
+          String audioUrl = songData['audio'] ?? '';
+
+          if (imagePath.isNotEmpty) {
+            imagePath = '$serverUrl$imagePath';
+          }
+          if (audioUrl.isNotEmpty) {
+            audioUrl = '$serverUrl$audioUrl';
+          }
+
+          Song song = Song(
+            id: id,
+            title: title,
+            imagePath: imagePath,
+            audioUrl: audioUrl,
+          );
+
+          songs.add(song);
+        }
+      } else {
+        print("Error: Failed to fetch liked songs. Status code: ${response.statusCode}");
+      }
+
+      return songs;
+    } catch (e) {
+      print("Error: $e");
+      return [];
+    }
+  }
 }
