@@ -312,6 +312,7 @@ class _SearchPageState extends State<SearchScreen>
             icon: Icon(Icons.play_circle_outline),
             onPressed: () {
               Song song = Song(
+                id: result.id,
                 title: result.name,
                 artist: result.artist,
                 imagePath: result.image,
@@ -324,7 +325,14 @@ class _SearchPageState extends State<SearchScreen>
           IconButton(
             icon: Icon(Icons.more_vert),
             onPressed: () {
-              _showSongOptions(context, result.id.toString());
+              Song song = Song(
+                id: result.id,
+                title: result.name,
+                artist: result.artist,
+                imagePath: result.image,
+                audioUrl: result.audio_url,
+              );
+              _showSongOptions(context, song);
             },
           ),
         ],
@@ -332,12 +340,20 @@ class _SearchPageState extends State<SearchScreen>
     );
   }
 
-  void _showSongOptions(BuildContext context, String songID) {
+  void _showSongOptions(BuildContext context, Song song) {
     showModalBottomSheet(
       context: context,
       builder: (_) {
         return Wrap(
           children: [
+            ListTile(
+              leading: Icon(Icons.queue_play_next),
+              title: Text('Thêm vào danh dách phát tiếp'),
+              onTap: () {
+                PlayerController.getInstance().loadSong(song, false);
+                Navigator.pop(context);
+              },
+            ),
             ListTile(
               leading: Icon(Icons.download),
               title: Text('Tải về'),
@@ -367,10 +383,10 @@ class _SearchPageState extends State<SearchScreen>
                           title: Text(localPlaylists[index].title),
                           onTap: () {
                             // Add song to the selected playlist
-                            print("Song ID: $songID");
+                            print("Song ID: ${song.id}");
                             PlayListOperations.addSongToPlaylist(
                               localPlaylists[index].id,
-                              songID,
+                              song.id.toString(),
                             );
                             Navigator.pop(context);
                           },

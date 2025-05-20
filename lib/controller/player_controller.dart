@@ -107,14 +107,17 @@ class PlayerController {
 
   // Load song from song object
   // models.song.dart
-  Future<void> loadSong(Song song, [bool resetQueue = true]) async {
-    if (resetQueue) {
-      _currentPlaylist.songs.clear();
-    }
-    _currentPlaylist.songs.add(song);
+Future<void> loadSong(Song song, [bool resetQueue = true]) async {
+  if (resetQueue) {
+    _currentPlaylist.songs.clear();
+    _currentSongIndex = 0;
+  }
+  _currentPlaylist.songs.add(song);
+  if (resetQueue || !hasSong) {
     _currentSongIndex = 0;
     await _playSong(_currentPlaylist.songs[_currentSongIndex]);
   }
+}
 
   // models.playlist.dart
   Future<void> loadPlaylist(PlayList playlist, [int index = 0]) async {
