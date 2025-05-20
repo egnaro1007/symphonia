@@ -1,3 +1,4 @@
+import 'package:symphonia/main.dart';
 import 'package:flutter/material.dart';
 import '../abstract_navigation_screen.dart';
 
@@ -467,6 +468,7 @@ class _SettingScreenState extends State<SettingScreen> {
               onChanged: (value) {
                 setState(() {
                   _themeMode = value!;
+                  _applyThemeMode(value);
                   Navigator.of(context).pop();
                 });
               },
@@ -478,6 +480,7 @@ class _SettingScreenState extends State<SettingScreen> {
               onChanged: (value) {
                 setState(() {
                   _themeMode = value!;
+                  _applyThemeMode(value);
                   Navigator.of(context).pop();
                 });
               },
@@ -490,6 +493,7 @@ class _SettingScreenState extends State<SettingScreen> {
               onChanged: (value) {
                 setState(() {
                   _themeMode = value!;
+                  _applyThemeMode(value);
                   Navigator.of(context).pop();
                 });
               },
@@ -498,6 +502,22 @@ class _SettingScreenState extends State<SettingScreen> {
         ),
       ),
     );
+  }
+
+  void _applyThemeMode(String mode) {
+    ThemeMode themeMode;
+    switch (mode) {
+      case 'Sáng':
+        themeMode = ThemeMode.light;
+        break;
+      case 'Tối':
+        themeMode = ThemeMode.dark;
+        break;
+      default:
+        themeMode = ThemeMode.system;
+    }
+
+    MyApp.of(context).setThemeMode(themeMode);
   }
 
   void _showLanguageDialog() {
