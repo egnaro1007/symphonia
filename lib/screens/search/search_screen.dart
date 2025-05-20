@@ -6,7 +6,8 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/searching.dart';
-import '../../controller/player_controller.dart';
+import 'package:symphonia/controller/player_controller.dart';
+import 'package:symphonia/controller/download_controller.dart';
 
 class SearchScreen extends AbstractScreen {
   const SearchScreen({super.key, required super.onTabSelected});
@@ -360,7 +361,10 @@ class _SearchPageState extends State<SearchScreen>
             ListTile(
               leading: Icon(Icons.download),
               title: Text('Tải về'),
-              onTap: () {},
+              onTap: () {
+                DownloadController.downloadSong(song);
+                Navigator.pop(context);
+              },
             ),
             ListTile(
               leading: Icon(_isLike ? Icons.favorite : Icons.favorite_border),

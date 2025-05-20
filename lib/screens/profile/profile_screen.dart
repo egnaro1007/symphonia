@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:symphonia/controller/download_controller.dart';
+import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
 import 'package:symphonia/screens/search/search_screen.dart';
+import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/token_manager.dart';
 import '../../services/user_info_manager.dart';
 import '../abstract_navigation_screen.dart';
@@ -60,11 +63,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildProfileHeader(),
               // Quick access buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildQuickAccessButton(Icons.favorite_border, 'Yêu thích', Colors.blue),
-                  _buildQuickAccessButton(Icons.arrow_downward, 'Đã tải', Colors.purple),
-                  _buildQuickAccessButton(Icons.cloud_upload_outlined, 'Upload', Colors.amber),
+                  _buildQuickAccessButton(
+                    Icons.favorite_border,
+                    'Yêu thích',
+                    Colors.blue,
+                    () async {
+                      //TODO: Implement favorite
+                      List<Song> songs = await LikeOperations.getLikeSongs();
+                      for(Song song in songs) {
+                        print("Song: ${song.title}");
+                      }
+                    },
+                  ),
+                  _buildQuickAccessButton(
+                    Icons.arrow_downward,
+                    'Đã tải',
+                    Colors.purple,
+                    () async {
+                      //TODO: Implement download
+                      List<Song> songs = await DownloadController.getDownloadedSongs();
+                      for(Song song in songs) {
+                        print("Song: ${song.title}");
+                        print("Image: ${song.imagePath}");
+                        print("Audio: ${song.audioUrl}");
+                      }
+                    },
+                  ),
                 ],
               ),
 
@@ -114,30 +140,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildQuickAccessButton(IconData icon, String label, Color color) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 32,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
+  Widget _buildQuickAccessButton(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 32,
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

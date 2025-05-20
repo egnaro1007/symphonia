@@ -1,3 +1,4 @@
+import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/main.dart';
 import 'package:flutter/material.dart';
 import '../abstract_navigation_screen.dart';
@@ -104,7 +105,7 @@ class _SettingScreenState extends State<SettingScreen> {
         ListTile(
           title: const Text('Xóa tài khoản'),
           subtitle: const Text('Xóa tài khoản và dữ liệu cá nhân của bạn'),
-          leading: const Icon(Icons.delete_forever, color: Colors.red),
+          leading: Icon(Icons.delete_forever, color: Theme.of(context).colorScheme.error),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             _showDeleteAccountDialog();
@@ -129,18 +130,27 @@ class _SettingScreenState extends State<SettingScreen> {
           },
         ),
 
-        // Auto Play Similar
-        SwitchListTile(
-          title: const Text('Tự động phát bài tương tự sau khi danh sách kết thúc'),
-          subtitle: const Text('Phát bài hát tương tự sau khi danh sách phát kết thúc'),
-          secondary: const Icon(Icons.repeat),
-          value: _autoPlaySimilar,
-          onChanged: (value) {
-            setState(() {
-              _autoPlaySimilar = value;
-            });
+        // Delete Account
+        ListTile(
+          title: const Text('Xóa dữ liệu tải về'),
+          leading: const Icon(Icons.delete_forever),
+          onTap: () {
+            _showDeleteDataDialog();
           },
         ),
+
+        // Auto Play Similar
+        // SwitchListTile(
+        //   title: const Text('Tự động phát bài tương tự sau khi danh sách kết thúc'),
+        //   subtitle: const Text('Phát bài hát tương tự sau khi danh sách phát kết thúc'),
+        //   secondary: const Icon(Icons.repeat),
+        //   value: _autoPlaySimilar,
+        //   onChanged: (value) {
+        //     setState(() {
+        //       _autoPlaySimilar = value;
+        //     });
+        //   },
+        // ),
       ],
     );
   }
@@ -368,7 +378,7 @@ class _SettingScreenState extends State<SettingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xóa tài khoản'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -379,7 +389,7 @@ class _SettingScreenState extends State<SettingScreen> {
             SizedBox(height: 16),
             Text(
               'Hành động này sẽ xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn. Bạn không thể khôi phục lại tài khoản sau khi xóa.',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
         ),
@@ -395,7 +405,7 @@ class _SettingScreenState extends State<SettingScreen> {
               // Delete account logic
               Navigator.of(context).pop();
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Xóa tài khoản'),
           ),
         ],
@@ -449,6 +459,46 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteDataDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa tài dữ liệu tải xuống'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bạn có chắc chắn muốn dữ liệu tải xuống?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu đã tải xuống. Thao tác này không thể hoàn tác.',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              DownloadController.deleteAll();
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Xóa'),
+          ),
+        ],
       ),
     );
   }
