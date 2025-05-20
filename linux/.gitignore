@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+
+# Generated files
+flutter/generated_plugin_registrant.cc
+flutter/generated_plugin_registrant.h
+flutter/generated_plugins.cmake
+
+# CMake build artifacts
+cmake-build-*
+
+# Dependency files
+.packages
+.pub-cache/
+.dart_tool/
+
+# Logs and temporary files
+*.log
+*.temp
+*.tmp
+
+# IDE and editor files
+.idea/
+*.iml
+*.swp
+*.swo
