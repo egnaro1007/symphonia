@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/controller/download_controller.dart';
+import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
@@ -83,12 +84,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Colors.purple,
                     () async {
                       //TODO: Implement download
+
+                      // Delete when implement
                       List<Song> songs = await DownloadController.getDownloadedSongs();
-                      for(Song song in songs) {
-                        print("Song: ${song.title}");
-                        print("Image: ${song.imagePath}");
-                        print("Audio: ${song.audioUrl}");
+                      if (songs.isNotEmpty){
+                        for (Song song in songs) {
+                          print("Song: ${song.title}");
+                          print("Image: ${song.imagePath}");
+                          print("Audio: ${song.audioUrl}");
+                        }
+                        PlayerController.getInstance().loadSongs(songs);
                       }
+
                     },
                   ),
                 ],
