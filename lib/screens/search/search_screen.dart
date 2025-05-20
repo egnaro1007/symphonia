@@ -3,6 +3,7 @@ import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/searching.dart';
 import '../../controller/player_controller.dart';
@@ -340,7 +341,9 @@ class _SearchPageState extends State<SearchScreen>
     );
   }
 
-  void _showSongOptions(BuildContext context, Song song) {
+  Future<void> _showSongOptions(BuildContext context, Song song) async {
+    bool _isLike = await LikeOperations.getLikeStatus(song);
+
     showModalBottomSheet(
       context: context,
       builder: (_) {
@@ -360,19 +363,28 @@ class _SearchPageState extends State<SearchScreen>
               onTap: () {},
             ),
             ListTile(
-              leading: Icon(Icons.favorite_border),
-              title: Text('Thêm vào yêu thích'),
-              onTap: () {},
+              leading: Icon(_isLike ? Icons.favorite : Icons.favorite_border),
+              title: Text(_isLike ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'),
+              onTap: () async {
+                if (_isLike) {
+                  if (await LikeOperations.unlike(song)) {
+                    _isLike = false;
+                  }
+                } else {
+                  if (await LikeOperations.like(song)) {
+                    _isLike = true;
+                  }
+                }
+                Navigator.pop(context);
+              },
             ),
             ListTile(
               leading: Icon(Icons.playlist_add),
               title: Text('Thêm vào playlist'),
               onTap: () async {
-                // Get all local playlists
                 List<PlayList> localPlaylists =
                     await PlayListOperations.getLocalPlaylists();
 
-                // Show playlist options
                 showModalBottomSheet(
                   context: context,
                   builder: (_) {
@@ -382,8 +394,6 @@ class _SearchPageState extends State<SearchScreen>
                         return ListTile(
                           title: Text(localPlaylists[index].title),
                           onTap: () {
-                            // Add song to the selected playlist
-                            print("Song ID: ${song.id}");
                             PlayListOperations.addSongToPlaylist(
                               localPlaylists[index].id,
                               song.id.toString(),
