@@ -3,25 +3,28 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/token_manager.dart';
 import 'package:symphonia/services/user_info_manager.dart';
 import 'screens/navigation_bar_screen.dart';
+import 'screens/profile/login_screen.dart';
+import 'package:symphonia/controller/download_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure platform bindings are ready
 
   await dotenv.load(fileName: ".env");
-  // await TokenManager.login(
-  //   dotenv.env['USERNAME'] ?? '',
-  //   dotenv.env['PASSWORD'] ?? '',
-  // );
 
+  await DownloadController.loadPaths();
+  bool isAuthenticated = await TokenManager.verifyToken();
   await UserInfoManager.fetchUserInfo();
 
   print("Access token: ${TokenManager.accessToken}");
+  print("Is authenticated: $isAuthenticated");
 
-  runApp(const MyApp());
+  runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final bool isAuthenticated;
+
+  const MyApp({super.key, required this.isAuthenticated});
 
   static _MyAppState of(BuildContext context) =>
       context.findAncestorStateOfType<_MyAppState>()!;
@@ -54,7 +57,10 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: _themeMode,
-      home: NavigationBarScreen(selectedBottom: 0),
+      home:
+          widget.isAuthenticated
+              ? NavigationBarScreen(selectedBottom: 0)
+              : const LoginScreen(),
     );
   }
 }

@@ -5,7 +5,7 @@ import '../abstract_navigation_screen.dart';
 
 class FollowScreen extends AbstractScreen {
   @override
-  final String title = "Follow";
+  final String title = "Friends";
 
   @override
   final Icon icon = const Icon(Icons.subscriptions);
@@ -35,7 +35,8 @@ class _FollowScreenState extends State<FollowScreen> {
   }
 
   Future<void> _loadNumberOfFriendRequests() async {
-    final loadedNumberOfFriendRequests = await FriendOperations.getNumberOfFriendRequests();
+    final loadedNumberOfFriendRequests =
+        await FriendOperations.getNumberOfFriendRequests();
     setState(() {
       numberOfFriendRequests = loadedNumberOfFriendRequests;
     });
@@ -50,10 +51,7 @@ class _FollowScreenState extends State<FollowScreen> {
         elevation: 0,
         title: const Text(
           'Người dùng',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
           // Nút tìm kiếm
@@ -88,7 +86,9 @@ class _FollowScreenState extends State<FollowScreen> {
                       minHeight: 16,
                     ),
                     child: Text(
-                      numberOfFriendRequests > 99 ? '99+' : numberOfFriendRequests.toString(),
+                      numberOfFriendRequests > 99
+                          ? '99+'
+                          : numberOfFriendRequests.toString(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -110,10 +110,7 @@ class _FollowScreenState extends State<FollowScreen> {
             padding: EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
               'Bạn bè của bạn',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -131,7 +128,10 @@ class _FollowScreenState extends State<FollowScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
                   leading: Stack(
                     children: [
                       CircleAvatar(
@@ -147,9 +147,7 @@ class _FollowScreenState extends State<FollowScreen> {
                     },
                     child: Text(
                       friend.username,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   trailing: ElevatedButton(
@@ -164,25 +162,60 @@ class _FollowScreenState extends State<FollowScreen> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Xác nhận"),
-                          content: Text("Bạn có chắc muốn hủy kết bạn với ${friend.username}?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("Hủy"),
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text("Xác nhận"),
+                              content: Text(
+                                "Bạn có chắc muốn hủy kết bạn với ${friend.username}?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("Hủy"),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    // Show loading indicator
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Đang hủy kết bạn với ${friend.username}...',
+                                        ),
+                                      ),
+                                    );
+
+                                    try {
+                                      await FriendOperations.unfriend(
+                                        friend.id,
+                                      );
+                                      // Refresh friends list
+                                      await _loadFriends();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Đã hủy kết bạn với ${friend.username}',
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Lỗi khi hủy kết bạn: ${e.toString()}',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text("Xác nhận"),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Đã hủy kết bạn với ${friend.username}')),
-                                );
-                              },
-                              child: const Text("Xác nhận"),
-                            ),
-                          ],
-                        ),
                       );
                     },
                   ),

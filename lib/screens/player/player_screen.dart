@@ -16,7 +16,8 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
+class _PlayerScreenState extends State<PlayerScreen>
+    with SingleTickerProviderStateMixin {
   final PlayerController _playerController = PlayerController.getInstance();
   bool _isPlaying = false;
   Song playingSong = Song();
@@ -29,9 +30,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
   int _selectedTabIndex = -1; // No tab selected by default
   bool _showTabContent = false; // Whether to show tab content
 
+  // Tab controller to notify all tabs
+  late TabController _tabController;
+  bool _tabsInitialized = false;
+
+  // Caching tab instances to preserve state
+  late final List<Widget> _tabWidgets = [
+    NextTrackTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
+    LyricsTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
+    RelatedTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
+  ];
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize tab controller with 3 tabs
+    _tabController = TabController(length: 3, vsync: this);
 
     _isPlaying = _playerController.isPlaying();
     _tempSliderPosition = _currentPosition; // Initialize temp position
@@ -96,8 +111,41 @@ class _PlayerScreenState extends State<PlayerScreen> {
         setState(() {
           playingSong = song;
           _justReleasedSlider = false;
+
+          // Force rebuild all tabs when song changes
+          _forceTabsUpdate();
         });
       }
+    });
+
+    // Initialize tabs immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeTabs();
+    });
+  }
+
+  // Initialize all tabs immediately
+  void _initializeTabs() {
+    if (_tabsInitialized) return;
+
+    // Pre-build all tabs to ensure they're initialized
+    for (int i = 0; i < _tabWidgets.length; i++) {
+      // Notify the tab controller to ensure all tabs get built
+      _tabController.animateTo(i, duration: Duration.zero);
+    }
+
+    // Reset to default tab
+    _tabController.animateTo(0, duration: Duration.zero);
+    _tabsInitialized = true;
+  }
+
+  // Force update all tabs when song changes
+  void _forceTabsUpdate() {
+    if (!mounted) return;
+
+    // Force a rebuild of the IndexedStack by updating its key
+    setState(() {
+      // The state update itself will trigger rebuilds
     });
   }
 
@@ -116,13 +164,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
-  // // Handle changing tabs within tab view
-  // void _changeTabWithinTabView(int index) {
-  //   setState(() {
-  //     _selectedTabIndex = index;
-  //   });
-  // }
-
   // Handle tab change from within any tab
   void _switchToTab(int tabIndex) {
     setState(() {
@@ -131,93 +172,75 @@ class _PlayerScreenState extends State<PlayerScreen> {
     });
   }
 
-  // Get the appropriate tab widget based on selected index
-  Widget _getTabContent() {
-    // Create the tab without using navigation
-    switch (_selectedTabIndex) {
-      case 0:
-        return NextTrackTab(
-          onTopBarTap: _returnToMainPlayer,
-          onTabChange: _switchToTab,
-        );
-      case 1:
-        return LyricsTab(
-          onTopBarTap: _returnToMainPlayer,
-          onTabChange: _switchToTab,
-        );
-      case 2:
-        return RelatedTab(
-          onTopBarTap: _returnToMainPlayer,
-          onTabChange: _switchToTab,
-        );
-      default:
-        // Show lyrics tab as fallback if somehow an invalid index is selected
-        return LyricsTab(
-          onTopBarTap: _returnToMainPlayer,
-          onTabChange: _switchToTab,
-        );
-    }
-  }
-
   @override
-  Widget build(BuildContext context) => Scaffold(
-    resizeToAvoidBottomInset: false, // Prevent keyboard from causing overflow
-    body: SafeArea(
-      child:
-          _showTabContent
-              ? _getTabContent()
-              : Container(
-                color: const Color(0xFF1E0811), // Dark maroon background
-                height: MediaQuery.of(context).size.height,
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight:
-                          MediaQuery.of(context).size.height -
-                          MediaQuery.of(context).padding.vertical,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Top section
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildCloseButton(),
-                            const SizedBox(height: 40),
-                            _buildAlbumCover(),
-                            const SizedBox(height: 30),
-                            _buildSongInfo(),
-                          ],
-                        ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false, // Prevent keyboard from causing overflow
+      body: SafeArea(
+        child:
+            _showTabContent
+                ? IndexedStack(
+                  key: ValueKey('tabs-stack-${playingSong.title}'),
+                  index:
+                      _selectedTabIndex < 0 ||
+                              _selectedTabIndex >= _tabWidgets.length
+                          ? 1
+                          : _selectedTabIndex, // Default to lyrics if invalid
+                  children: _tabWidgets,
+                )
+                : Container(
+                  color: const Color(0xFF1E0811), // Dark maroon background
+                  height: MediaQuery.of(context).size.height,
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight:
+                            MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.vertical,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Top section
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildCloseButton(),
+                              const SizedBox(height: 40),
+                              _buildAlbumCover(),
+                              const SizedBox(height: 30),
+                              _buildSongInfo(),
+                            ],
+                          ),
 
-                        // Bottom section
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
+                          // Bottom section
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [_buildSlider()],
+                                ),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [_buildSlider()],
-                              ),
-                            ),
-                            const SizedBox(height: 30),
-                            _buildPlaybackControls(),
-                            const SizedBox(height: 30),
-                            _buildBottomTabs(),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(height: 30),
+                              _buildPlaybackControls(),
+                              const SizedBox(height: 30),
+                              _buildBottomTabs(),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-    ),
-  );
+      ),
+    );
+  }
 
   Widget _buildCloseButton() {
     return Padding(
@@ -402,16 +425,20 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ),
         IconButton(
           onPressed: () {
-            PlayerController.getInstance().changeRepeatMode();
+            setState(() {
+              _playerController.changeRepeatMode();
+            });
           },
           icon: Icon(
             _playerController.repeatMode == RepeatMode.repeatOne
-              ? Icons.repeat_one
-              : Icons.repeat,
-            size: 28,
-            color: _playerController.repeatMode == RepeatMode.noRepeat
-              ? Colors.white
-              : Theme.of(context).colorScheme.primary),
+                ? Icons.repeat_one
+                : Icons.repeat,
+            size: _playerController.repeatMode == RepeatMode.noRepeat ? 28 : 32,
+            color:
+                _playerController.repeatMode == RepeatMode.noRepeat
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white,
+          ),
         ),
       ],
     );

@@ -1,7 +1,34 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../../../controller/player_controller.dart';
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
+
+// Model class for timed lyrics
+class LyricsLine {
+  final double startTime;
+  final String text;
+  final double duration;
+  final GlobalKey key = GlobalKey(); // Each line gets its own key
+
+  LyricsLine({
+    required this.startTime,
+    required this.text,
+    required this.duration,
+  });
+
+  factory LyricsLine.fromJson(Map<String, dynamic> json) {
+    return LyricsLine(
+      startTime: json['startTime']?.toDouble() ?? 0.0,
+      text: json['text'] ?? "",
+      duration: json['duration']?.toDouble() ?? 0.0,
+    );
+  }
+}
 
 class LyricsTab extends StatefulWidget {
   final VoidCallback onTopBarTap;
@@ -17,15 +44,420 @@ class LyricsTab extends StatefulWidget {
   State<LyricsTab> createState() => _LyricsTabState();
 }
 
-class _LyricsTabState extends State<LyricsTab> {
+class _LyricsTabState extends State<LyricsTab>
+    with AutomaticKeepAliveClientMixin {
   final PlayerController _playerController = PlayerController.getInstance();
   final int _tabIndex = 1; // This is the "LỜI NHẠC" tab (index 1)
 
+  // Add state variables for lyrics
+  late Future<List<LyricsLine>> _lyricsFuture;
+
+  // Current highlighted line index
+  int _currentLineIndex = -1;
+  List<LyricsLine> _lyricsLines = [];
+
+  // For lyrics timing
+  Duration _currentPosition = Duration.zero;
+  bool _isPlaying = false;
+  bool _userTapped = false; // Track if user manually tapped a line
+
+  // Subscriptions
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _playerStateSubscription;
+  StreamSubscription? _songChangeSubscription;
+
+  // For scrolling
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolling = false; // Track if auto-scrolling is in progress
+  bool _isUserScrolling = false; // Track if the user is actively scrolling
+
+  // Keep scroll position when switching tabs
+  bool _isInitialized = false;
+
+  // Track current song to detect changes
+  String _currentSongId = '';
+
+  @override
+  bool get wantKeepAlive => true; // This is key to keep the state when switching tabs
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTab();
+  }
+
+  void _initializeTab() {
+    if (_isInitialized) return;
+
+    // Initialize lyrics future
+    _fetchLyrics();
+
+    // Set up listeners for player state and position
+    _setupPlayerListeners();
+
+    // Add listener for user scroll activity
+    _scrollController.addListener(_handleUserScroll);
+
+    // Listen for song changes to refresh lyrics
+    _songChangeSubscription = _playerController.onSongChange.listen((song) {
+      final newSongId = song.id.toString();
+      if (_currentSongId != newSongId) {
+        _currentSongId = newSongId;
+        // Reset states
+        _currentLineIndex = -1;
+        _lyricsLines = [];
+        _fetchLyrics();
+
+        // Reset scroll position
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      }
+    });
+
+    _isInitialized = true;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Make sure initialization happens even if the widget is rebuilt
+    _initializeTab();
+
+    // Force update current line and scroll position when tab becomes visible
+    if (_isInitialized && _lyricsLines.isNotEmpty) {
+      _playerController.getCurrentPosition().then((position) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = position;
+            _updateCurrentLine();
+          });
+          // Ensure scrolling to current line happens after build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToCurrentLine();
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up subscriptions
+    _positionSubscription?.cancel();
+    _playerStateSubscription?.cancel();
+    _songChangeSubscription?.cancel();
+    _scrollController.removeListener(_handleUserScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Handle user scroll activity
+  void _handleUserScroll() {
+    if (_scrollController.position.userScrollDirection !=
+        ScrollDirection.idle) {
+      _isUserScrolling = true;
+    } else {
+      // Add a short delay before re-enabling auto-scroll
+      // This prevents auto-scroll from triggering immediately after user finishes scrolling
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          _isUserScrolling = false;
+        }
+      });
+    }
+  }
+
+  // Set up listeners for player state and position
+  void _setupPlayerListeners() {
+    // Listen to position changes
+    _positionSubscription = _playerController.onPositionChanged.listen((
+      position,
+    ) {
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+          // Only update line if not recently tapped by user and user is not scrolling
+          if (!_userTapped && !_isUserScrolling) {
+            _updateCurrentLine();
+          } else if (_userTapped) {
+            // Reset the user tapped flag after a short delay
+            Future.delayed(const Duration(milliseconds: 500), () {
+              _userTapped = false;
+            });
+          }
+        });
+      }
+    });
+
+    // Listen to player state changes
+    _playerStateSubscription = _playerController.onPlayerStateChanged.listen((
+      state,
+    ) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
+    });
+
+    // Get initial state
+    _isPlaying = _playerController.isPlaying();
+
+    // Get current position and force sync of the lyrics
+    _playerController.getCurrentPosition().then((position) {
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+          _updateCurrentLine();
+        });
+
+        // Ensure we scroll to the current line after the build is complete
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToCurrentLine();
+        });
+      }
+    });
+
+    // Get initial song ID
+    _currentSongId = _playerController.playingSong.id.toString();
+  }
+
+  // Handle tap on a lyrics line
+  void _handleLineTap(int index) {
+    if (index < 0 || index >= _lyricsLines.length) return;
+
+    final tapTime = Duration(
+      milliseconds: (_lyricsLines[index].startTime * 1000).round(),
+    );
+
+    // Set user tapped flag
+    _userTapped = true;
+    _isUserScrolling = false; // Allow auto-scroll after tap
+
+    // Update the current line index
+    setState(() {
+      _currentLineIndex = index;
+    });
+
+    // Seek to the start time of the tapped line
+    _playerController.seek(tapTime);
+
+    // Scroll to make the tapped line visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentLine();
+    });
+  }
+
+  // Update current line based on the current playback position
+  void _updateCurrentLine() {
+    if (_lyricsLines.isEmpty) return;
+
+    final currentTimeInSeconds = _currentPosition.inMilliseconds / 1000;
+    int newLineIndex = -1;
+
+    // Find the current line based on the playback position
+    for (int i = 0; i < _lyricsLines.length; i++) {
+      final line = _lyricsLines[i];
+      // A line is current if current time is between its start time and (start time + duration)
+      if (currentTimeInSeconds >= line.startTime &&
+          currentTimeInSeconds <= (line.startTime + line.duration)) {
+        newLineIndex = i;
+        break;
+      }
+    }
+
+    // If we couldn't find a current line by exact time match, use the line that's coming up next
+    if (newLineIndex == -1 && currentTimeInSeconds > 0) {
+      for (int i = 0; i < _lyricsLines.length; i++) {
+        if (_lyricsLines[i].startTime > currentTimeInSeconds) {
+          newLineIndex = i - 1;
+          break;
+        }
+      }
+
+      // If still not found, it might be past the last line
+      if (newLineIndex == -1 && _lyricsLines.isNotEmpty) {
+        // Check if we're past the last line
+        final lastLine = _lyricsLines.last;
+        if (currentTimeInSeconds > lastLine.startTime + lastLine.duration) {
+          newLineIndex = _lyricsLines.length - 1;
+        }
+      }
+    }
+
+    // Only update if line has changed and user is not scrolling
+    if (newLineIndex != _currentLineIndex &&
+        newLineIndex >= 0 &&
+        !_isUserScrolling) {
+      setState(() {
+        _currentLineIndex = newLineIndex;
+      });
+
+      // Schedule the scroll after the build is complete
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToCurrentLine();
+      });
+    }
+  }
+
+  // Scroll to make the current line visible in the middle of the viewport
+  void _scrollToCurrentLine() {
+    // Optional: Add print statements for detailed debugging if needed
+    // print('Attempting _scrollToCurrentLine for index: $_currentLineIndex, isScrolling: $_isScrolling, isUserScrolling: $_isUserScrolling');
+
+    if (_currentLineIndex < 0 || _currentLineIndex >= _lyricsLines.length) {
+      return;
+    }
+    
+    if (_isScrolling || _isUserScrolling) {
+      return;
+    }
+
+    // Ensure the widget is still mounted before trying to access context or scroll.
+    if (!mounted) {
+      // print('Bailing: Widget not mounted.');
+      return;
+    }
+
+    final currentLine = _lyricsLines[_currentLineIndex];
+    final GlobalKey key = currentLine.key;
+
+    // print('Key for index $_currentLineIndex: $key, currentContext: ${key.currentContext}');
+
+    if (key.currentContext != null) {
+      // print('Context found for index $_currentLineIndex. Proceeding with ensureVisible.');
+      setState(() {
+        // Set _isScrolling to true to prevent concurrent scrolls
+        _isScrolling = true;
+      });
+
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        alignment: 0.5, // Center the item in the viewport
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      ).whenComplete(() {
+        if (mounted) {
+          setState(() {
+            _isScrolling = false; // Reset flag when scroll completes
+          });
+          // print('ensureVisible completed for index $_currentLineIndex.');
+        }
+      });
+    } else {
+      // Estimate item height (heuristic, might need adjustment based on actual layout)
+      // Based on: Text (fontSize 24), Container margin (vertical 8.0*2=16), Container padding (vertical 4.0*2=8)
+      // Total estimated height approx = 24 + 16 + 8 = 48.0
+      const double estimatedItemHeight = 48.0;
+      double targetOffset = _currentLineIndex * estimatedItemHeight;
+
+      // Ensure the offset is within the scrollable range if controller is ready.
+      if (_scrollController.hasClients &&
+          _scrollController.position.hasContentDimensions) {
+        targetOffset = targetOffset.clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        );
+      } else {
+        return;
+      }
+
+      _scrollController.jumpTo(targetOffset);
+      // print('Jumped to estimated offset: $targetOffset for index $_currentLineIndex.');
+
+      // After jumping, the item should hopefully be built in the next frame.
+      // Schedule another attempt to scroll, ensuring it's properly visible and centered.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        // print('Post-jump callback for index $_currentLineIndex. Re-checking context.');
+        if (key.currentContext != null) {
+          // print('Context now available post-jump for index $_currentLineIndex. Calling ensureVisible.');
+          setState(() {
+            // Set _isScrolling to true
+            _isScrolling = true;
+          });
+          Scrollable.ensureVisible(
+            key.currentContext!,
+            alignment: 0.5,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          ).whenComplete(() {
+            if (mounted) {
+              setState(() {
+                _isScrolling = false; // Reset flag
+              });
+              // print('ensureVisible (after jump) completed for index $_currentLineIndex.');
+            }
+          });
+        } else {
+          // If still null, the item wasn't built, or GlobalKey isn't attached correctly.
+          // This might happen if estimatedItemHeight is way off or other complex layout issues.
+          // print('Warning: Lyrics line context STILL null after jump and retry for index $_currentLineIndex.');
+        }
+      });
+    }
+  }
+
+  // Method to fetch lyrics from JSON file
+  void _fetchLyrics() {
+    setState(() {
+      _lyricsFuture = _loadLyricsFromJsonFile().then((lyrics) {
+        // After lyrics are loaded, immediately update the current line based on playback position
+        _lyricsLines = lyrics;
+        _playerController.getCurrentPosition().then((position) {
+          if (mounted) {
+            setState(() {
+              _currentPosition = position;
+              _updateCurrentLine();
+            });
+
+            // Ensure we scroll to the current line after the build is complete
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToCurrentLine();
+            });
+          }
+        });
+        return lyrics;
+      });
+    });
+  }
+
+  // Load lyrics from JSON file
+  Future<List<LyricsLine>> _loadLyricsFromJsonFile() async {
+    try {
+      // Load the JSON file from assets
+      final String jsonString = await rootBundle.loadString(
+        'assets/lyrics/lyrics.json',
+      );
+      final List<dynamic> jsonList = json.decode(jsonString);
+
+      // Convert JSON to LyricsLine objects
+      return jsonList.map((json) => LyricsLine.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to load lyrics: $e');
+    }
+  }
+
+  // Seek to a specific time (for testing lyrics sync)
+  void _seekToTime(Duration position) {
+    _playerController.seek(position);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Required for AutomaticKeepAliveClientMixin to work
+    super.build(context);
+
     return Scaffold(
       body: Container(
-        color: const Color(0xFF1E0811), // Dark maroon background
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1E0811), Color(0xFF0A0205)],
+          ),
+        ),
         child: Column(
           children: [
             // Mini player top bar
@@ -39,11 +471,110 @@ class _LyricsTabState extends State<LyricsTab> {
 
             // Content area
             Expanded(
-              child: Center(
-                child: Text(
-                  "Lời bài hát",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
+              child: FutureBuilder<List<LyricsLine>>(
+                future: _lyricsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        "Error loading lyrics: ${snapshot.error}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Get lyrics lines
+                    _lyricsLines = snapshot.data ?? [];
+
+                    return Column(
+                      children: [
+                        // Lyrics content
+                        Expanded(
+                          child: Center(
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification: (scrollNotification) {
+                                if (scrollNotification
+                                    is UserScrollNotification) {
+                                  if (scrollNotification.direction !=
+                                      ScrollDirection.idle) {
+                                    _isUserScrolling = true;
+                                  } else {
+                                    // Add a short delay before re-enabling auto-scroll
+                                    Future.delayed(
+                                      const Duration(milliseconds: 1000),
+                                      () {
+                                        if (mounted) {
+                                          _isUserScrolling = false;
+                                        }
+                                      },
+                                    );
+                                  }
+                                }
+                                return false;
+                              },
+                              child: Scrollbar(
+                                thumbVisibility: true,
+                                controller: _scrollController,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0,
+                                    vertical: 16.0,
+                                  ),
+                                  itemCount: _lyricsLines.length,
+                                  itemBuilder: (context, index) {
+                                    final line = _lyricsLines[index];
+
+                                    // Skip empty lines
+                                    if (line.text.trim().isEmpty) {
+                                      return const SizedBox(height: 16);
+                                    }
+
+                                    final isCurrentLine =
+                                        index == _currentLineIndex;
+
+                                    return GestureDetector(
+                                      onTap: () => _handleLineTap(index),
+                                      child: Container(
+                                        key:
+                                            line.key, // Apply the GlobalKey to this widget
+                                        margin: const EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0,
+                                        ),
+                                        child: Text(
+                                          line.text,
+                                          style: TextStyle(
+                                            color:
+                                                isCurrentLine
+                                                    ? Colors.white
+                                                    : Colors.white.withOpacity(
+                                                      0.4,
+                                                    ),
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ],

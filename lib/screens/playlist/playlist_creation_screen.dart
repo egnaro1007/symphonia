@@ -13,9 +13,7 @@ class PlaylistCreationScreen extends StatefulWidget {
 
 class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _autoDownload = true;
   bool _isPrivate = false;
-  bool _autoUpdate = false;
   bool _isButtonActive = false;
 
   @override
@@ -68,10 +66,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                     // Playlist name label
                     const Text(
                       'Tên playlist',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
 
                     // Playlist name input field
@@ -85,30 +80,6 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                     ),
 
                     const SizedBox(height: 24),
-
-                    // Auto download toggle
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Tự động tải',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        Switch(
-                          value: _autoDownload,
-                          onChanged: (value) {
-                            setState(() {
-                              _autoDownload = value;
-                            });
-                          },
-                          activeColor: Colors.deepPurple,
-                          activeTrackColor: Colors.deepPurple.withValues(),
-                        ),
-                      ],
-                    ),
 
                     // Private toggle
                     Row(
@@ -133,50 +104,6 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                         ),
                       ],
                     ),
-
-                    // Auto update toggle (Premium feature)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'Phát tuần tự',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'PLUS',
-                                style: TextStyle(
-                                  color: Colors.deepPurple,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Switch(
-                          value: _autoUpdate,
-                          onChanged: (value) {
-                            setState(() {
-                              _autoUpdate = value;
-                            });
-                          },
-                          activeColor: Colors.deepPurple,
-                          activeTrackColor: Colors.deepPurple.withOpacity(0.5),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -189,30 +116,41 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isButtonActive ? () async {
-                    // Get the playlist name
-                    String playlistName = _nameController.text;
-                    print("Playlist: $playlistName");
+                  onPressed:
+                      _isButtonActive
+                          ? () async {
+                            // Get the playlist name
+                            String playlistName = _nameController.text;
+                            print("Playlist: $playlistName");
 
-                    // Call the addPlaylist function from the Playlist class
-                    bool success = await PlayListOperations.addPlaylist(playlistName, _isPrivate);
-                    if (success) {
-                      print('Playlist created successfully');
-                    } else {
-                      print('Failed to create playlist');
-                    }
+                            // Call the addPlaylist function from the Playlist class
+                            bool success = await PlayListOperations.addPlaylist(
+                              playlistName,
+                              !_isPrivate,
+                            );
+                            if (success) {
+                              print('Playlist created successfully');
+                            } else {
+                              print('Failed to create playlist');
+                            }
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => NavigationBarScreen(selectedBottom: 3),
-                      ),
-                    );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        NavigationBarScreen(selectedBottom: 3),
+                              ),
+                            );
 
-                    // Navigator.pop(context);
-                  } : null,
+                            // Navigator.pop(context);
+                          }
+                          : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isButtonActive ? Colors.deepPurple : Colors.grey.shade300,
+                    backgroundColor:
+                        _isButtonActive
+                            ? Colors.deepPurple
+                            : Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),

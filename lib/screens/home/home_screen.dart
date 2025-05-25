@@ -3,6 +3,7 @@ import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/song.dart';
+import 'package:symphonia/widgets/song_item.dart';
 import '../abstract_navigation_screen.dart';
 
 class HomeScreen extends AbstractScreen {
@@ -56,7 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // App Bar with search and theme
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -75,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             widget.onTabSelected(7, "");
                           },
                           child: const Icon(Icons.search, size: 24),
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -84,7 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // For You Section Header
               Padding(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 16.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -98,18 +106,29 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface),
+                        Icon(
+                          Icons.chevron_right,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ],
                     ),
                     Row(
                       children: [
                         TextButton(
                           onPressed: () {
-                            PlayerController.getInstance().loadSongs(suggestedSongs);
+                            PlayerController.getInstance().loadSongs(
+                              suggestedSongs,
+                            );
                           },
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withAlpha((0.1 * 255).toInt()),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -136,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Suggested Songs - Horizontally Scrollable Groups of Vertical Lists
               SizedBox(
-                height: 250,
+                height: 265,
                 child: PageView.builder(
                   itemCount: suggestedSongGroups.length,
                   onPageChanged: (index) {
@@ -163,9 +182,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 6,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
-                        color: _currentPageIndex == index
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceContainerHigh,
+                        color:
+                            _currentPageIndex == index
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -175,7 +197,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Recommended Playlists Title
               Padding(
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 8.0),
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 16.0,
+                  bottom: 8.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
@@ -202,112 +229,66 @@ class _HomeScreenState extends State<HomeScreen> {
                       playlist: BriefPlayList(
                         id: '616iSon5fJRnCwYbAJZ9kE',
                         title: 'Vietnam Top 100',
-                        picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
-                        creator: 'Top 100'
+                        picture:
+                            'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
+                        creator: 'Top 100',
                       ),
-                      description: "Top những bài hát hot nhất Việt Nam"
+                      description: "Top những bài hát hot nhất Việt Nam",
                     ),
                     _buildPlaylistItem(
                       playlist: BriefPlayList(
                         id: '7hJfYpKLDQwmeHIPTmNS5y',
                         title: 'Chill Music',
-                        picture: 'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8473a121591cf84842f9383b93',
-                        creator: 'chill songs'
+                        picture:
+                            'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8473a121591cf84842f9383b93',
+                        creator: 'chill songs',
                       ),
-                      description: 'Thư giãn với những bản nhạc nhẹ nhàng'
+                      description: 'Thư giãn với những bản nhạc nhẹ nhàng',
                     ),
                     _buildPlaylistItem(
                       playlist: BriefPlayList(
                         id: '1dvoCOb3vso33rTd4FWqRW',
                         title: 'EDM Mix',
-                        picture: 'https://mosaic.scdn.co/640/ab67616d00001e021a5eb771120e2ee3f6a44ed7ab67616d00001e02941dd3b3343d9cb9329d37bfab67616d00001e029cfe80c0c05ce104f7bab18eab67616d00001e02ffb343926530168be4724dd4',
-                        creator: 'Akhil Sagar'
+                        picture:
+                            'https://mosaic.scdn.co/640/ab67616d00001e021a5eb771120e2ee3f6a44ed7ab67616d00001e02941dd3b3343d9cb9329d37bfab67616d00001e029cfe80c0c05ce104f7bab18eab67616d00001e02ffb343926530168be4724dd4',
+                        creator: 'Akhil Sagar',
                       ),
-                      description: 'Năng lượng với những bản EDM hot'
+                      description: 'Năng lượng với những bản EDM hot',
                     ),
                     _buildPlaylistItem(
                       playlist: BriefPlayList(
                         id: '4ckPlRonCUjkAhVnOXV6Ne',
                         title: 'Love Songs',
-                        picture: 'https://mosaic.scdn.co/640/ab67616d00001e022ceedc8c879a1f6784fbeef5ab67616d00001e026f6fd002ef1fc6b1f3f90c87ab67616d00001e02a36f994bf8ef9912143d9a23ab67616d00001e02ad2852df5956130426085520',
-                        creator: 'Ramsey Kouri'
+                        picture:
+                            'https://mosaic.scdn.co/640/ab67616d00001e022ceedc8c879a1f6784fbeef5ab67616d00001e026f6fd002ef1fc6b1f3f90c87ab67616d00001e02a36f994bf8ef9912143d9a23ab67616d00001e02ad2852df5956130426085520',
+                        creator: 'Ramsey Kouri',
                       ),
-                      description: 'Những bản tình ca ngọt ngào'
+                      description: 'Những bản tình ca ngọt ngào',
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
-        )
-      )
+        ),
+      ),
     );
   }
 
   Widget _buildSongGroup(List<Song> songs) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: songs.map((song) => _buildSongItem(song)).toList(),
-      ),
-    );
+    return Column(children: songs.map((song) => _buildSongItem(song)).toList());
   }
 
   Widget _buildSongItem(Song suggestedSong) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: NetworkImage(suggestedSong.imagePath),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  suggestedSong.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  suggestedSong.artist,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: SongItem(song: suggestedSong),
     );
   }
 
   Widget _buildPlaylistItem({
     required BriefPlayList playlist,
-    required String description
+    required String description,
   }) {
     return GestureDetector(
       onTap: () {
@@ -355,7 +336,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildRecentItem({
     IconData? icon,
     String? label,
@@ -370,13 +350,14 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: backgroundColor,
-        gradient: gradient != null
-            ? LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
-        )
-            : null,
+        gradient:
+            gradient != null
+                ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradient,
+                )
+                : null,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Stack(

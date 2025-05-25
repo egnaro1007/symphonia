@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/controller/download_controller.dart';
-import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
-import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
-import 'package:symphonia/screens/search/search_screen.dart';
+import 'package:symphonia/screens/profile/song_list_screen.dart';
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/token_manager.dart';
 import '../../services/user_info_manager.dart';
@@ -39,21 +37,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
-        actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.mic, color: Colors.black),
-          //   onPressed: () {},
-          // ),
-
-          // ElevatedButton(
-          //   onPressed: () {
-          //     widget.onTabSelected(6, "");
-          //   },
-          //   child: const Icon(Icons.search, color: Colors.black),
-          // )
-        ],
       ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -67,73 +52,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildQuickAccessButton(
+                    Icons.schedule,
+                    'Nghe gần đây',
+                    Colors.orange,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SongListScreen(
+                                title: 'Nghe gần đây',
+                                songsFuture: _getRecentlyPlayedSongs(),
+                                titleIcon: Icons.schedule,
+                                titleColor: Colors.orange,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildQuickAccessButton(
                     Icons.favorite_border,
                     'Yêu thích',
                     Colors.blue,
-                    () async {
-                      //TODO: Implement favorite
-                      List<Song> songs = await LikeOperations.getLikeSongs();
-                      for(Song song in songs) {
-                        print("Song: ${song.title}");
-                      }
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SongListScreen(
+                                title: 'Yêu thích',
+                                songsFuture: LikeOperations.getLikeSongs(),
+                                titleIcon: Icons.favorite,
+                                titleColor: Colors.blue,
+                              ),
+                        ),
+                      );
                     },
                   ),
                   _buildQuickAccessButton(
                     Icons.arrow_downward,
                     'Đã tải',
                     Colors.purple,
-                    () async {
-                      //TODO: Implement download
-
-                      // Delete when implement
-                      List<Song> songs = await DownloadController.getDownloadedSongs();
-                      if (songs.isNotEmpty){
-                        for (Song song in songs) {
-                          print("Song: ${song.title}");
-                          print("Image: ${song.imagePath}");
-                          print("Audio: ${song.audioUrl}");
-                        }
-                        PlayerController.getInstance().loadSongs(songs);
-                      }
-
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SongListScreen(
+                                title: 'Đã tải',
+                                songsFuture:
+                                    DownloadController.getDownloadedSongs(),
+                                titleIcon: Icons.download_done,
+                                titleColor: Colors.purple,
+                              ),
+                        ),
+                      );
                     },
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Recently played section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Nghe gần đây',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-
-              // Recently played items
-              SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _buildRecentItem('Bài Hát Nghe\nGần Đây', Colors.blue.shade800, Colors.purple),
-                    const SizedBox(width: 12),
-                    _buildRecentItem('#zingchart', Colors.purple, Colors.purple),
-                    const SizedBox(width: 12),
-                    _buildRecentItem('My playlist', Colors.grey.shade800, Colors.grey.shade800),
-                  ],
-                ),
               ),
 
               const SizedBox(height: 24),
@@ -147,12 +123,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildQuickAccessButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickAccessButton(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 100,
-        height: 100,
+        width: 85,
+        height: 90,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -160,56 +141,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentItem(String title, Color startColor, Color endColor) {
-    return GestureDetector(
-      onTap: () {
-        widget.onTabSelected(5, "symchart");
-      },
-      child: Container(
-        width: 120,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          gradient: LinearGradient(
-            colors: [startColor, endColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (title != '#zingchart')
-              const Icon(
-                Icons.schedule,
-                color: Colors.orange,
-                size: 32,
-              ),
-            const SizedBox(height: 12),
-            Text(
-              title,
+              style: const TextStyle(fontSize: 14),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
             ),
           ],
         ),
@@ -223,7 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-      ),child: Row(
+      ),
+      child: Row(
         children: [
           Expanded(
             child: Text.rich(
@@ -248,13 +186,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (UserInfoManager.username == "Guest") {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 ).then((value) {
                   setState(() {});
-                }
-                );
+                });
               } else {
                 // Logout functionality
                 showDialog(
@@ -271,8 +206,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         TextButton(
                           onPressed: () async {
                             await TokenManager.logout();
-                            Navigator.pop(context);
-                            setState(() {});
+                            Navigator.pop(context); // Close the dialog first
+                            // Navigate to login screen and clear all previous routes
+                            if (mounted) {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                                (Route<dynamic> route) =>
+                                    false, // This removes all previous routes
+                              );
+                            }
                           },
                           child: const Text("Logout"),
                         ),
@@ -283,7 +227,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: UserInfoManager.username == "Guest" ? Colors.green : Colors.red,
+              backgroundColor:
+                  UserInfoManager.username == "Guest"
+                      ? Colors.green
+                      : Colors.red,
             ),
             child: Text(
               UserInfoManager.username == "Guest" ? "Login" : "Logout",
@@ -292,7 +239,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-
     );
+  }
+
+  // Method to get recently played songs (placeholder for now)
+  Future<List<Song>> _getRecentlyPlayedSongs() async {
+    // TODO: Implement actual recently played functionality
+    // For now, return an empty list
+    return [];
   }
 }

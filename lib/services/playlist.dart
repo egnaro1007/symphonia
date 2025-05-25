@@ -17,12 +17,12 @@ class PlayListOperations {
       final limit = 10;
       final offset = 0;
       final token = await SpotifyToken.getTokens();
-      final url = Uri.parse('https://api.spotify.com/v1/users/$username/playlists?limit=$limit&offset=$offset');
+      final url = Uri.parse(
+        'https://api.spotify.com/v1/users/$username/playlists?limit=$limit&offset=$offset',
+      );
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        }
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
@@ -36,12 +36,14 @@ class PlayListOperations {
         for (var playlist in playlistData) {
           if (playlists.length >= maxPlaylists) break; // Limit to 10 songs
 
-          playlists.add(BriefPlayList(
-            id: playlist['id'],
-            title: playlist['name'],
-            picture: playlist['images'][0]['url'],
-            creator: 'symphonia' // playlist['user']['name'],
-          ));
+          playlists.add(
+            BriefPlayList(
+              id: playlist['id'],
+              title: playlist['name'],
+              picture: playlist['images'][0]['url'],
+              creator: 'symphonia', // playlist['user']['name'],
+            ),
+          );
         }
 
         return playlists;
@@ -65,9 +67,7 @@ class PlayListOperations {
 
       final response = await http.get(
         url,
-        headers: {
-          "Authorization": "Bearer $token",
-        }
+        headers: {"Authorization": "Bearer $token"},
       );
 
       if (response.statusCode == 200) {
@@ -78,7 +78,7 @@ class PlayListOperations {
         List<Song> songs = [];
         var songID = 0;
         int duration = 0;
-        
+
         print("Data: $data");
 
         for (var track in playlistData['tracks']['items']) {
@@ -87,15 +87,17 @@ class PlayListOperations {
 
           duration += track['track']['duration_ms'] as int;
 
-          songs.add(Song(
-            // rank: songID.toString(),
-            title: track['track']['name'],
-            artist: track['track']['artists']
-                .map((artist) => artist['name'])
-                .join(', '),
-            imagePath: track['track']['album']['images'][0]['url'],
-            audioUrl: "",
-          ));
+          songs.add(
+            Song(
+              // rank: songID.toString(),
+              title: track['track']['name'],
+              artist: track['track']['artists']
+                  .map((artist) => artist['name'])
+                  .join(', '),
+              imagePath: track['track']['album']['images'][0]['url'],
+              audioUrl: "",
+            ),
+          );
         }
 
         PlayList playlists = PlayList(
@@ -125,9 +127,11 @@ class PlayListOperations {
       PlayList playlists = PlayList(
         id: '0aiBKNSqiPnhtcw1QlXK5s',
         title: '#symchart',
-        description: '#symchart là BXH thời gian thực của Symphonia, được cập nhật hàng giờ.',
+        description:
+            '#symchart là BXH thời gian thực của Symphonia, được cập nhật hàng giờ.',
         duration: 3600,
-        picture: 'https://as2.ftcdn.net/v2/jpg/01/43/42/83/1000_F_143428338_gcxw3Jcd0tJpkvvb53pfEztwtU9sxsgT.jpg',
+        picture:
+            'https://as2.ftcdn.net/v2/jpg/01/43/42/83/1000_F_143428338_gcxw3Jcd0tJpkvvb53pfEztwtU9sxsgT.jpg',
         creator: 'Symphonia',
         songs: songs,
       );
@@ -143,22 +147,24 @@ class PlayListOperations {
   static Future<bool> addPlaylist(String name, bool public) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
-      final url = Uri.parse('$serverUrl/api/library/playlists/');  // Removed trailing slash
-        print("Url: $url");
+      final url = Uri.parse(
+        '$serverUrl/api/library/playlists/',
+      ); // Removed trailing slash
+      print("Url: $url");
 
-        final response = await http.post(
-          url,
-          headers: {
-            "Authorization": "Bearer ${TokenManager.accessToken}",
-            "Content-Type": "application/json",  // Added content type header
-          },
-          body: jsonEncode({
-            'name': name,
-            'description': 'Playlist is created by API',
-            'songs': [],
-            'share_permission': (public) ? 'public' : 'private',
-          }),
-        );
+      final response = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json", // Added content type header
+        },
+        body: jsonEncode({
+          'name': name,
+          'description': 'Playlist is created by API',
+          'songs': [],
+          'share_permission': (public) ? 'public' : 'private',
+        }),
+      );
 
       print("Response: $response");
 
@@ -178,14 +184,14 @@ class PlayListOperations {
   static Future<bool> deletePlaylist(String id) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
-      final url = Uri.parse('$serverUrl/api/library/playlists/$id/');  // Removed trailing slash
+      final url = Uri.parse(
+        '$serverUrl/api/library/playlists/$id/',
+      ); // Removed trailing slash
       print("Url: $url");
 
       final response = await http.delete(
         url,
-        headers: {
-          "Authorization": "Bearer ${TokenManager.accessToken}",
-        },
+        headers: {"Authorization": "Bearer ${TokenManager.accessToken}"},
       );
 
       print("Response: $response");
@@ -209,9 +215,7 @@ class PlayListOperations {
       print("Url: $url");
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer ${TokenManager.accessToken}',
-        },
+        headers: {'Authorization': 'Bearer ${TokenManager.accessToken}'},
       );
 
       print("Response: $response");
@@ -221,15 +225,21 @@ class PlayListOperations {
         print("Data: $data");
         List<PlayList> playlists = [];
         for (var playlist in data) {
-          playlists.add(PlayList(
-            id: playlist['id'].toString(),
-            title: playlist['name'],
-            description: playlist['description'],
-            duration: 0,
-            picture: 'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg', //playlist['picture'],
-            creator: 'Thanh', //playlist['creator'],
-            songs: []
-          ));
+          playlists.add(
+            PlayList(
+              id: playlist['id'].toString(),
+              title: playlist['name'],
+              description: playlist['description'],
+              duration: 0,
+              picture:
+                  'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg', //playlist['picture'],
+              creator: 'Thanh', //playlist['creator'],
+              songs: [],
+              sharePermission:
+                  playlist['share_permission'] ??
+                  'private', // Added share permission
+            ),
+          );
         }
 
         return playlists;
@@ -250,9 +260,7 @@ class PlayListOperations {
       print("Url: $url");
       final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer ${TokenManager.accessToken}',
-        },
+        headers: {'Authorization': 'Bearer ${TokenManager.accessToken}'},
       );
 
       print("Response: $response");
@@ -262,46 +270,39 @@ class PlayListOperations {
         print("Data: $data");
 
         var playlist = PlayList(
-            id: data['id'].toString(),
-            title: data['name'],
-            description: data['description'],
-            duration: 0,
-            picture: '',
-            //playlist['picture'],
-            creator: 'Thanh',
-            //playlist['creator'],
-            songs: []
+          id: data['id'].toString(),
+          title: data['name'],
+          description: data['description'],
+          duration: 0,
+          picture: '',
+          //playlist['picture'],
+          creator: 'Thanh',
+          //playlist['creator'],
+          songs: [],
+          sharePermission:
+              data['share_permission'] ?? 'private', // Added share permission
         );
 
         for (var song in data['songs']) {
           int id = song['id'];
 
-          playlist.songs.add(Song(
-            title: song['title'],
-            artist: song['artist'][0]['name'],
-            imagePath: song['cover_art'] ?? 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png',
-            audioUrl: 'http://${dotenv.env['SERVER_URL']}/api/library/songs/$id/',
-          ));
+          playlist.songs.add(
+            Song(
+              title: song['title'],
+              artist: song['artist'][0]['name'],
+              imagePath:
+                  song['cover_art'] ??
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png',
+              audioUrl:
+                  'http://${dotenv.env['SERVER_URL']}/api/library/songs/$id/',
+            ),
+          );
         }
 
         return playlist;
       } else {
         print('Failed to load local playlists: ${response.statusCode}');
         return PlayList(
-            id: id,
-            title: '',
-            description: '',
-            duration: 0,
-            picture: '',
-            //playlist['picture'],
-            creator: 'Thanh',
-            //playlist['creator'],
-            songs: []
-        );
-      }
-    } catch (e) {
-      print('Error fetching local playlists: $e');
-      return PlayList(
           id: id,
           title: '',
           description: '',
@@ -310,12 +311,31 @@ class PlayListOperations {
           //playlist['picture'],
           creator: 'Thanh',
           //playlist['creator'],
-          songs: []
+          songs: [],
+          sharePermission: 'private', // Added share permission
+        );
+      }
+    } catch (e) {
+      print('Error fetching local playlists: $e');
+      return PlayList(
+        id: id,
+        title: '',
+        description: '',
+        duration: 0,
+        picture: '',
+        //playlist['picture'],
+        creator: 'Thanh',
+        //playlist['creator'],
+        songs: [],
+        sharePermission: 'private', // Added share permission
       ); // Fallback to mock data
     }
   }
 
-  static Future<bool> addSongToPlaylist(String playlistID, String songID) async {
+  static Future<bool> addSongToPlaylist(
+    String playlistID,
+    String songID,
+  ) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/add-song-to-playlist/');
@@ -328,12 +348,9 @@ class PlayListOperations {
         url,
         headers: {
           "Authorization": "Bearer ${TokenManager.accessToken}",
-          "Content-Type": "application/json",  // Added content type header
+          "Content-Type": "application/json", // Added content type header
         },
-        body: jsonEncode({
-          'song_id': songID,
-          'playlist_id': playlistID,
-        }),
+        body: jsonEncode({'song_id': songID, 'playlist_id': playlistID}),
       );
 
       print("Response: $response");
@@ -347,6 +364,55 @@ class PlayListOperations {
     } catch (e) {
       print('Error adding song to playlist: $e');
       return false;
+    }
+  }
+
+  // New method to get playlists of a specific user (friends/public only)
+  static Future<List<PlayList>> getUserPlaylists(String userId) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse('$serverUrl/api/library/user-playlists/$userId/');
+      print("Fetching user playlists from: $url");
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer ${TokenManager.accessToken}'},
+      );
+
+      print("Response: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print("User playlists data: $data");
+        List<PlayList> playlists = [];
+        for (var playlist in data) {
+          // Only include playlists that are friends or public
+          String sharePermission = playlist['share_permission'] ?? 'private';
+          if (sharePermission == 'friends' || sharePermission == 'public') {
+            playlists.add(
+              PlayList(
+                id: playlist['id'].toString(),
+                title: playlist['name'],
+                description: playlist['description'] ?? '',
+                duration: 0,
+                picture:
+                    playlist['picture'] ??
+                    'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg',
+                creator: playlist['creator'] ?? 'Unknown',
+                songs: [],
+                sharePermission: sharePermission,
+              ),
+            );
+          }
+        }
+
+        return playlists;
+      } else {
+        print('Failed to load user playlists: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching user playlists: $e');
+      return []; // Return empty list on error
     }
   }
 }

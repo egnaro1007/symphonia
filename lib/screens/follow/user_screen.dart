@@ -15,7 +15,12 @@ class UserScreen extends AbstractScreen {
   String userID;
   String searchQuery;
 
-  UserScreen({super.key, required this.userID, required this.searchQuery, required super.onTabSelected});
+  UserScreen({
+    super.key,
+    required this.userID,
+    required this.searchQuery,
+    required super.onTabSelected,
+  });
 
   @override
   State<UserScreen> createState() => _UserScreenState();
@@ -59,7 +64,7 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _loadLocalPlaylists() async {
     try {
-      final result = await PlayListOperations.getLocalPlaylists();
+      final result = await PlayListOperations.getUserPlaylists(widget.userID);
       setState(() {
         playlists = result;
       });
@@ -80,11 +85,7 @@ class _UserScreenState extends State<UserScreen> {
     bool isLoading = isLoadingUser || isLoadingPlaylists;
 
     if (isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     print("Playlist: ${playlists}");
@@ -106,7 +107,10 @@ class _UserScreenState extends State<UserScreen> {
                           shape: BoxShape.circle,
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.arrow_back, color: Colors.white),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
                       ),
                       onPressed: () {
                         print("Search query: ${widget.searchQuery}");
@@ -121,7 +125,10 @@ class _UserScreenState extends State<UserScreen> {
                             shape: BoxShape.circle,
                           ),
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(Icons.more_vert, color: Colors.white),
+                          child: const Icon(
+                            Icons.more_vert,
+                            color: Colors.white,
+                          ),
                         ),
                         onPressed: () {},
                       ),
@@ -132,7 +139,9 @@ class _UserScreenState extends State<UserScreen> {
                       background: Container(
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: NetworkImage("https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg"),
+                            image: NetworkImage(
+                              "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
+                            ),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -158,7 +167,10 @@ class _UserScreenState extends State<UserScreen> {
                               right: 0,
                               bottom: 0,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -176,118 +188,238 @@ class _UserScreenState extends State<UserScreen> {
                                         Expanded(
                                           child: OutlinedButton(
                                             onPressed: () async {
-                                              print("User status: ${userStatus.status}");
+                                              print(
+                                                "User status: ${userStatus.status}",
+                                              );
 
                                               try {
-                                                if (userStatus.status == 'none') {
-                                                  await FriendOperations.sendFriendRequest(userStatus.id);
+                                                if (userStatus.status ==
+                                                    'none') {
+                                                  await FriendOperations.sendFriendRequest(
+                                                    userStatus.id,
+                                                  );
                                                   setState(() {
                                                     userStatus = UserStatus(
                                                       id: userStatus.id,
-                                                      username: userStatus.username,
-                                                      avatarUrl: userStatus.avatarUrl,
+                                                      username:
+                                                          userStatus.username,
+                                                      avatarUrl:
+                                                          userStatus.avatarUrl,
                                                       status: 'pending_sent',
                                                     );
                                                   });
-                                                } else if (userStatus.status == 'pending_received') {
+                                                } else if (userStatus.status ==
+                                                    'pending_received') {
                                                   showDialog(
                                                     context: context,
-                                                    builder: (BuildContext context) {
+                                                    builder: (
+                                                      BuildContext context,
+                                                    ) {
                                                       return AlertDialog(
-                                                        title: const Text('Friend Request'),
-                                                        content: Text('Do you want to accept friend request from ${userStatus.username}?'),
+                                                        title: const Text(
+                                                          'Friend Request',
+                                                        ),
+                                                        content: Text(
+                                                          'Do you want to accept friend request from ${userStatus.username}?',
+                                                        ),
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () async {
-                                                              Navigator.of(context).pop();
-                                                              await FriendOperations.responseFriendRequestByUserID(userStatus.id, "reject");
+                                                              Navigator.of(
+                                                                context,
+                                                              ).pop();
+                                                              await FriendOperations.responseFriendRequestByUserID(
+                                                                userStatus.id,
+                                                                "reject",
+                                                              );
                                                               setState(() {
                                                                 userStatus = UserStatus(
-                                                                  id: userStatus.id,
-                                                                  username: userStatus.username,
-                                                                  avatarUrl: userStatus.avatarUrl,
-                                                                  status: 'none',
+                                                                  id:
+                                                                      userStatus
+                                                                          .id,
+                                                                  username:
+                                                                      userStatus
+                                                                          .username,
+                                                                  avatarUrl:
+                                                                      userStatus
+                                                                          .avatarUrl,
+                                                                  status:
+                                                                      'none',
                                                                 );
                                                               });
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                const SnackBar(content: Text('Friend request rejected')),
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                const SnackBar(
+                                                                  content: Text(
+                                                                    'Friend request rejected',
+                                                                  ),
+                                                                ),
                                                               );
                                                             },
-                                                            child: const Text('Reject', style: TextStyle(color: Colors.red)),
+                                                            child: const Text(
+                                                              'Reject',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                              ),
+                                                            ),
                                                           ),
                                                           TextButton(
                                                             onPressed: () async {
-                                                              Navigator.of(context).pop();
-                                                              await FriendOperations.responseFriendRequestByUserID(userStatus.id, "accept");
+                                                              Navigator.of(
+                                                                context,
+                                                              ).pop();
+                                                              await FriendOperations.responseFriendRequestByUserID(
+                                                                userStatus.id,
+                                                                "accept",
+                                                              );
                                                               setState(() {
                                                                 userStatus = UserStatus(
-                                                                  id: userStatus.id,
-                                                                  username: userStatus.username,
-                                                                  avatarUrl: userStatus.avatarUrl,
-                                                                  status: 'friend',
+                                                                  id:
+                                                                      userStatus
+                                                                          .id,
+                                                                  username:
+                                                                      userStatus
+                                                                          .username,
+                                                                  avatarUrl:
+                                                                      userStatus
+                                                                          .avatarUrl,
+                                                                  status:
+                                                                      'friend',
                                                                 );
                                                               });
-                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                const SnackBar(content: Text('Friend request accepted')),
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                const SnackBar(
+                                                                  content: Text(
+                                                                    'Friend request accepted',
+                                                                  ),
+                                                                ),
                                                               );
                                                             },
-                                                            child: const Text('Accept', style: TextStyle(color: Colors.green)),
+                                                            child: const Text(
+                                                              'Accept',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors
+                                                                        .green,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ],
                                                       );
                                                     },
                                                   );
-                                                } else if (userStatus.status == 'friend') {
-                                                  await FriendOperations.unfriend(userStatus.id);
+                                                } else if (userStatus.status ==
+                                                    'friend') {
+                                                  await FriendOperations.unfriend(
+                                                    userStatus.id,
+                                                  );
                                                   setState(() {
                                                     userStatus = UserStatus(
                                                       id: userStatus.id,
-                                                      username: userStatus.username,
-                                                      avatarUrl: userStatus.avatarUrl,
+                                                      username:
+                                                          userStatus.username,
+                                                      avatarUrl:
+                                                          userStatus.avatarUrl,
                                                       status: 'none',
                                                     );
                                                   });
                                                 }
                                               } catch (e) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('Lỗi: ${e.toString()}')),
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'Lỗi: ${e.toString()}',
+                                                    ),
+                                                  ),
                                                 );
                                               }
                                             },
                                             style: OutlinedButton.styleFrom(
-                                              backgroundColor: userStatus.status == 'none' ? Colors.transparent :
-                                                              userStatus.status == 'pending_sent' ? Colors.grey.withOpacity(0.3) :
-                                                              userStatus.status == 'pending_received' ? Colors.green.withOpacity(0.3) :
-                                                              Colors.red.withOpacity(0.3),
+                                              backgroundColor:
+                                                  userStatus.status == 'none'
+                                                      ? Colors.transparent
+                                                      : userStatus.status ==
+                                                          'pending_sent'
+                                                      ? Colors.grey.withOpacity(
+                                                        0.3,
+                                                      )
+                                                      : userStatus.status ==
+                                                          'pending_received'
+                                                      ? Colors.green
+                                                          .withOpacity(0.3)
+                                                      : Colors.red.withOpacity(
+                                                        0.3,
+                                                      ),
                                               side: BorderSide(
-                                                color: userStatus.status == 'none' ? Colors.white :
-                                                      userStatus.status == 'pending_sent' ? Colors.grey :
-                                                      userStatus.status == 'pending_received' ? Colors.green :
-                                                      Colors.red,
+                                                color:
+                                                    userStatus.status == 'none'
+                                                        ? Colors.white
+                                                        : userStatus.status ==
+                                                            'pending_sent'
+                                                        ? Colors.grey
+                                                        : userStatus.status ==
+                                                            'pending_received'
+                                                        ? Colors.green
+                                                        : Colors.red,
                                                 width: 1.5,
                                               ),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(30),
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
                                               ),
-                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                  ),
                                             ),
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                if (userStatus.status == 'pending_sent')
-                                                  const Icon(Icons.access_time, color: Colors.white, size: 16),
-                                                if (userStatus.status == 'pending_received')
-                                                  const Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
-                                                if (userStatus.status == 'friend')
-                                                  const Icon(Icons.person_remove, color: Colors.white, size: 16),
+                                                if (userStatus.status ==
+                                                    'pending_sent')
+                                                  const Icon(
+                                                    Icons.access_time,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
+                                                if (userStatus.status ==
+                                                    'pending_received')
+                                                  const Icon(
+                                                    Icons.check_circle_outline,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
+                                                if (userStatus.status ==
+                                                    'friend')
+                                                  const Icon(
+                                                    Icons.person_remove,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
                                                 if (userStatus.status == 'none')
-                                                  const Icon(Icons.person_add, color: Colors.white, size: 16),
+                                                  const Icon(
+                                                    Icons.person_add,
+                                                    color: Colors.white,
+                                                    size: 16,
+                                                  ),
                                                 const SizedBox(width: 8),
                                                 Text(
-                                                  userStatus.status == 'none' ? 'KẾT BẠN' :
-                                                  userStatus.status == 'pending_sent' ? 'ĐÃ GỬI YÊU CẦU' :
-                                                  userStatus.status == 'pending_received' ? 'CHẤP NHẬN' :
-                                                  'HỦY KẾT BẠN',
+                                                  userStatus.status == 'none'
+                                                      ? 'KẾT BẠN'
+                                                      : userStatus.status ==
+                                                          'pending_sent'
+                                                      ? 'ĐÃ GỬI YÊU CẦU'
+                                                      : userStatus.status ==
+                                                          'pending_received'
+                                                      ? 'CHẤP NHẬN'
+                                                      : 'HỦY KẾT BẠN',
                                                   style: const TextStyle(
                                                     color: Colors.white,
                                                     fontWeight: FontWeight.bold,
@@ -302,11 +434,17 @@ class _UserScreenState extends State<UserScreen> {
                                           child: ElevatedButton(
                                             onPressed: () {},
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF8257E5),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(30),
+                                              backgroundColor: const Color(
+                                                0xFF8257E5,
                                               ),
-                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                  ),
                                             ),
                                             child: const Text(
                                               'PHÁT NHẠC',
@@ -384,69 +522,162 @@ class _UserScreenState extends State<UserScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Playlist',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                            if (playlists.isEmpty)
-                              const Expanded(
-                                child: Center(
-                                  child: Text(
-                                    'Không có playlist',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              const Text(
+                                'Playlist',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (playlists.isNotEmpty)
+                                Text(
+                                  '${playlists.length} playlist${playlists.length > 1 ? 's' : ''}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
-                              )
-                            else
-                              ...playlists.take(2).map((playlist) =>
-                                Expanded(
-                                     child: GestureDetector(
-                                       onTap: () {
-                                         widget.onTabSelected(6, playlist.id);
-                                       },
-                                       child: Padding(
-                                         padding: EdgeInsets.only(right: playlists.indexOf(playlist) < playlists.length - 1 ? 8.0 : 0),
-                                         child: Column(
-                                           crossAxisAlignment: CrossAxisAlignment.start,
-                                           children: [
-                                             AspectRatio(
-                                               aspectRatio: 1,
-                                               child: Container(
-                                                 decoration: BoxDecoration(
-                                                   borderRadius: BorderRadius.circular(8),
-                                                   image: DecorationImage(
-                                                     image: NetworkImage(playlist.picture),
-                                                     fit: BoxFit.cover,
-                                                   ),
-                                                 ),
-                                               ),
-                                             ),
-                                             const SizedBox(height: 8),
-                                             Text(
-                                               playlist.title,
-                                               maxLines: 2,
-                                               overflow: TextOverflow.ellipsis,
-                                               style: const TextStyle(
-                                                 fontWeight: FontWeight.w500,
-                                               ),
-                                             ),
-                                           ],
-                                         ),
-                                       ),
-                                     ),
-                                   )
-                              ).toList(),
                             ],
                           ),
+                          const SizedBox(height: 16),
+                          if (playlists.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Text(
+                                  'Không có playlist công khai',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 16,
+                                    childAspectRatio: 0.75,
+                                  ),
+                              itemCount: playlists.length,
+                              itemBuilder: (context, index) {
+                                final playlist = playlists[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    widget.onTabSelected(6, playlist.id);
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                    playlist.picture,
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                            // Privacy indicator
+                                            Positioned(
+                                              top: 8,
+                                              right: 8,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      playlist.sharePermission ==
+                                                              'public'
+                                                          ? Colors.green
+                                                              .withOpacity(0.8)
+                                                          : Colors.blue
+                                                              .withOpacity(0.8),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      playlist.sharePermission ==
+                                                              'public'
+                                                          ? Icons.public
+                                                          : Icons.people,
+                                                      color: Colors.white,
+                                                      size: 12,
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    Text(
+                                                      playlist.sharePermission ==
+                                                              'public'
+                                                          ? 'Công khai'
+                                                          : 'Bạn bè',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        playlist.title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      if (playlist.description.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 2,
+                                          ),
+                                          child: Text(
+                                            playlist.description,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -511,9 +742,7 @@ class _UserScreenState extends State<UserScreen> {
           playlist.title,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500),
         ),
       ],
     );

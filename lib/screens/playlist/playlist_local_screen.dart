@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/screens/navigation_bar_screen.dart';
 import 'package:symphonia/services/playlist.dart';
+import 'package:symphonia/widgets/song_item.dart';
+import 'dart:io';
 
 class PlaylistLocalScreen extends AbstractScreen {
   final String playlistID;
@@ -49,175 +52,274 @@ class _PlaylistLocalScreenState extends State<PlaylistLocalScreen> {
         ],
       ),
       body: Column(
-          children: [
-            FutureBuilder(
-                future: PlayListOperations.getLocalPlaylist(widget.playlistID),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData) {
-                    return const Center(child: Text('No data available'));
-                  } else {
-                    final playlist = snapshot.data!;
-                    return _buildPlaylistBody(playlist);
-                  }
-                }
-            )
-          ]
+        children: [
+          FutureBuilder(
+            future: PlayListOperations.getLocalPlaylist(widget.playlistID),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData) {
+                return const Center(child: Text('No data available'));
+              } else {
+                final playlist = snapshot.data!;
+                return _buildPlaylistBody(playlist);
+              }
+            },
+          ),
+        ],
       ),
       // bottomNavigationBar: NavigationBarScreen(hasBody: false,),
     );
   }
 
   Widget _buildPlaylistBody(PlayList playlist) {
-    return // Main content - Scrollable
-      Expanded(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Album header section
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Album title
-                    Text(
-                      playlist.title,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Platform
-                    Text(
-                      playlist.creator,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Number of songs and duration
-                    Text(
-                      '${playlist.songs.length} bài hát • ${playlist.duration ~/ 3600} giờ ${(playlist.duration % 3600) ~/ 60} phút',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Action buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Download button
-                        Column(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: const Icon(Icons.download_outlined),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text('Tải xuống', style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        const SizedBox(width: 24),
-                        // Play button
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                          ),
-                          child: const Text(
-                            'PHÁT NGẪU NHIÊN',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        // Add button
-                        Column(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: const Icon(Icons.add),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text('Thêm vào', style: TextStyle(fontSize: 12)),
-                          ],
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Modern playlist header section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.grey.shade100, Colors.white],
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Large album cover image
+                  Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    // Playlist description
-                    Text(
-                      playlist.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _buildPlaylistImage(playlist),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                  const SizedBox(height: 24),
 
-              // Song list
-              Column(
-                children: playlist.songs.map((song) {
-                  return _buildSongItem(
-                    song.title,
-                    song.artist,
-                    song.imagePath,
-                  );
-                }).toList(),
-              )
-            ],
-          ),
+                  // Playlist title
+                  Text(
+                    playlist.title,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Creator info with avatar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.deepPurple.shade300,
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        playlist.creator,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Stats
+                  Text(
+                    '${playlist.songs.length} bài hát • ${playlist.duration ~/ 3600}h ${(playlist.duration % 3600) ~/ 60}m • Riêng tư',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action buttons row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Download button
+                      _buildActionButton(
+                        icon: Icons.download_outlined,
+                        label: '',
+                        onTap: () {},
+                      ),
+
+                      // Edit button
+                      _buildActionButton(
+                        icon: Icons.edit_outlined,
+                        label: '',
+                        onTap: () {},
+                      ),
+
+                      // Play button (large)
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.deepPurple,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                          onPressed: () {
+                            // Play playlist functionality
+                          },
+                        ),
+                      ),
+
+                      // Add songs button
+                      _buildActionButton(
+                        icon: Icons.add,
+                        label: '',
+                        onTap: () {},
+                      ),
+
+                      // More options button
+                      _buildActionButton(
+                        icon: Icons.more_vert,
+                        label: '',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Song list section
+            Container(
+              color: Colors.white,
+              child: Column(
+                children:
+                    playlist.songs.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Song song = entry.value;
+                      return SongItem(
+                        song: song,
+                        showTrailingControls: true,
+                        isHorizontal: true,
+                        index: index,
+                        showIndex: true,
+                      );
+                    }).toList(),
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
-  Widget _buildSongItem(String title, String artists, String imageUrl) {
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Image.network(
-          imageUrl,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey.shade200,
         ),
+        child: Icon(icon, color: Colors.black87, size: 24),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Text(
-        artists,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-      ),
-      trailing: const Icon(Icons.more_vert),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
+  }
+
+  Widget _buildPlaylistImage(PlayList playlist) {
+    String imagePath = '';
+
+    // Check if playlist has songs and get the first song's image
+    if (playlist.songs.isNotEmpty) {
+      imagePath = playlist.songs[0].imagePath;
+    } else if (playlist.picture.isNotEmpty) {
+      imagePath = playlist.picture;
+    }
+
+    if (imagePath.isEmpty) {
+      return Container(
+        color: Colors.grey.shade300,
+        child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+      );
+    }
+
+    // Check if it's a network URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+          );
+        },
+      );
+    }
+    // Check if it's an asset path
+    else if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+          );
+        },
+      );
+    }
+    // Treat as local file path
+    else {
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+          );
+        },
+      );
+    }
   }
 }

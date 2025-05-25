@@ -8,6 +8,7 @@ import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/searching.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/controller/download_controller.dart';
+import 'package:symphonia/widgets/song_item.dart';
 
 class SearchScreen extends AbstractScreen {
   const SearchScreen({super.key, required super.onTabSelected});
@@ -249,172 +250,15 @@ class _SearchPageState extends State<SearchScreen>
   }
 
   Widget _buildSongResult(SongSearchResult result) {
-    return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child:
-              (result.image.isNotEmpty)
-                  ? Image.network(
-                    result.image,
-                    fit: BoxFit.cover,
-                    width: 50,
-                    height: 50,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Fallback in case of error loading image
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey.shade300,
-                        child: Icon(
-                          Icons.music_note,
-                          color: Colors.grey.shade700,
-                        ),
-                      );
-                    },
-                    loadingBuilder: (
-                      BuildContext context,
-                      Widget child,
-                      ImageChunkEvent? loadingProgress,
-                    ) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey.shade300,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            value:
-                                loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                  : Container(
-                    // Fallback if no image URL
-                    width: 50,
-                    height: 50,
-                    color: Colors.grey.shade300,
-                    child: Icon(Icons.music_note, color: Colors.grey.shade700),
-                  ),
-        ),
-      ),
-      title: Text(result.name, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(result.artist),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.play_circle_outline),
-            onPressed: () {
-              Song song = Song(
-                id: result.id,
-                title: result.name,
-                artist: result.artist,
-                imagePath: result.image,
-                audioUrl: result.audio_url,
-              );
-              PlayerController.getInstance().loadSong(song);
-            },
-          ),
-          SizedBox(width: 16),
-          IconButton(
-            icon: Icon(Icons.more_vert),
-            onPressed: () {
-              Song song = Song(
-                id: result.id,
-                title: result.name,
-                artist: result.artist,
-                imagePath: result.image,
-                audioUrl: result.audio_url,
-              );
-              _showSongOptions(context, song);
-            },
-          ),
-        ],
-      ),
+    Song song = Song(
+      id: result.id,
+      title: result.name,
+      artist: result.artist,
+      imagePath: result.image,
+      audioUrl: result.audio_url,
     );
-  }
 
-  Future<void> _showSongOptions(BuildContext context, Song song) async {
-    bool _isLike = await LikeOperations.getLikeStatus(song);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return Wrap(
-          children: [
-            ListTile(
-              leading: Icon(Icons.queue_play_next),
-              title: Text('Thêm vào danh dách phát tiếp'),
-              onTap: () {
-                PlayerController.getInstance().loadSong(song, false);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.download),
-              title: Text('Tải về'),
-              onTap: () {
-                DownloadController.downloadSong(song);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(_isLike ? Icons.favorite : Icons.favorite_border),
-              title: Text(_isLike ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'),
-              onTap: () async {
-                if (_isLike) {
-                  if (await LikeOperations.unlike(song)) {
-                    _isLike = false;
-                  }
-                } else {
-                  if (await LikeOperations.like(song)) {
-                    _isLike = true;
-                  }
-                }
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.playlist_add),
-              title: Text('Thêm vào playlist'),
-              onTap: () async {
-                List<PlayList> localPlaylists =
-                    await PlayListOperations.getLocalPlaylists();
-
-                showModalBottomSheet(
-                  context: context,
-                  builder: (_) {
-                    return ListView.builder(
-                      itemCount: localPlaylists.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(localPlaylists[index].title),
-                          onTap: () {
-                            PlayListOperations.addSongToPlaylist(
-                              localPlaylists[index].id,
-                              song.id.toString(),
-                            );
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
+    return SongItem(song: song);
   }
 
   Widget _buildArtistResult(

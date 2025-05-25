@@ -5,12 +5,14 @@ class BriefPlayList {
   String title;
   String picture;
   String creator;
+  String? sharePermission;
 
   BriefPlayList({
     required this.id,
     required this.title,
     required this.picture,
     required this.creator,
+    this.sharePermission,
   });
 }
 
@@ -21,6 +23,7 @@ class PlayList {
   int duration;
   String picture;
   String creator;
+  String? sharePermission;
 
   List<Song> songs;
 
@@ -32,5 +35,6 @@ class PlayList {
     required this.picture,
     required this.creator,
     required this.songs,
+    this.sharePermission,
   });
 }
