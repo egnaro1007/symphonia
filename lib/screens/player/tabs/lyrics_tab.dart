@@ -303,13 +303,10 @@ class _LyricsTabState extends State<LyricsTab>
 
   // Scroll to make the current line visible in the middle of the viewport
   void _scrollToCurrentLine() {
-    // Optional: Add print statements for detailed debugging if needed
-    // print('Attempting _scrollToCurrentLine for index: $_currentLineIndex, isScrolling: $_isScrolling, isUserScrolling: $_isUserScrolling');
-
     if (_currentLineIndex < 0 || _currentLineIndex >= _lyricsLines.length) {
       return;
     }
-    
+
     if (_isScrolling || _isUserScrolling) {
       return;
     }
@@ -346,11 +343,34 @@ class _LyricsTabState extends State<LyricsTab>
         }
       });
     } else {
-      // Estimate item height (heuristic, might need adjustment based on actual layout)
-      // Based on: Text (fontSize 24), Container margin (vertical 8.0*2=16), Container padding (vertical 4.0*2=8)
-      // Total estimated height approx = 24 + 16 + 8 = 48.0
-      const double estimatedItemHeight = 48.0;
-      double targetOffset = _currentLineIndex * estimatedItemHeight;
+      // Calculate more accurate item height by measuring text
+      // Get the text style and constraints to calculate actual height
+      final textStyle = TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+
+      // Calculate cumulative height up to current line
+      double targetOffset = 0.0;
+      final screenWidth =
+          MediaQuery.of(context).size.width -
+          48.0; // Account for horizontal padding
+
+      for (int i = 0; i < _currentLineIndex; i++) {
+        final line = _lyricsLines[i];
+        if (line.text.trim().isEmpty) {
+          targetOffset += 16.0; // Empty line height
+        } else {
+          // Calculate text height for this line
+          final textPainter = TextPainter(
+            text: TextSpan(text: line.text, style: textStyle),
+            maxLines: null,
+            textDirection: TextDirection.ltr,
+          );
+          textPainter.layout(maxWidth: screenWidth);
+
+          // Add text height + margins + padding
+          targetOffset +=
+              textPainter.height + 16.0 + 8.0; // margin (8*2) + padding (4*2)
+        }
+      }
 
       // Ensure the offset is within the scrollable range if controller is ready.
       if (_scrollController.hasClients &&
@@ -364,7 +384,7 @@ class _LyricsTabState extends State<LyricsTab>
       }
 
       _scrollController.jumpTo(targetOffset);
-      // print('Jumped to estimated offset: $targetOffset for index $_currentLineIndex.');
+      // print('Jumped to calculated offset: $targetOffset for index $_currentLineIndex.');
 
       // After jumping, the item should hopefully be built in the next frame.
       // Schedule another attempt to scroll, ensuring it's properly visible and centered.
@@ -392,7 +412,7 @@ class _LyricsTabState extends State<LyricsTab>
           });
         } else {
           // If still null, the item wasn't built, or GlobalKey isn't attached correctly.
-          // This might happen if estimatedItemHeight is way off or other complex layout issues.
+          // This might happen if calculated height is still off or other complex layout issues.
           // print('Warning: Lyrics line context STILL null after jump and retry for index $_currentLineIndex.');
         }
       });

@@ -23,7 +23,7 @@ class PlayerController {
     creator: "",
     songs: [],
   );
-  
+
   int _currentSongIndex = 0;
   RepeatMode _repeatMode = RepeatMode.noRepeat;
 
@@ -197,6 +197,40 @@ class PlayerController {
           _repeatMode = RepeatMode.noRepeat;
           break;
       }
+    }
+  }
+
+  // Reset player state - useful when switching users
+  Future<void> reset() async {
+    try {
+      // Stop and clear audio player
+      await _audioPlayer.stop();
+
+      // Reset all state variables
+      _hasSong = false;
+      _currentSongIndex = 0;
+      _repeatMode = RepeatMode.noRepeat;
+
+      // Clear playing song
+      _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
+
+      // Clear current playlist
+      _currentPlaylist = PlayList(
+        id: "",
+        title: "",
+        description: "",
+        duration: 0,
+        picture: "",
+        creator: "",
+        songs: [],
+      );
+
+      // Notify listeners about the change
+      _songChangeController.add(_playingSong);
+
+      print("Player state reset successfully");
+    } catch (e) {
+      print("Error resetting player: $e");
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/controller/download_controller.dart';
+import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
@@ -183,59 +184,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (UserInfoManager.username == "Guest") {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                ).then((value) {
-                  setState(() {});
-                });
-              } else {
-                // Logout functionality
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text("Logout"),
-                      content: const Text("Are you sure you want to logout?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Cancel"),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            await TokenManager.logout();
-                            Navigator.pop(context); // Close the dialog first
-                            // Navigate to login screen and clear all previous routes
-                            if (mounted) {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                                (Route<dynamic> route) =>
-                                    false, // This removes all previous routes
-                              );
-                            }
-                          },
-                          child: const Text("Logout"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
+              // Logout functionality
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Logout"),
+                    content: const Text("Are you sure you want to logout?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          // Reset player state before logout
+                          final playerController =
+                              PlayerController.getInstance();
+                          await playerController.reset();
+
+                          await TokenManager.logout();
+                          Navigator.pop(context); // Close the dialog first
+                          // Navigate to login screen and clear all previous routes
+                          if (mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                              (Route<dynamic> route) =>
+                                  false, // This removes all previous routes
+                            );
+                          }
+                        },
+                        child: const Text("Logout"),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  UserInfoManager.username == "Guest"
-                      ? Colors.green
-                      : Colors.red,
-            ),
-            child: Text(
-              UserInfoManager.username == "Guest" ? "Login" : "Logout",
-              style: const TextStyle(color: Colors.white),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
