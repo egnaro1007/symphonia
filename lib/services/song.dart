@@ -70,12 +70,14 @@ class SongOperations {
         for (var song in jsonData) {
           songs.add(
             Song(
+              id: song['id'] ?? 0,
               title: song['title'],
               artist: song['artist'][0]['name'],
               imagePath:
                   song['cover_art'] ??
                   "https://pngimg.com/uploads/music_notes/music_notes_PNG46.png",
               audioUrl: song['audio'],
+              lyrics: song['lyric'],
             ),
           );
         }

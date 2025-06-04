@@ -47,37 +47,11 @@ class _PlayListComponentState extends State<PlayListComponent> {
 
           const Divider(),
           ...playlists.map((playlist) {
-            return _buildPlaylistTile(
-              playlist
-            );
+            return _buildPlaylistTile(playlist);
           }).toList(),
 
           const SizedBox(height: 16),
-          _buildRecommendedPlaylistHeader(),
-
-          FutureBuilder<List<BriefPlayList>>(
-            future: PlayListOperations.getPlaylists(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Text('No playlists available');
-              } else {
-                return Column(
-                  children: snapshot.data!.map((playlist) {
-                    return _buildRecommendedPlaylist(
-                      playlist.id,
-                      playlist.title,
-                      playlist.picture,
-                      playlist.creator,
-                    );
-                  }).toList(),
-                );
-              }
-            },
-          )
+          // Playlist gợi ý đã được xóa theo yêu cầu
         ],
       ),
     );
@@ -91,15 +65,9 @@ class _PlayListComponentState extends State<PlayListComponent> {
         children: [
           const Text(
             'Playlist',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
       ),
     );
@@ -118,104 +86,18 @@ class _PlayListComponentState extends State<PlayListComponent> {
       ),
       title: const Text(
         'Tạo playlist',
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w500),
       ),
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => PlaylistCreationScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => PlaylistCreationScreen()),
         );
       },
     );
   }
 
   Widget _buildPlaylistTile(PlayList playlist) {
-        return ListTile(
-          leading: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: Colors.grey[300],
-            ),
-            // Replace with actual image
-            child: const Center(child: Icon(Icons.music_note)),
-          ),
-          title: Text(
-            playlist.title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          subtitle: Text(playlist.creator),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.grey),
-            onPressed: () async {
-              // Show confirmation dialog
-              final bool? confirm = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Xóa playlist'),
-                    content: Text('Bạn có chắc chắn muốn xóa playlist "${playlist.title}"?'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Hủy'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Xóa', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  );
-                },
-              );
-
-              if (confirm == true) {
-                print("Deleted playlist with ID: ${playlist.id}");
-                await PlayListOperations.deletePlaylist(playlist.id);
-                _loadPlaylists();
-              }
-            },
-          ),
-          onTap: () {
-            widget.onTabSelected(6, playlist.id);
-          },
-        );
-      }
-
-  Widget _buildRecommendedPlaylistHeader() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Playlist gợi ý',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Đang được nghe nhiều',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecommendedPlaylist(String id, String title, String picture, String creator) {
     return ListTile(
       leading: Container(
         width: 50,
@@ -224,26 +106,55 @@ class _PlayListComponentState extends State<PlayListComponent> {
           borderRadius: BorderRadius.circular(4),
           color: Colors.grey[300],
         ),
-        // Image network
-        child: Image.network(picture, fit: BoxFit.cover),
+        // Replace with actual image
+        child: const Center(child: Icon(Icons.music_note)),
       ),
-
       title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
+        playlist.title,
+        style: const TextStyle(fontWeight: FontWeight.w500),
       ),
-
-      subtitle: Text(creator),
-
+      subtitle: Text(playlist.creator),
       trailing: IconButton(
-        icon: const Icon(Icons.favorite_border),
-        onPressed: () {},
+        icon: const Icon(Icons.delete_outline, color: Colors.grey),
+        onPressed: () async {
+          // Show confirmation dialog
+          final bool? confirm = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Xóa playlist'),
+                content: Text(
+                  'Bạn có chắc chắn muốn xóa playlist "${playlist.title}"?',
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Hủy'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text(
+                      'Xóa',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+
+          if (confirm == true) {
+            print("Deleted playlist with ID: ${playlist.id}");
+            await PlayListOperations.deletePlaylist(playlist.id);
+            _loadPlaylists();
+          }
+        },
       ),
-      onTap: () => {
-        widget.onTabSelected(5, id),
+      onTap: () {
+        widget.onTabSelected(6, playlist.id);
       },
     );
   }
+
+  // Các method cho playlist gợi ý đã được xóa theo yêu cầu
 }

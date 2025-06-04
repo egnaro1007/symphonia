@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../controller/player_controller.dart';
+import '../../../services/token_manager.dart'; // Import token manager for API calls
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import for server URL
+import 'package:http/http.dart' as http; // Import for HTTP requests
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
 
@@ -76,6 +78,9 @@ class _LyricsTabState extends State<LyricsTab>
 
   // Track current song to detect changes
   String _currentSongId = '';
+
+  // Add state variable to track if lyrics exist
+  bool _hasLyrics = true;
 
   @override
   bool get wantKeepAlive => true; // This is key to keep the state when switching tabs
@@ -419,10 +424,10 @@ class _LyricsTabState extends State<LyricsTab>
     }
   }
 
-  // Method to fetch lyrics from JSON file
+  // Method to fetch lyrics from backend API
   void _fetchLyrics() {
     setState(() {
-      _lyricsFuture = _loadLyricsFromJsonFile().then((lyrics) {
+      _lyricsFuture = _loadLyricsFromBackend().then((lyrics) {
         // After lyrics are loaded, immediately update the current line based on playback position
         _lyricsLines = lyrics;
         _playerController.getCurrentPosition().then((position) {
@@ -443,20 +448,69 @@ class _LyricsTabState extends State<LyricsTab>
     });
   }
 
-  // Load lyrics from JSON file
-  Future<List<LyricsLine>> _loadLyricsFromJsonFile() async {
+  // Load lyrics from backend API
+  Future<List<LyricsLine>> _loadLyricsFromBackend() async {
     try {
-      // Load the JSON file from assets
-      final String jsonString = await rootBundle.loadString(
-        'assets/lyrics/lyrics.json',
-      );
-      final List<dynamic> jsonList = json.decode(jsonString);
+      // Get current playing song
+      final currentSong = _playerController.playingSong;
 
-      // Convert JSON to LyricsLine objects
-      return jsonList.map((json) => LyricsLine.fromJson(json)).toList();
+      // For all songs, try to fetch from backend
+      final lyricsData = await _fetchLyricsFromAPI(currentSong.id);
+
+      if (lyricsData != null && lyricsData.isNotEmpty) {
+        // Convert API data to LyricsLine objects using local method
+        _hasLyrics = true;
+        return _parseLyricsData(lyricsData);
+      } else {
+        // No lyrics available
+        _hasLyrics = false;
+        return []; // Return empty list for no lyrics case
+      }
     } catch (e) {
-      throw Exception('Failed to load lyrics: $e');
+      print('Failed to load lyrics from backend: $e');
+      // On error, no lyrics available
+      _hasLyrics = false;
+      return []; // Return empty list for error case
     }
+  }
+
+  // Fetch lyrics from API
+  Future<List<dynamic>?> _fetchLyricsFromAPI(int songId) async {
+    String? serverUrl = dotenv.env['SERVER_URL'];
+    if (serverUrl == null) {
+      print("Error: SERVER_URL is not defined in the environment variables.");
+      return null;
+    }
+
+    try {
+      final url = Uri.parse('$serverUrl/api/library/songs/$songId/');
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['lyric'] as List<dynamic>?;
+      } else {
+        print("Failed to fetch lyrics: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching lyrics: $e");
+      return null;
+    }
+  }
+
+  // Parse lyrics data to LyricsLine objects
+  List<LyricsLine> _parseLyricsData(List<dynamic> lyricsData) {
+    return lyricsData.map((entry) {
+      return LyricsLine.fromJson(entry as Map<String, dynamic>);
+    }).toList();
   }
 
   // Seek to a specific time (for testing lyrics sync)
@@ -512,87 +566,103 @@ class _LyricsTabState extends State<LyricsTab>
                     // Get lyrics lines
                     _lyricsLines = snapshot.data ?? [];
 
-                    return Column(
-                      children: [
-                        // Lyrics content
-                        Expanded(
-                          child: Center(
-                            child: NotificationListener<ScrollNotification>(
-                              onNotification: (scrollNotification) {
-                                if (scrollNotification
-                                    is UserScrollNotification) {
-                                  if (scrollNotification.direction !=
-                                      ScrollDirection.idle) {
-                                    _isUserScrolling = true;
-                                  } else {
-                                    // Add a short delay before re-enabling auto-scroll
-                                    Future.delayed(
-                                      const Duration(milliseconds: 1000),
-                                      () {
-                                        if (mounted) {
-                                          _isUserScrolling = false;
-                                        }
-                                      },
-                                    );
-                                  }
-                                }
-                                return false;
-                              },
-                              child: Scrollbar(
-                                thumbVisibility: true,
-                                controller: _scrollController,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24.0,
-                                    vertical: 16.0,
-                                  ),
-                                  itemCount: _lyricsLines.length,
-                                  itemBuilder: (context, index) {
-                                    final line = _lyricsLines[index];
-
-                                    // Skip empty lines
-                                    if (line.text.trim().isEmpty) {
-                                      return const SizedBox(height: 16);
+                    // Check if we have lyrics or not
+                    if (!_hasLyrics || _lyricsLines.isEmpty) {
+                      // No lyrics case - show centered message
+                      return const Center(
+                        child: Text(
+                          "Hiện chưa có lời bài hát.",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    } else {
+                      // Has lyrics case - show scrollable lyrics
+                      return Column(
+                        children: [
+                          // Lyrics content
+                          Expanded(
+                            child: Center(
+                              child: NotificationListener<ScrollNotification>(
+                                onNotification: (scrollNotification) {
+                                  if (scrollNotification
+                                      is UserScrollNotification) {
+                                    if (scrollNotification.direction !=
+                                        ScrollDirection.idle) {
+                                      _isUserScrolling = true;
+                                    } else {
+                                      // Add a short delay before re-enabling auto-scroll
+                                      Future.delayed(
+                                        const Duration(milliseconds: 1000),
+                                        () {
+                                          if (mounted) {
+                                            _isUserScrolling = false;
+                                          }
+                                        },
+                                      );
                                     }
+                                  }
+                                  return false;
+                                },
+                                child: Scrollbar(
+                                  thumbVisibility: true,
+                                  controller: _scrollController,
+                                  child: ListView.builder(
+                                    controller: _scrollController,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24.0,
+                                      vertical: 16.0,
+                                    ),
+                                    itemCount: _lyricsLines.length,
+                                    itemBuilder: (context, index) {
+                                      final line = _lyricsLines[index];
 
-                                    final isCurrentLine =
-                                        index == _currentLineIndex;
+                                      // Skip empty lines
+                                      if (line.text.trim().isEmpty) {
+                                        return const SizedBox(height: 16);
+                                      }
 
-                                    return GestureDetector(
-                                      onTap: () => _handleLineTap(index),
-                                      child: Container(
-                                        key:
-                                            line.key, // Apply the GlobalKey to this widget
-                                        margin: const EdgeInsets.symmetric(
-                                          vertical: 8.0,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4.0,
-                                        ),
-                                        child: Text(
-                                          line.text,
-                                          style: TextStyle(
-                                            color:
-                                                isCurrentLine
-                                                    ? Colors.white
-                                                    : Colors.white.withOpacity(
-                                                      0.4,
-                                                    ),
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
+                                      final isCurrentLine =
+                                          index == _currentLineIndex;
+
+                                      return GestureDetector(
+                                        onTap: () => _handleLineTap(index),
+                                        child: Container(
+                                          key:
+                                              line.key, // Apply the GlobalKey to this widget
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 8.0,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0,
+                                          ),
+                                          child: Text(
+                                            line.text,
+                                            style: TextStyle(
+                                              color:
+                                                  isCurrentLine
+                                                      ? Colors.white
+                                                      : Colors.white
+                                                          .withOpacity(0.4),
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
+                        ],
+                      );
+                    }
                   }
                 },
               ),

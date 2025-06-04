@@ -48,6 +48,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               // Profile header
               _buildProfileHeader(),
+
+              const SizedBox(height: 20),
+
               // Quick access buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -113,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Playlists Section
               PlayListComponent(onTabSelected: widget.onTabSelected),

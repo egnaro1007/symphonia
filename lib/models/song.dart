@@ -4,6 +4,7 @@ class Song {
   String artist;
   String imagePath;
   String audioUrl;
+  List<dynamic>? lyrics;
 
   Song({
     this.id = 0,
@@ -11,5 +12,6 @@ class Song {
     this.artist = "",
     this.imagePath = "",
     this.audioUrl = "",
+    this.lyrics,
   });
 }
