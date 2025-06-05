@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../controller/player_controller.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'dart:io';
 
 class SharedMiniPlayer extends StatefulWidget {
@@ -15,17 +14,28 @@ class SharedMiniPlayer extends StatefulWidget {
 class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
   final PlayerController _playerController = PlayerController.getInstance();
   bool _isPlaying = false;
+  bool _hasSong = false;
 
   @override
   void initState() {
     super.initState();
     _isPlaying = _playerController.isPlaying();
+    _hasSong = _playerController.hasSong;
 
     // Listen for player state changes
     _playerController.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
           _isPlaying = state.playing;
+        });
+      }
+    });
+
+    // Listen for song changes
+    _playerController.onSongChange.listen((song) {
+      if (mounted) {
+        setState(() {
+          _hasSong = _playerController.hasSong;
         });
       }
     });
@@ -51,8 +61,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child:
-                  _playerController.hasSong &&
-                          _playerController.playingSong.imagePath.isNotEmpty
+                  _hasSong && _playerController.playingSong.imagePath.isNotEmpty
                       ? ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: _buildCoverImage(),
@@ -69,7 +78,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _playerController.hasSong
+                      _hasSong
                           ? _playerController.playingSong.title
                           : "Không có gì đang phát",
                       style: TextStyle(
@@ -79,7 +88,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (_playerController.hasSong &&
+                    if (_hasSong &&
                         _playerController.playingSong.artist.isNotEmpty)
                       Text(
                         _playerController.playingSong.artist,

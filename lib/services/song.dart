@@ -68,6 +68,13 @@ class SongOperations {
 
         List<Song> songs = [];
         for (var song in jsonData) {
+          print(
+            "Processing suggested song: ${song['title']} (ID: ${song['id']})",
+          );
+          print("Available fields: ${song.keys}");
+          print("Audio field value: ${song['audio']}");
+          print("Cover art field value: ${song['cover_art']}");
+
           // Parse artist information
           String artist = '';
           if (song['artist'] != null && song['artist'] is List) {
@@ -81,13 +88,50 @@ class SongOperations {
             }
           }
 
+          String audioUrl = song['audio'] ?? '';
+          if (audioUrl.isEmpty) {
+            // Fallback: try to build URL if audio field is empty
+            // Ensure proper protocol
+            String baseUrl = serverUrl ?? '';
+            if (!baseUrl.startsWith('http://') &&
+                !baseUrl.startsWith('https://')) {
+              baseUrl = 'http://$baseUrl';
+            }
+            audioUrl = '$baseUrl/api/library/songs/${song['id']}/';
+            print("Audio field empty, using fallback URL: $audioUrl");
+          } else {
+            print("Using audio URL from API: $audioUrl");
+          }
+
+          // Handle cover art similar to audio URL
+          String imagePath = song['cover_art'] ?? '';
+          if (imagePath.isEmpty) {
+            // Use default placeholder
+            imagePath = '';
+            print(
+              "Cover art field empty, using empty string (will show default icon)",
+            );
+          } else if (!imagePath.startsWith('http://') &&
+              !imagePath.startsWith('https://')) {
+            // If cover_art is a relative path, build full URL
+            String baseUrl = serverUrl ?? '';
+            if (!baseUrl.startsWith('http://') &&
+                !baseUrl.startsWith('https://')) {
+              baseUrl = 'http://$baseUrl';
+            }
+            imagePath = '$baseUrl$imagePath';
+            print("Cover art is relative path, building full URL: $imagePath");
+          } else {
+            print("Using cover art URL from API: $imagePath");
+          }
+
           songs.add(
             Song(
               id: song['id'],
               title: song['title'],
               artist: artist,
-              imagePath: song['cover_art'] ?? '',
-              audioUrl: song['audio'],
+              imagePath: imagePath,
+              audioUrl: audioUrl,
               durationSeconds: song['duration_seconds'] ?? 0, // Parse duration
             ),
           );

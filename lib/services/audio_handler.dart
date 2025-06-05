@@ -145,6 +145,38 @@ class SymphoniaAudioHandler extends BaseAudioHandler
 
   // Phương thức để load và play một bài hát
   Future<void> playSong(Song song) async {
+    print('Attempting to play song: ${song.title} by ${song.artist}');
+    print('Audio URL: "${song.audioUrl}"');
+    print('Image path: "${song.imagePath}"');
+
+    // Check if audioUrl is empty
+    if (song.audioUrl.isEmpty) {
+      print('ERROR: Audio URL is empty for song: ${song.title}');
+      print('This song cannot be played - no audio source available');
+
+      // Update media item để hiển thị thông tin bài hát (không phát được)
+      mediaItem.add(
+        MediaItem(
+          id: song.title, // Use title as ID since audioUrl is empty
+          title: song.title,
+          artist: song.artist,
+          duration: Duration(seconds: song.durationSeconds),
+          artUri: song.imagePath.isNotEmpty ? Uri.parse(song.imagePath) : null,
+        ),
+      );
+
+      // Update playback state to indicate error
+      playbackState.add(
+        playbackState.value.copyWith(
+          processingState: AudioProcessingState.error,
+          playing: false,
+          controls: [MediaControl.stop],
+        ),
+      );
+
+      return; // Exit early
+    }
+
     // Cập nhật media item cho notification với duration ban đầu
     mediaItem.add(
       MediaItem(
@@ -158,22 +190,38 @@ class SymphoniaAudioHandler extends BaseAudioHandler
 
     // Load audio source
     try {
+      print('Loading audio source...');
       if (song.audioUrl.startsWith('http')) {
+        print('Loading network audio: ${song.audioUrl}');
         await _player.setUrl(song.audioUrl);
       } else {
+        print('Loading local file: ${song.audioUrl}');
         await _player.setFilePath(song.audioUrl);
       }
 
       // Sau khi load xong, cập nhật duration chính xác nếu có
       _player.durationStream.first.then((actualDuration) {
         if (actualDuration != null) {
+          print('Actual duration loaded: ${actualDuration.inSeconds}s');
           mediaItem.add(mediaItem.value?.copyWith(duration: actualDuration));
         }
       });
 
+      print('Starting playback...');
       await play();
+      print('Playback started successfully');
     } catch (e) {
       print('Error loading audio: $e');
+      print('Song details - Title: ${song.title}, AudioURL: ${song.audioUrl}');
+
+      // Update playback state to show error
+      playbackState.add(
+        playbackState.value.copyWith(
+          processingState: AudioProcessingState.error,
+          playing: false,
+          controls: [MediaControl.stop],
+        ),
+      );
     }
   }
 
@@ -189,10 +237,6 @@ class SymphoniaAudioHandler extends BaseAudioHandler
   @override
   Future<void> onTaskRemoved() async {
     try {
-      // Khi app bị swipe away - cleanup hoàn toàn
-      print("=== APP TASK REMOVED ===");
-      print("Stopping audio playback and clearing notification...");
-
       // Stop player trước
       await _player.stop();
 

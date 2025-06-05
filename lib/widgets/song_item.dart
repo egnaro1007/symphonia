@@ -37,7 +37,19 @@ class SongItem extends StatelessWidget {
       onTap:
           onTap ??
           () {
-            PlayerController.getInstance().loadSong(song);
+            if (song.audioUrl.isNotEmpty) {
+              PlayerController.getInstance().loadSong(song);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Bài hát "${song.title}" không có file âm thanh để phát',
+                  ),
+                  backgroundColor: Colors.red.shade400,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading:
@@ -98,8 +110,11 @@ class SongItem extends StatelessWidget {
 
   Widget _buildSongImage() {
     String imagePath = song.imagePath;
+    print("SongItem: Building image for '${song.title}'");
+    print("SongItem: Image path = '$imagePath'");
 
     if (imagePath.isEmpty) {
+      print("SongItem: Image path is empty, showing placeholder icon");
       return Container(
         color: Colors.grey.shade300,
         child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -108,10 +123,27 @@ class SongItem extends StatelessWidget {
 
     // Check if it's a network URL
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      print("SongItem: Loading network image: $imagePath");
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            print("SongItem: Network image loaded successfully");
+            return child;
+          }
+          print(
+            "SongItem: Loading network image... ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}",
+          );
+          return Container(
+            color: Colors.grey.shade200,
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
         errorBuilder: (context, error, stackTrace) {
+          print("SongItem: Error loading network image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -121,10 +153,12 @@ class SongItem extends StatelessWidget {
     }
     // Check if it's an asset path
     else if (imagePath.startsWith('assets/')) {
+      print("SongItem: Loading asset image: $imagePath");
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
+          print("SongItem: Error loading asset image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -134,10 +168,12 @@ class SongItem extends StatelessWidget {
     }
     // Treat as local file path
     else {
+      print("SongItem: Loading local file image: $imagePath");
       return Image.file(
         File(imagePath),
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
+          print("SongItem: Error loading local file image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -152,7 +188,19 @@ class SongItem extends StatelessWidget {
       onTap:
           onTap ??
           () {
-            PlayerController.getInstance().loadSong(song);
+            if (song.audioUrl.isNotEmpty) {
+              PlayerController.getInstance().loadSong(song);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Bài hát "${song.title}" không có file âm thanh để phát',
+                  ),
+                  backgroundColor: Colors.red.shade400,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
       child: Container(
         width: 160,
@@ -190,10 +238,34 @@ class SongItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.play_circle_outline, size: 28),
-                    onPressed: () {
-                      PlayerController.getInstance().loadSong(song);
-                    },
+                    icon: Icon(
+                      song.audioUrl.isNotEmpty
+                          ? Icons.play_circle_outline
+                          : Icons.error_outline,
+                      size: 28,
+                      color:
+                          song.audioUrl.isNotEmpty ? null : Colors.red.shade400,
+                    ),
+                    onPressed:
+                        song.audioUrl.isNotEmpty
+                            ? () {
+                              if (onTap != null) {
+                                onTap!();
+                              } else {
+                                PlayerController.getInstance().loadSong(song);
+                              }
+                            }
+                            : () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Bài hát "${song.title}" không có file âm thanh để phát',
+                                  ),
+                                  backgroundColor: Colors.red.shade400,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
                   ),
                   IconButton(
                     icon: const Icon(Icons.more_vert),
@@ -210,14 +282,38 @@ class SongItem extends StatelessWidget {
   }
 
   Widget _buildTrailingControls(BuildContext context) {
+    bool canPlay = song.audioUrl.isNotEmpty;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Show different icon based on playability
         IconButton(
-          icon: const Icon(Icons.play_circle_outline),
-          onPressed: () {
-            PlayerController.getInstance().loadSong(song);
-          },
+          icon: Icon(
+            canPlay ? Icons.play_circle_outline : Icons.error_outline,
+            color: canPlay ? null : Colors.red.shade400,
+          ),
+          onPressed:
+              canPlay
+                  ? () {
+                    if (onTap != null) {
+                      onTap!();
+                    } else {
+                      PlayerController.getInstance().loadSong(song);
+                    }
+                  }
+                  : () {
+                    // Show message when song cannot be played
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Bài hát "${song.title}" không có file âm thanh để phát',
+                        ),
+                        backgroundColor: Colors.red.shade400,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
         ),
         const SizedBox(width: 8),
         IconButton(

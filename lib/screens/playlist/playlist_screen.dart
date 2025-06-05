@@ -4,6 +4,7 @@ import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/widgets/song_item.dart';
+import 'package:symphonia/controller/player_controller.dart';
 import 'dart:io';
 
 class PlaylistScreen extends AbstractScreen {
@@ -156,6 +157,27 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  // Add playable songs indicator
+                  const SizedBox(height: 4),
+                  Builder(
+                    builder: (context) {
+                      int playableSongs =
+                          playlist.songs
+                              .where((song) => song.audioUrl.isNotEmpty)
+                              .length;
+                      if (playableSongs < playlist.songsCount) {
+                        return Text(
+                          '$playableSongs/${playlist.songsCount} bài có thể phát',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                   const SizedBox(height: 24),
 
                   // Action buttons row
@@ -191,7 +213,31 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                             size: 32,
                           ),
                           onPressed: () {
-                            // Play playlist functionality
+                            // Play playlist from the beginning
+                            if (playlist.songs.isNotEmpty) {
+                              // Find first playable song
+                              int firstPlayableIndex = playlist.songs
+                                  .indexWhere(
+                                    (song) => song.audioUrl.isNotEmpty,
+                                  );
+                              if (firstPlayableIndex != -1) {
+                                PlayerController.getInstance().loadPlaylist(
+                                  playlist,
+                                  firstPlayableIndex,
+                                );
+                              } else {
+                                // No playable songs
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Playlist này không có bài hát nào có thể phát',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            }
                           },
                         ),
                       ),
@@ -229,6 +275,13 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                         isHorizontal: true,
                         index: index,
                         showIndex: true,
+                        onTap: () {
+                          // Load playlist starting from the selected song
+                          PlayerController.getInstance().loadPlaylist(
+                            playlist,
+                            index,
+                          );
+                        },
                       );
                     }).toList(),
               ),

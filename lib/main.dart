@@ -46,9 +46,6 @@ Future<void> main() async {
     await UserInfoManager.fetchUserInfo();
   }
 
-  print("Access token: ${TokenManager.accessToken}");
-  print("Is authenticated: $isAuthenticated");
-
   runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
@@ -91,19 +88,15 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         break;
       case AppLifecycleState.paused:
         // App chuyển sang background - không làm gì để nhạc tiếp tục chạy
-        print("App paused - music continues in background");
         break;
       case AppLifecycleState.resumed:
         // App được mở lại
-        print("App resumed");
         break;
       case AppLifecycleState.inactive:
         // App tạm thời inactive (như khi có cuộc gọi)
-        print("App inactive");
         break;
       case AppLifecycleState.hidden:
         // App bị ẩn
-        print("App hidden");
         break;
     }
   }
@@ -113,15 +106,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
       // Force stop và clear notification khi app terminate
       final handler = audioHandler as SymphoniaAudioHandler;
       await handler.forceStopAndClearNotification();
-      print("Audio service force stopped - app terminated");
     } catch (e) {
-      print("Error stopping audio service: $e");
-      // Fallback
-      try {
-        await audioHandler.stop();
-      } catch (e2) {
-        print("Fallback stop error: $e2");
-      }
+      await audioHandler.stop();
     }
   }
 

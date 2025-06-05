@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'player_screen.dart';
 import '/controller/player_controller.dart';
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
 import 'dart:io';
 
 class MiniPlayer extends StatefulWidget {
@@ -23,6 +22,7 @@ class MiniPlayerState extends State<MiniPlayer>
   double _progress = 0.0;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
+  bool _hasSong = false;
   StreamSubscription? _songChangeSubscription;
   StreamSubscription? _playerStateSubscription;
   StreamSubscription? _positionSubscription;
@@ -37,11 +37,21 @@ class MiniPlayerState extends State<MiniPlayer>
     );
 
     // Listen for song changes
-    _songChangeSubscription = _playerController.onSongChange.listen((_) {
+    _songChangeSubscription = _playerController.onSongChange.listen((song) {
       if (mounted) {
         setState(() {
           _progress = 0.0;
           _currentPosition = Duration.zero;
+          _hasSong = _playerController.hasSong;
+          // Force a full UI refresh when song changes
+        });
+        // Get new duration for the new song
+        _playerController.getDuration().then((duration) {
+          if (mounted) {
+            setState(() {
+              _totalDuration = duration;
+            });
+          }
         });
       }
     });
@@ -61,7 +71,7 @@ class MiniPlayerState extends State<MiniPlayer>
     _positionSubscription = _playerController.onPositionChanged.listen((
       position,
     ) {
-      if (mounted && _playerController.hasSong) {
+      if (mounted) {
         setState(() {
           _currentPosition = position;
           if (_totalDuration.inMilliseconds > 0) {
@@ -85,12 +95,22 @@ class MiniPlayerState extends State<MiniPlayer>
 
     // Initialize playing state
     _isPlaying = _playerController.isPlaying();
+    _hasSong = _playerController.hasSong;
 
     // Get initial duration
     _playerController.getDuration().then((duration) {
       if (mounted) {
         setState(() {
           _totalDuration = duration;
+        });
+      }
+    });
+
+    // Get initial position
+    _playerController.getCurrentPosition().then((position) {
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
         });
       }
     });
@@ -120,7 +140,7 @@ class MiniPlayerState extends State<MiniPlayer>
     TapDownDetails? down,
     bool cancel = false,
   }) {
-    if (!_playerController.hasSong) return;
+    if (!_hasSong) return;
 
     setState(() {
       if (down != null) {
@@ -139,6 +159,18 @@ class MiniPlayerState extends State<MiniPlayer>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Sync local state with controller state on every build
+    // This ensures UI is always up to date even if song change event was missed
+    if (_hasSong != _playerController.hasSong) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _hasSong = _playerController.hasSong;
+          });
+        }
+      });
+    }
+
     return AnimatedContainer(
       duration: Duration(
         milliseconds: 300,
@@ -152,7 +184,7 @@ class MiniPlayerState extends State<MiniPlayer>
                 child: PlayerScreen(closePlayer: _togglePlayer),
               )
               : GestureDetector(
-                onTap: _playerController.hasSong ? _togglePlayer : null,
+                onTap: _hasSong ? _togglePlayer : null,
                 child: _buildMiniPlayer(),
               ),
     );
@@ -177,7 +209,7 @@ class MiniPlayerState extends State<MiniPlayer>
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child:
-                    _playerController.hasSong &&
+                    _hasSong &&
                             _playerController.playingSong.imagePath.isNotEmpty
                         ? ClipRRect(
                           borderRadius: BorderRadius.circular(4),
@@ -195,7 +227,7 @@ class MiniPlayerState extends State<MiniPlayer>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _playerController.hasSong
+                        _hasSong
                             ? _playerController.playingSong.title
                             : "Không có gì đang phát",
                         style: TextStyle(
@@ -205,7 +237,7 @@ class MiniPlayerState extends State<MiniPlayer>
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      if (_playerController.hasSong &&
+                      if (_hasSong &&
                           _playerController.playingSong.artist.isNotEmpty)
                         Text(
                           _playerController.playingSong.artist,
@@ -222,7 +254,7 @@ class MiniPlayerState extends State<MiniPlayer>
 
               // Play/Pause button
               Opacity(
-                opacity: _playerController.hasSong ? 1.0 : 0.5,
+                opacity: _hasSong ? 1.0 : 0.5,
                 child: GestureDetector(
                   onTapDown:
                       (details) => _handlePlayPauseInteraction(down: details),
