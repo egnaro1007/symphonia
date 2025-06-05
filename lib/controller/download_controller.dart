@@ -10,7 +10,9 @@ class DownloadController {
   static String? _downloadImagePath;
 
   static Future<void> loadPaths() async {
-    if (_downloadMetadataFile != null && _downloadAudioPath != null && _downloadImagePath != null) {
+    if (_downloadMetadataFile != null &&
+        _downloadAudioPath != null &&
+        _downloadImagePath != null) {
       return;
     }
     final documentDirectory = await getApplicationDocumentsDirectory();
@@ -27,7 +29,7 @@ class DownloadController {
       await metadataFile.writeAsString('{}');
     }
 
-    print ('Document: ${documentDirectory.path}');
+    print('Document: ${documentDirectory.path}');
   }
 
   static Future<void> downloadSong(Song song) async {
@@ -44,15 +46,13 @@ class DownloadController {
     }
 
     // Download image file
-    String? imagePath;
+    String imagePath = "";
     if (song.imagePath.isNotEmpty) {
       final imageResponse = await http.get(Uri.parse(song.imagePath));
       if (imageResponse.statusCode == 200) {
         imagePath = '${_downloadImagePath!}${song.id}.jpg';
         final imageFile = File(imagePath);
         await imageFile.writeAsBytes(imageResponse.bodyBytes);
-      } else {
-        imagePath = "";
       }
     }
 
@@ -112,7 +112,8 @@ class DownloadController {
   }
 
   static Future<void> deleteAll() async {
-    String downloadPath = '${(await getApplicationDocumentsDirectory()).path}/download';
+    String downloadPath =
+        '${(await getApplicationDocumentsDirectory()).path}/download';
     await Directory(downloadPath).delete(recursive: true);
 
     await Directory(_downloadAudioPath!).create(recursive: true);
@@ -139,7 +140,7 @@ class DownloadController {
         title: data['title'],
         artist: data['artist'],
         imagePath: data['imagePath'] ?? '',
-        audioUrl: data['audioPath']
+        audioUrl: data['audioPath'],
       );
     }).toList();
   }

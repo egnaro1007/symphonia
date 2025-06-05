@@ -230,10 +230,14 @@ class PlayListOperations {
               id: playlist['id'].toString(),
               title: playlist['name'],
               description: playlist['description'],
-              duration: 0,
+              duration:
+                  playlist['total_duration_seconds'] ??
+                  0, // Use duration from API
               picture:
                   'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg', //playlist['picture'],
-              creator: 'Thanh', //playlist['creator'],
+              creator:
+                  playlist['owner_name'] ??
+                  'Unknown', // Use owner_name from API
               songs: [],
               sharePermission:
                   playlist['share_permission'] ??
@@ -273,30 +277,49 @@ class PlayListOperations {
           id: data['id'].toString(),
           title: data['name'],
           description: data['description'],
-          duration: 0,
+          duration:
+              data['total_duration_seconds'] ?? 0, // Use duration from API
           picture: '',
           //playlist['picture'],
-          creator: 'Thanh',
-          //playlist['creator'],
+          creator: data['owner_name'] ?? 'Unknown', // Use owner_name from API
           songs: [],
           sharePermission:
               data['share_permission'] ?? 'private', // Added share permission
         );
 
-        for (var song in data['songs']) {
-          int id = song['id'];
+        // Parse songs if they exist in the response
+        if (data['songs'] != null && data['songs'] is List) {
+          for (var song in data['songs']) {
+            int id = song['id'];
 
-          playlist.songs.add(
-            Song(
-              title: song['title'],
-              artist: song['artist'][0]['name'],
-              imagePath:
-                  song['cover_art'] ??
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png',
-              audioUrl:
-                  'http://${dotenv.env['SERVER_URL']}/api/library/songs/$id/',
-            ),
-          );
+            // Parse artist information
+            String artist = '';
+            if (song['artist'] != null && song['artist'] is List) {
+              List<dynamic> artists = song['artist'];
+              if (artists.isNotEmpty) {
+                // Join multiple artists with comma
+                artist = artists
+                    .map((a) => a['name'] ?? '')
+                    .where((name) => name.isNotEmpty)
+                    .join(', ');
+              }
+            }
+
+            playlist.songs.add(
+              Song(
+                id: id,
+                title: song['title'],
+                artist: artist,
+                imagePath:
+                    song['cover_art'] ??
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png',
+                audioUrl:
+                    'http://${dotenv.env['SERVER_URL']}/api/library/songs/$id/',
+                durationSeconds:
+                    song['duration_seconds'] ?? 0, // Parse duration from API
+              ),
+            );
+          }
         }
 
         return playlist;
@@ -309,7 +332,7 @@ class PlayListOperations {
           duration: 0,
           picture: '',
           //playlist['picture'],
-          creator: 'Thanh',
+          creator: 'Unknown', // Fallback value
           //playlist['creator'],
           songs: [],
           sharePermission: 'private', // Added share permission
@@ -324,7 +347,7 @@ class PlayListOperations {
         duration: 0,
         picture: '',
         //playlist['picture'],
-        creator: 'Thanh',
+        creator: 'Unknown', // Fallback value
         //playlist['creator'],
         songs: [],
         sharePermission: 'private', // Added share permission

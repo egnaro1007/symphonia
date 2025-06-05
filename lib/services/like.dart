@@ -27,8 +27,7 @@ class LikeOperations {
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body)['liked'] ?? false;
-      }
-      else {
+      } else {
         return false;
       }
     } catch (e) {
@@ -121,31 +120,48 @@ class LikeOperations {
           int id = songData['id'];
           String title = songData['title'];
           String imagePath = songData['cover_art'] ?? '';
-          String audioUrl = songData['audio'] ?? '';
+          String audio = songData['audio'] ?? '';
+          int durationSeconds = songData['duration_seconds'] ?? 0;
+
+          // Parse artist information
+          String artist = '';
+          if (songData['artist'] != null && songData['artist'] is List) {
+            List<dynamic> artists = songData['artist'];
+            if (artists.isNotEmpty) {
+              // Join multiple artists with comma
+              artist = artists
+                  .map((a) => a['name'] ?? '')
+                  .where((name) => name.isNotEmpty)
+                  .join(', ');
+            }
+          }
 
           if (imagePath.isNotEmpty) {
             imagePath = '$serverUrl$imagePath';
           }
-          if (audioUrl.isNotEmpty) {
-            audioUrl = '$serverUrl$audioUrl';
+          if (audio.isNotEmpty) {
+            audio = '$serverUrl$audio';
           }
 
-          Song song = Song(
-            id: id,
-            title: title,
-            imagePath: imagePath,
-            audioUrl: audioUrl,
+          songs.add(
+            Song(
+              id: id,
+              title: title,
+              artist: artist,
+              imagePath: imagePath,
+              audioUrl: audio,
+              durationSeconds: durationSeconds,
+            ),
           );
-
-          songs.add(song);
         }
       } else {
-        print("Error: Failed to fetch liked songs. Status code: ${response.statusCode}");
+        print('Error: ${response.statusCode}');
+        print('Response: ${response.body}');
       }
 
       return songs;
     } catch (e) {
-      print("Error: $e");
+      print('Error in getLikeSongs: $e');
       return [];
     }
   }

@@ -68,23 +68,35 @@ class SongOperations {
 
         List<Song> songs = [];
         for (var song in jsonData) {
+          // Parse artist information
+          String artist = '';
+          if (song['artist'] != null && song['artist'] is List) {
+            List<dynamic> artists = song['artist'];
+            if (artists.isNotEmpty) {
+              // Join multiple artists with comma
+              artist = artists
+                  .map((a) => a['name'] ?? '')
+                  .where((name) => name.isNotEmpty)
+                  .join(', ');
+            }
+          }
+
           songs.add(
             Song(
-              id: song['id'] ?? 0,
+              id: song['id'],
               title: song['title'],
-              artist: song['artist'][0]['name'],
-              imagePath:
-                  song['cover_art'] ??
-                  "https://pngimg.com/uploads/music_notes/music_notes_PNG46.png",
+              artist: artist,
+              imagePath: song['cover_art'] ?? '',
               audioUrl: song['audio'],
-              lyrics: song['lyric'],
+              durationSeconds: song['duration_seconds'] ?? 0, // Parse duration
             ),
           );
         }
 
         return songs;
       } else {
-        throw Exception('Failed to load songs');
+        print('Failed to load songs');
+        return [];
       }
     } catch (e) {
       print('Error: $e');

@@ -156,7 +156,7 @@ class _PlaylistLocalScreenState extends State<PlaylistLocalScreen> {
 
                   // Stats
                   Text(
-                    '${playlist.songs.length} bài hát • ${playlist.duration ~/ 3600}h ${(playlist.duration % 3600) ~/ 60}m • Riêng tư',
+                    '${playlist.songsCount} bài hát • ${playlist.formattedDuration} • Riêng tư',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,

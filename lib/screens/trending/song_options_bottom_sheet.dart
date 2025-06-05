@@ -26,7 +26,7 @@ class SongOptionsBottomSheet extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFF1F1033),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.zero,
       ),
       child: ListView(
         controller: controller,
@@ -46,17 +46,11 @@ class SongOptionsBottomSheet extends StatelessWidget {
             ),
             title: Text(
               song.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             subtitle: Text(
               song.artist,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
             trailing: const Icon(Icons.share, color: Colors.white),
           ),

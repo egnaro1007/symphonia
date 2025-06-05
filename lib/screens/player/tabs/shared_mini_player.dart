@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../controller/player_controller.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'dart:io';
 
 class SharedMiniPlayer extends StatefulWidget {
   final VoidCallback onTap;
@@ -52,12 +53,9 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
               child:
                   _playerController.hasSong &&
                           _playerController.playingSong.imagePath.isNotEmpty
-                      ? Image.network(
-                        _playerController.playingSong.imagePath,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                Icon(Icons.music_note, color: Colors.white),
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: _buildCoverImage(),
                       )
                       : Icon(Icons.music_note, color: Colors.white),
             ),
@@ -112,5 +110,40 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
         ),
       ),
     );
+  }
+
+  Widget _buildCoverImage() {
+    String imagePath = _playerController.playingSong.imagePath;
+
+    // Check if it's a network URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                Icon(Icons.music_note, color: Colors.white),
+      );
+    }
+    // Check if it's an asset path
+    else if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                Icon(Icons.music_note, color: Colors.white),
+      );
+    }
+    // Treat as local file path
+    else {
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                Icon(Icons.music_note, color: Colors.white),
+      );
+    }
   }
 }

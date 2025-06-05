@@ -6,6 +6,7 @@ import 'package:symphonia/screens/player/tabs/playlist_tab.dart';
 import 'package:symphonia/screens/player/tabs/information_tab.dart';
 import 'package:symphonia/screens/player/tabs/shared_tab_navigator.dart';
 import '/controller/player_controller.dart';
+import 'dart:io';
 
 class PlayerScreen extends StatefulWidget {
   final VoidCallback closePlayer;
@@ -268,18 +269,53 @@ class _PlayerScreenState extends State<PlayerScreen>
               ? Icon(Icons.music_note, size: 100, color: Colors.white)
               : ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  _playerController.playingSong.imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => Icon(
-                        Icons.music_note,
-                        size: 100,
-                        color: Colors.white,
-                      ),
-                ),
+                child: _buildCoverImage(),
               ),
     );
+  }
+
+  Widget _buildCoverImage() {
+    String imagePath = _playerController.playingSong.imagePath;
+
+    // Check if it's a network URL
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+          );
+        },
+      );
+    }
+    // Check if it's an asset path
+    else if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+          );
+        },
+      );
+    }
+    // Treat as local file path
+    else {
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+          );
+        },
+      );
+    }
   }
 
   Widget _buildSongInfo() {

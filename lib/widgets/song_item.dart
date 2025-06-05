@@ -235,6 +235,7 @@ class SongItem extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       builder: (_) {
         return Wrap(
           children: [
@@ -279,6 +280,9 @@ class SongItem extends StatelessWidget {
 
                 showModalBottomSheet(
                   context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  ),
                   builder: (_) {
                     return ListView.builder(
                       itemCount: localPlaylists.length,
