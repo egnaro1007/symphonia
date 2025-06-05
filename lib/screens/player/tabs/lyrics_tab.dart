@@ -195,13 +195,11 @@ class _LyricsTabState extends State<LyricsTab>
       }
     });
 
-    // Listen to player state changes
-    _playerStateSubscription = _playerController.onPlayerStateChanged.listen((
-      state,
-    ) {
+    // Listen for player state changes
+    _playerController.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
-          _isPlaying = state == PlayerState.playing;
+          _isPlaying = state.playing;
         });
       }
     });

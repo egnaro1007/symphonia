@@ -55,7 +55,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _playerController.getDuration().then((duration) {
       if (mounted) {
         setState(() {
-          _totalDuration = duration;
+          _totalDuration = duration ?? Duration.zero;
         });
       }
     });
@@ -92,7 +92,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _playerController.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
-          _isPlaying = state == PlayerState.playing;
+          _isPlaying = state.playing;
         });
       }
     });
@@ -101,7 +101,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _playerController.onDurationChanged.listen((duration) {
       if (mounted) {
         setState(() {
-          _totalDuration = duration;
+          _totalDuration = duration ?? Duration.zero;
         });
       }
     });

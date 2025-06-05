@@ -52,7 +52,7 @@ class MiniPlayerState extends State<MiniPlayer>
     ) {
       if (mounted) {
         setState(() {
-          _isPlaying = state == PlayerState.playing;
+          _isPlaying = state.playing;
         });
       }
     });
@@ -78,7 +78,7 @@ class MiniPlayerState extends State<MiniPlayer>
     ) {
       if (mounted) {
         setState(() {
-          _totalDuration = duration;
+          _totalDuration = duration ?? Duration.zero;
         });
       }
     });

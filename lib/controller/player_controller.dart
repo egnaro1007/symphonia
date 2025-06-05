@@ -1,19 +1,19 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/services/audio_handler.dart';
+import 'package:symphonia/main.dart';
 import 'dart:async';
 
 enum RepeatMode { noRepeat, repeatOne, repeatAll }
 
 class PlayerController {
   static PlayerController? _instance;
-  final AudioPlayer _audioPlayer;
   final StreamController<Song> _songChangeController =
       StreamController<Song>.broadcast();
+
   bool _hasSong = false;
-
   Song _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
-
   PlayList _currentPlaylist = PlayList(
     id: "",
     title: "",
@@ -27,34 +27,31 @@ class PlayerController {
   int _currentSongIndex = 0;
   RepeatMode _repeatMode = RepeatMode.noRepeat;
 
-  PlayerController._internal() : _audioPlayer = AudioPlayer() {
-    _audioPlayer.setReleaseMode(ReleaseMode.stop);
+  // Lấy audio handler từ main
+  SymphoniaAudioHandler get _audioHandler =>
+      audioHandler as SymphoniaAudioHandler;
 
-    _audioPlayer.onPlayerComplete.listen((event) {
-      if (_currentSongIndex + 1 <= _currentPlaylist.songs.length) {
-        next();
-      }
-    });
-  }
+  PlayerController._internal();
 
   factory PlayerController() {
     _instance ??= PlayerController._internal();
+    _instance!._setupAudioHandlerCallbacks();
     return _instance!;
   }
 
   static PlayerController getInstance() {
     _instance ??= PlayerController._internal();
+    _instance!._setupAudioHandlerCallbacks();
     return _instance!;
   }
 
-  // Stream for listening to audio player events
-  Stream<Duration> get onPositionChanged => _audioPlayer.onPositionChanged;
-  Stream<PlayerState> get onPlayerStateChanged =>
-      _audioPlayer.onPlayerStateChanged;
-  Stream<Duration> get onDurationChanged => _audioPlayer.onDurationChanged;
+  // Stream getters từ audio handler
+  Stream<Duration> get onPositionChanged => _audioHandler.positionStream;
+  Stream<PlaybackState> get onPlayerStateChanged => _audioHandler.playbackState;
+  Stream<Duration?> get onDurationChanged => _audioHandler.durationStream;
   Stream<Song> get onSongChange => _songChangeController.stream;
 
-  // Getters and Setters
+  // Getters
   Song get playingSong => _playingSong;
   bool get hasSong => _hasSong;
   PlayList get currentPlaylist => _currentPlaylist;
@@ -65,17 +62,15 @@ class PlayerController {
           : [];
 
   bool isPlaying() {
-    return _audioPlayer.state == PlayerState.playing;
+    return _audioHandler.isPlaying;
   }
 
   Future<Duration> getCurrentPosition() async {
-    final position = await _audioPlayer.getCurrentPosition();
-    return position ?? Duration.zero;
+    return _audioHandler.position;
   }
 
   Future<Duration> getDuration() async {
-    final duration = await _audioPlayer.getDuration();
-    return duration ?? Duration.zero;
+    return _audioHandler.duration ?? Duration.zero;
   }
 
   RepeatMode get repeatMode => _repeatMode;
@@ -83,40 +78,17 @@ class PlayerController {
     _repeatMode = mode;
   }
 
-  Future<void> loadSongFromUrl(String url) async {
-    print("Loading song from URL: $url");
-    _songChangeController.add(_playingSong);
-    print("Playing: ${_playingSong.title}");
-    await _audioPlayer.setSourceUrl(url);
-    await play();
-  }
-
-  Future<void> loadSongFromFile(String filePath) async {
-    print("Loading song from file: $filePath");
-    _songChangeController.add(_playingSong);
-    print("Playing: ${_playingSong.title}");
-    await _audioPlayer.setSourceDeviceFile(filePath);
-    await play();
-  }
-
   Future<void> _playSong(Song song) async {
-    if (_playingSong == song) {
-      await _audioPlayer.seek(Duration.zero);
-      await play();
-    }
     _playingSong = song;
-    if (song.audioUrl.startsWith("http")) {
-      await loadSongFromUrl(song.audioUrl);
-    } else {
-      await loadSongFromFile(song.audioUrl);
-    }
-    print(_currentSongIndex);
+    _songChangeController.add(_playingSong);
+
+    // Play through audio handler (this will show notification)
+    await _audioHandler.playSong(song);
+
     _hasSong = true;
-    await play();
   }
 
-  // Load song from song object
-  // models.song.dart
+  // Load song methods
   Future<void> loadSong(Song song, [bool resetQueue = true]) async {
     if (resetQueue) {
       _currentPlaylist.songs.clear();
@@ -129,7 +101,6 @@ class PlayerController {
     }
   }
 
-  // models.playlist.dart
   Future<void> loadPlaylist(PlayList playlist, [int index = 0]) async {
     _currentPlaylist.songs.clear();
     _currentPlaylist.songs.addAll(playlist.songs);
@@ -144,17 +115,17 @@ class PlayerController {
     await _playSong(_currentPlaylist.songs[_currentSongIndex]);
   }
 
-  // Controls
+  // Controls - delegate to audio handler
   Future<void> play() async {
-    await _audioPlayer.resume();
+    await _audioHandler.play();
   }
 
   Future<void> pause() async {
-    await _audioPlayer.pause();
+    await _audioHandler.pause();
   }
 
   Future<void> seek(Duration position) async {
-    await _audioPlayer.seek(position);
+    await _audioHandler.seek(position);
   }
 
   Future<void> gotoIndex(int index) async {
@@ -200,21 +171,13 @@ class PlayerController {
     }
   }
 
-  // Reset player state - useful when switching users
   Future<void> reset() async {
     try {
-      // Stop and clear audio player
-      await _audioPlayer.stop();
-
-      // Reset all state variables
+      await _audioHandler.stop();
       _hasSong = false;
       _currentSongIndex = 0;
       _repeatMode = RepeatMode.noRepeat;
-
-      // Clear playing song
       _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
-
-      // Clear current playlist
       _currentPlaylist = PlayList(
         id: "",
         title: "",
@@ -224,10 +187,7 @@ class PlayerController {
         creator: "",
         songs: [],
       );
-
-      // Notify listeners about the change
       _songChangeController.add(_playingSong);
-
       print("Player state reset successfully");
     } catch (e) {
       print("Error resetting player: $e");
@@ -235,7 +195,21 @@ class PlayerController {
   }
 
   void dispose() {
-    _audioPlayer.dispose();
     _songChangeController.close();
+  }
+
+  // Thiết lập callbacks cho audio handler
+  void _setupAudioHandlerCallbacks() {
+    _audioHandler.onSkipToNext = () async {
+      await next();
+    };
+
+    _audioHandler.onSkipToPrevious = () async {
+      await previous();
+    };
+
+    _audioHandler.onSongComplete = () async {
+      await next();
+    };
   }
 }

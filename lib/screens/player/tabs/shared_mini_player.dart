@@ -25,7 +25,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
     _playerController.onPlayerStateChanged.listen((state) {
       if (mounted) {
         setState(() {
-          _isPlaying = state == PlayerState.playing;
+          _isPlaying = state.playing;
         });
       }
     });
