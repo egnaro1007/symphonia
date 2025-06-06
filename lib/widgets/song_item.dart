@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/like.dart';
@@ -337,7 +338,7 @@ class SongItem extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.queue_play_next),
-              title: const Text('Thêm vào danh dách phát tiếp'),
+              title: Text(AppLocalizations.of(context)!.addToPlayNext),
               onTap: () {
                 PlayerController.getInstance().loadSong(song, false);
                 Navigator.pop(context);
@@ -345,7 +346,7 @@ class SongItem extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.download),
-              title: const Text('Tải về'),
+              title: Text(AppLocalizations.of(context)!.download),
               onTap: () {
                 DownloadController.downloadSong(song);
                 Navigator.pop(context);
@@ -353,7 +354,10 @@ class SongItem extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(isLike ? Icons.favorite : Icons.favorite_border),
-              title: Text(isLike ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'),
+              title: Text(isLike
+                  ? AppLocalizations.of(context)!.removeFromFavorites
+                  : AppLocalizations.of(context)!.addToFavorites
+              ),
               onTap: () async {
                 if (isLike) {
                   if (await LikeOperations.unlike(song)) {
@@ -369,7 +373,7 @@ class SongItem extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.playlist_add),
-              title: const Text('Thêm vào playlist'),
+              title: Text(AppLocalizations.of(context)!.addToPlaylist),
               onTap: () async {
                 List<PlayList> localPlaylists =
                     await PlayListOperations.getLocalPlaylists();

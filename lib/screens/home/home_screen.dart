@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
@@ -64,8 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Khám phá',
+                    Text(
+                      AppLocalizations.of(context)!.discover,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -99,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         Text(
-                          'Gợi ý cho bạn',
+                          AppLocalizations.of(context)!.yourSuggestions,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -134,10 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           child: Row(
-                            children: const [
+                            children: [
                               Icon(Icons.play_arrow),
                               SizedBox(width: 4),
-                              Text('Phát tất cả'),
+                              Text(AppLocalizations.of(context)!.playAll),
                             ],
                           ),
                         ),
@@ -205,9 +206,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
-                      'Playlist gợi ý',
+                      AppLocalizations.of(context)!.suggestPlaylists,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -377,8 +378,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (label != null)
                   Text(
                     label,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -7,6 +7,8 @@ import 'package:symphonia/services/user_info_manager.dart';
 import 'screens/navigation_bar_screen.dart';
 import 'screens/profile/login_screen.dart';
 import 'package:symphonia/controller/download_controller.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Global audio handler instance
 late AudioHandler audioHandler;
@@ -63,6 +65,7 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
+  Locale _currentLocale = Locale('vi');
 
   @override
   void initState() {
@@ -132,6 +135,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
       ),
       themeMode: _themeMode,
+      localizationsDelegates: const[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const[
+        Locale('en'),
+        Locale('vi'),
+      ],
+      locale: _currentLocale,
       home:
           widget.isAuthenticated
               ? NavigationBarScreen(selectedBottom: 0)
