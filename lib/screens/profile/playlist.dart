@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/services/playlist.dart';
@@ -51,7 +52,6 @@ class _PlayListComponentState extends State<PlayListComponent> {
           }).toList(),
 
           const SizedBox(height: 16),
-          // Playlist gợi ý đã được xóa theo yêu cầu
         ],
       ),
     );
@@ -63,9 +63,9 @@ class _PlayListComponentState extends State<PlayListComponent> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Playlist',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.playlist,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
         ],
@@ -84,9 +84,9 @@ class _PlayListComponentState extends State<PlayListComponent> {
         ),
         child: const Icon(Icons.add, color: Colors.grey),
       ),
-      title: const Text(
-        'Tạo playlist',
-        style: TextStyle(fontWeight: FontWeight.w500),
+      title: Text(
+        AppLocalizations.of(context)!.createPlaylist,
+        style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       onTap: () {
         Navigator.push(
@@ -106,7 +106,6 @@ class _PlayListComponentState extends State<PlayListComponent> {
           borderRadius: BorderRadius.circular(4),
           color: Colors.grey[300],
         ),
-        // Replace with actual image
         child: const Center(child: Icon(Icons.music_note)),
       ),
       title: Text(
@@ -117,25 +116,24 @@ class _PlayListComponentState extends State<PlayListComponent> {
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline, color: Colors.grey),
         onPressed: () async {
-          // Show confirmation dialog
           final bool? confirm = await showDialog<bool>(
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Xóa playlist'),
+                title: Text(AppLocalizations.of(context)!.deletePlaylist),
                 content: Text(
-                  'Bạn có chắc chắn muốn xóa playlist "${playlist.title}"?',
+                  "${AppLocalizations.of(context)!.confirmDeletePlaylist} ${playlist.title}?",
                 ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Hủy'),
+                    child: Text(AppLocalizations.of(context)!.cancel),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text(
-                      'Xóa',
-                      style: TextStyle(color: Colors.red),
+                    child: Text(
+                      AppLocalizations.of(context)!.delete,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
@@ -155,6 +153,4 @@ class _PlayListComponentState extends State<PlayListComponent> {
       },
     );
   }
-
-  // Các method cho playlist gợi ý đã được xóa theo yêu cầu
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/friend_request.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/friend.dart';
@@ -39,8 +40,8 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Lời mời kết bạn',
+        title: Text(
+          AppLocalizations.of(context)!.friendRequests,
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -54,15 +55,15 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         ),
       ),
       body: _friendRequests.isEmpty
-          ? const Center(
-        child: Text(
-          'Không có lời mời kết bạn nào',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
+        ?  Center(
+          child: Text(
+            AppLocalizations.of(context)!.noFriendRequest,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
           ),
-        ),
-      )
+        )
           : ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -70,7 +71,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
           Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
             child: Text(
-              '${_friendRequests.length} lời mời kết bạn',
+              '${_friendRequests.length} ${AppLocalizations.of(context)!.friendRequests}',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -93,7 +94,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Đã chấp nhận lời mời từ ${request.name}'),
+                      content: Text('${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.name}'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -104,7 +105,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Đã từ chối lời mời từ ${request.name}'),
+                      content: Text('${AppLocalizations.of(context)!.declineFriendRequestFrom} ${request.name}'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -187,7 +188,7 @@ class FriendRequestCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Chấp nhận'),
+                    child: Text(AppLocalizations.of(context)!.accept),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -203,7 +204,7 @@ class FriendRequestCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Từ chối'),
+                    child: Text(AppLocalizations.of(context)!.decline),
                   ),
                 ),
               ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/user.dart';
 import 'package:symphonia/services/friend.dart';
 import '../abstract_navigation_screen.dart';
@@ -49,8 +50,8 @@ class _FollowScreenState extends State<FollowScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Người dùng',
+        title: Text(
+          AppLocalizations.of(context)!.user,
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -103,13 +104,13 @@ class _FollowScreenState extends State<FollowScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         children: [
           // Tiêu đề danh sách bạn bè
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              'Bạn bè của bạn',
+              AppLocalizations.of(context)!.yourFriends,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
@@ -158,20 +159,20 @@ class _FollowScreenState extends State<FollowScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text("Hủy kết bạn"),
+                    child: Text(AppLocalizations.of(context)!.removeFriend),
                     onPressed: () {
                       showDialog(
                         context: context,
                         builder:
                             (context) => AlertDialog(
-                              title: const Text("Xác nhận"),
+                              title: Text(AppLocalizations.of(context)!.confirm),
                               content: Text(
-                                "Bạn có chắc muốn hủy kết bạn với ${friend.username}?",
+                                "${AppLocalizations.of(context)!.friendRemoveConfirmation} ${friend.username}?",
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: const Text("Hủy"),
+                                  child: Text(AppLocalizations.of(context)!.cancel),
                                 ),
                                 TextButton(
                                   onPressed: () async {
@@ -180,7 +181,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          'Đang hủy kết bạn với ${friend.username}...',
+                                          '${AppLocalizations.of(context)!.removingFriendWith} ${friend.username}...',
                                         ),
                                       ),
                                     );
@@ -196,7 +197,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'Đã hủy kết bạn với ${friend.username}',
+                                            '${AppLocalizations.of(context)!.confirmRemovingFriendWith} ${friend.username}',
                                           ),
                                         ),
                                       );
@@ -206,13 +207,13 @@ class _FollowScreenState extends State<FollowScreen> {
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            'Lỗi khi hủy kết bạn: ${e.toString()}',
+                                            '${AppLocalizations.of(context)!.errorRemoveFriend}: ${e.toString()}',
                                           ),
                                         ),
                                       );
                                     }
                                   },
-                                  child: const Text("Xác nhận"),
+                                  child: Text(AppLocalizations.of(context)!.confirm),
                                 ),
                               ],
                             ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:symphonia/models/user.dart';
@@ -116,25 +117,25 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã gửi lời mời kết bạn'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể gửi lời mời kết bạn'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.friendRequestSent),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorSendingFriendRequest),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
     } catch (e) {
       print('Error sending friend request: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xảy ra lỗi khi gửi lời mời kết bạn'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.errorOccurredFriendRequest),
           backgroundColor: Colors.red,
         ),
       );
@@ -151,7 +152,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tìm kiếm người dùng'),
+        title: Text(AppLocalizations.of(context)!.searchUser),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -164,7 +165,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Nhập tên người dùng...',
+                hintText: AppLocalizations.of(context)!.enterUsername,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
@@ -200,7 +201,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Tìm kiếm'),
+              child: Text(AppLocalizations.of(context)!.search),
             ),
 
             const SizedBox(height: 24),
@@ -210,7 +211,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
               child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _hasSearched && _searchResults.isEmpty
-                  ? const Center(child: Text('Không tìm thấy người dùng nào'))
+                  ? Center(child: Text(AppLocalizations.of(context)!.noUsersFound))
                   : ListView.builder(
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
@@ -252,7 +253,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                                       _sendFriendRequest(user.id);
                                     },
                                     icon: const Icon(Icons.person_add),
-                                    label: const Text('Kết bạn'),
+                                    label: Text(AppLocalizations.of(context)!.addFriend),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.blue,
                                       side: const BorderSide(color: Colors.blue),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
@@ -30,9 +31,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey[100],
         elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.profile,
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 26,
             fontWeight: FontWeight.bold,
@@ -57,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildQuickAccessButton(
                     Icons.schedule,
-                    'Nghe gần đây',
+                    AppLocalizations.of(context)!.recentlyPlayed,
                     Colors.orange,
                     () {
                       Navigator.push(
@@ -65,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         MaterialPageRoute(
                           builder:
                               (context) => SongListScreen(
-                                title: 'Nghe gần đây',
+                                title: AppLocalizations.of(context)!.recentlyPlayed,
                                 songsFuture: _getRecentlyPlayedSongs(),
                                 titleIcon: Icons.schedule,
                                 titleColor: Colors.orange,
@@ -76,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   _buildQuickAccessButton(
                     Icons.favorite_border,
-                    'Yêu thích',
+                    AppLocalizations.of(context)!.favorites,
                     Colors.blue,
                     () {
                       Navigator.push(
@@ -84,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         MaterialPageRoute(
                           builder:
                               (context) => SongListScreen(
-                                title: 'Yêu thích',
+                                title: AppLocalizations.of(context)!.favorites,
                                 songsFuture: LikeOperations.getLikeSongs(),
                                 titleIcon: Icons.favorite,
                                 titleColor: Colors.blue,
@@ -95,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   _buildQuickAccessButton(
                     Icons.arrow_downward,
-                    'Đã tải',
+                    AppLocalizations.of(context)!.downloaded,
                     Colors.purple,
                     () {
                       Navigator.push(
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         MaterialPageRoute(
                           builder:
                               (context) => SongListScreen(
-                                title: 'Đã tải',
+                                title: AppLocalizations.of(context)!.downloaded,
                                 songsFuture:
                                     DownloadController.getDownloadedSongs(),
                                 titleIcon: Icons.download_done,
@@ -170,16 +171,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: Text.rich(
               TextSpan(
-                text: 'Welcome, ',
+                text: AppLocalizations.of(context)!.welcome,
                 style: const TextStyle(fontSize: 18),
                 children: [
                   TextSpan(
                     text: UserInfoManager.username,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(
+                  const TextSpan(
                     text: '!',
-                    style: const TextStyle(fontWeight: FontWeight.normal),
+                    style: TextStyle(fontWeight: FontWeight.normal),
                   ),
                 ],
               ),
@@ -192,12 +193,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text("Logout"),
-                    content: const Text("Are you sure you want to logout?"),
+                    title: Text(AppLocalizations.of(context)!.logout),
+                    content: Text(AppLocalizations.of(context)!.logoutConfirmation),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
+                        child: Text(AppLocalizations.of(context)!.cancel),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -219,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             );
                           }
                         },
-                        child: const Text("Logout"),
+                        child: Text(AppLocalizations.of(context)!.logout),
                       ),
                     ],
                   );
@@ -227,7 +228,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: Text(
+              AppLocalizations.of(context)!.logout,
+              style: const TextStyle(color: Colors.white)
+            ),
           ),
         ],
       ),
