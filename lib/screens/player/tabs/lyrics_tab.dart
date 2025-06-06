@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../../../controller/player_controller.dart';
 import '../../../services/token_manager.dart'; // Import token manager for API calls
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import for server URL
@@ -316,17 +315,14 @@ class _LyricsTabState extends State<LyricsTab>
 
     // Ensure the widget is still mounted before trying to access context or scroll.
     if (!mounted) {
-      // print('Bailing: Widget not mounted.');
       return;
     }
 
     final currentLine = _lyricsLines[_currentLineIndex];
     final GlobalKey key = currentLine.key;
 
-    // print('Key for index $_currentLineIndex: $key, currentContext: ${key.currentContext}');
 
     if (key.currentContext != null) {
-      // print('Context found for index $_currentLineIndex. Proceeding with ensureVisible.');
       setState(() {
         // Set _isScrolling to true to prevent concurrent scrolls
         _isScrolling = true;
@@ -342,7 +338,6 @@ class _LyricsTabState extends State<LyricsTab>
           setState(() {
             _isScrolling = false; // Reset flag when scroll completes
           });
-          // print('ensureVisible completed for index $_currentLineIndex.');
         }
       });
     } else {
@@ -387,15 +382,12 @@ class _LyricsTabState extends State<LyricsTab>
       }
 
       _scrollController.jumpTo(targetOffset);
-      // print('Jumped to calculated offset: $targetOffset for index $_currentLineIndex.');
 
       // After jumping, the item should hopefully be built in the next frame.
       // Schedule another attempt to scroll, ensuring it's properly visible and centered.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        // print('Post-jump callback for index $_currentLineIndex. Re-checking context.');
         if (key.currentContext != null) {
-          // print('Context now available post-jump for index $_currentLineIndex. Calling ensureVisible.');
           setState(() {
             // Set _isScrolling to true
             _isScrolling = true;
@@ -410,7 +402,6 @@ class _LyricsTabState extends State<LyricsTab>
               setState(() {
                 _isScrolling = false; // Reset flag
               });
-              // print('ensureVisible (after jump) completed for index $_currentLineIndex.');
             }
           });
         } else {
@@ -465,7 +456,6 @@ class _LyricsTabState extends State<LyricsTab>
         return []; // Return empty list for no lyrics case
       }
     } catch (e) {
-      print('Failed to load lyrics from backend: $e');
       // On error, no lyrics available
       _hasLyrics = false;
       return []; // Return empty list for error case
@@ -476,7 +466,6 @@ class _LyricsTabState extends State<LyricsTab>
   Future<List<dynamic>?> _fetchLyricsFromAPI(int songId) async {
     String? serverUrl = dotenv.env['SERVER_URL'];
     if (serverUrl == null) {
-      print("Error: SERVER_URL is not defined in the environment variables.");
       return null;
     }
 
@@ -495,11 +484,9 @@ class _LyricsTabState extends State<LyricsTab>
         final data = jsonDecode(response.body);
         return data['lyric'] as List<dynamic>?;
       } else {
-        print("Failed to fetch lyrics: ${response.statusCode}");
         return null;
       }
     } catch (e) {
-      print("Error fetching lyrics: $e");
       return null;
     }
   }
@@ -509,11 +496,6 @@ class _LyricsTabState extends State<LyricsTab>
     return lyricsData.map((entry) {
       return LyricsLine.fromJson(entry as Map<String, dynamic>);
     }).toList();
-  }
-
-  // Seek to a specific time (for testing lyrics sync)
-  void _seekToTime(Duration position) {
-    _playerController.seek(position);
   }
 
   @override

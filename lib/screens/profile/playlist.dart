@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/playlist.dart';
-import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 
 import '../playlist/playlist_creation_screen.dart';
@@ -49,7 +48,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
           const Divider(),
           ...playlists.map((playlist) {
             return _buildPlaylistTile(playlist);
-          }).toList(),
+          }),
 
           const SizedBox(height: 16),
         ],
@@ -106,7 +105,25 @@ class _PlayListComponentState extends State<PlayListComponent> {
           borderRadius: BorderRadius.circular(4),
           color: Colors.grey[300],
         ),
-        child: const Center(child: Icon(Icons.music_note)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child:
+              playlist.picture.isNotEmpty
+                  ? Image.network(
+                    playlist.picture,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Icon(Icons.music_note));
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      );
+                    },
+                  )
+                  : const Center(child: Icon(Icons.music_note)),
+        ),
       ),
       title: Text(
         playlist.title,
@@ -142,7 +159,6 @@ class _PlayListComponentState extends State<PlayListComponent> {
           );
 
           if (confirm == true) {
-            print("Deleted playlist with ID: ${playlist.id}");
             await PlayListOperations.deletePlaylist(playlist.id);
             _loadPlaylists();
           }

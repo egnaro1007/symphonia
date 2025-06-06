@@ -49,7 +49,6 @@ class SongOperations {
         throw Exception('Failed to load songs');
       }
     } catch (e) {
-      print(e);
       return [];
     }
   }
@@ -68,12 +67,6 @@ class SongOperations {
 
         List<Song> songs = [];
         for (var song in jsonData) {
-          print(
-            "Processing suggested song: ${song['title']} (ID: ${song['id']})",
-          );
-          print("Available fields: ${song.keys}");
-          print("Audio field value: ${song['audio']}");
-          print("Cover art field value: ${song['cover_art']}");
 
           // Parse artist information
           String artist = '';
@@ -98,9 +91,7 @@ class SongOperations {
               baseUrl = 'http://$baseUrl';
             }
             audioUrl = '$baseUrl/api/library/songs/${song['id']}/';
-            print("Audio field empty, using fallback URL: $audioUrl");
           } else {
-            print("Using audio URL from API: $audioUrl");
           }
 
           // Handle cover art similar to audio URL
@@ -108,9 +99,6 @@ class SongOperations {
           if (imagePath.isEmpty) {
             // Use default placeholder
             imagePath = '';
-            print(
-              "Cover art field empty, using empty string (will show default icon)",
-            );
           } else if (!imagePath.startsWith('http://') &&
               !imagePath.startsWith('https://')) {
             // If cover_art is a relative path, build full URL
@@ -120,9 +108,6 @@ class SongOperations {
               baseUrl = 'http://$baseUrl';
             }
             imagePath = '$baseUrl$imagePath';
-            print("Cover art is relative path, building full URL: $imagePath");
-          } else {
-            print("Using cover art URL from API: $imagePath");
           }
 
           songs.add(
@@ -146,14 +131,5 @@ class SongOperations {
       print('Error: $e');
       return [];
     }
-  }
-}
-
-void main() async {
-  List<Song> songs = await SongOperations.getTrendingSongs();
-  for (var song in songs) {
-    print(
-      'Song: ${song.title}, Artist: ${song.artist}, Image: ${song.imagePath}',
-    );
   }
 }

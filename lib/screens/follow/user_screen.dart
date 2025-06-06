@@ -129,7 +129,6 @@ class _UserScreenState extends State<UserScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    print("Playlist: ${playlists}");
 
     return Scaffold(
       body: SafeArea(
@@ -213,9 +212,6 @@ class _UserScreenState extends State<UserScreen> {
                                         Expanded(
                                           child: OutlinedButton(
                                             onPressed: () async {
-                                              print(
-                                                "User status: ${userStatus.status}",
-                                              );
 
                                               try {
                                                 if (userStatus.status ==
@@ -733,36 +729,6 @@ class _UserScreenState extends State<UserScreen> {
       ),
     );
   }
-
-  // Widget _buildSongItem(String title, String artists, String imagePath) {
-  //   return ListTile(
-  //     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     leading: ClipRRect(
-  //       borderRadius: BorderRadius.circular(8),
-  //       child: Container(
-  //         width: 56,
-  //         height: 56,
-  //         color: Colors.grey[300],
-  //         // In a real app, you'd use Image.asset(imagePath) instead
-  //         child: const Icon(Icons.music_note, color: Colors.grey),
-  //       ),
-  //     ),
-  //     title: Text(
-  //       title,
-  //       style: const TextStyle(
-  //         fontWeight: FontWeight.w500,
-  //       ),
-  //     ),
-  //     subtitle: Text(
-  //       artists,
-  //       style: TextStyle(
-  //         color: Colors.grey[600],
-  //         fontSize: 13,
-  //       ),
-  //     ),
-  //     trailing: const Icon(Icons.more_vert),
-  //   );
-  // }
 
   Widget _buildPlaylistItem(PlayList playlist) {
     return Column(

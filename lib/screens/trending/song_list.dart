@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:symphonia/screens/player/player_screen.dart';
 import 'package:symphonia/screens/trending/song_options_bottom_sheet.dart';
 import 'package:symphonia/screens/trending/song_player_screen.dart';
 

@@ -62,7 +62,6 @@ class Searching {
         return [];
       }
     } catch (e) {
-      print('Error fetching suggestions: $e');
       return [];
     }
   }
@@ -122,7 +121,6 @@ class Searching {
       }
       return results;
     } catch (e) {
-      print(e);
       return [];
     }
   }
@@ -165,7 +163,6 @@ class Searching {
         throw Exception('Failed to load songs');
       }
     } catch (e) {
-      print(e);
       return [];
     }
   }
@@ -204,7 +201,6 @@ class Searching {
         throw Exception('Failed to load artists');
       }
     } catch (e) {
-      print(e);
       return [];
     }
   }
@@ -249,7 +245,6 @@ class Searching {
         throw Exception('Failed to load playlists');
       }
     } catch (e) {
-      print(e);
       return [];
     }
   }

@@ -68,7 +68,6 @@ class _SongListScreenState extends State<SongListScreen> {
       }
 
       if (shouldRefresh) {
-        print('Refreshing ${widget.screenTitle} due to ${event.type}');
         _refreshData();
       }
     });
@@ -221,7 +220,6 @@ class _SongListScreenState extends State<SongListScreen> {
                                 );
                               }
                             } catch (e) {
-                              print('Error loading fresh songs: $e');
                               PlayerController.getInstance().loadSongs(
                                 songs,
                               ); // Fallback

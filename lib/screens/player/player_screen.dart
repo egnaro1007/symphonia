@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/player/tabs/lyrics_tab.dart';
 import 'package:symphonia/screens/player/tabs/playlist_tab.dart';
@@ -55,7 +54,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _playerController.getDuration().then((duration) {
       if (mounted) {
         setState(() {
-          _totalDuration = duration ?? Duration.zero;
+          _totalDuration = duration;
         });
       }
     });

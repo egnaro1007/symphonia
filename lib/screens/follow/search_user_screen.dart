@@ -101,7 +101,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         });
       }
     } catch (e) {
-      print('Error searching users: $e');
       setState(() {
         _searchResults = [];
         _isLoading = false;
@@ -131,19 +130,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         body: jsonEncode({"id": userId}),
       );
 
-      print('Friend request response status: ${response.statusCode}');
-      print('Friend request response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        // Check if response body contains any useful information
-        var responseData;
-        try {
-          responseData = jsonDecode(response.body);
-          print('Parsed response data: $responseData');
-        } catch (e) {
-          print('Could not parse response as JSON: $e');
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.friendRequestSent),
@@ -173,7 +161,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                 errorData['error'] ?? errorData['message'] ?? errorMessage;
           }
         } catch (e) {
-          print('Could not parse error response as JSON: $e');
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -181,7 +168,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         );
       }
     } catch (e) {
-      print('Error sending friend request: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.errorOccurredFriendRequest),
@@ -208,8 +194,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         body: jsonEncode({"id": userId}),
       );
 
-      print('Unfriend response status: ${response.statusCode}');
-      print('Unfriend response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +224,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         );
       }
     } catch (e) {
-      print('Error unfriending: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đã xảy ra lỗi khi hủy kết bạn'),
@@ -263,8 +246,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         body: jsonEncode({"user_id": userId, "response": response}),
       );
 
-      print('Response friend request status: ${httpResponse.statusCode}');
-      print('Response friend request body: ${httpResponse.body}');
 
       if (httpResponse.statusCode >= 200 && httpResponse.statusCode < 300) {
         String message =
@@ -300,7 +281,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         );
       }
     } catch (e) {
-      print('Error responding to friend request: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đã xảy ra lỗi khi phản hồi lời mời kết bạn'),

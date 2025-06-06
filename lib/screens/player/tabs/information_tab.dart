@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../controller/player_controller.dart';
-import '../../../models/song.dart';
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
 

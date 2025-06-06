@@ -7,7 +7,6 @@ import 'package:symphonia/screens/follow/friend_request_screen.dart';
 import 'package:symphonia/screens/follow/search_user_screen.dart';
 import 'package:symphonia/screens/follow/user_screen.dart';
 import 'package:symphonia/screens/home/home_screen.dart';
-import 'package:symphonia/screens/player/player_screen.dart';
 import 'package:symphonia/screens/player/mini_player.dart';
 import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';

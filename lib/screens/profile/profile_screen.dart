@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/controller/player_controller.dart';
-import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
-import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/token_manager.dart';
 import 'package:symphonia/services/user_info_manager.dart';
-import 'package:symphonia/services/history.dart';
 
 class ProfileScreen extends AbstractScreen {
   final void Function(int, String) onTabSelected;

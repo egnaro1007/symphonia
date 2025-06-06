@@ -314,21 +314,16 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   Widget _buildPlaylistImage(PlayList playlist) {
     String imagePath = '';
 
-    print("Playlist songs count: ${playlist.songs.length}");
 
-    // Check if playlist has songs and get the first song's image
-    if (playlist.songs.isNotEmpty) {
-      print("First song image path: ${playlist.songs[0].imagePath}");
-      imagePath = playlist.songs[0].imagePath;
-    } else if (playlist.picture.isNotEmpty) {
-      print("Using playlist picture: ${playlist.picture}");
+    // Priority: playlist cover image > first song's image > placeholder
+    if (playlist.picture.isNotEmpty) {
       imagePath = playlist.picture;
+    } else if (playlist.songs.isNotEmpty) {
+      imagePath = playlist.songs[0].imagePath;
     }
 
-    print("Final image path: $imagePath");
 
     if (imagePath.isEmpty) {
-      print("No image path found, showing placeholder");
       return Container(
         color: Colors.grey.shade300,
         child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
@@ -337,12 +332,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
 
     // Check if it's a network URL
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      print("Loading network image: $imagePath");
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("Error loading network image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
@@ -352,12 +345,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     }
     // Check if it's an asset path
     else if (imagePath.startsWith('assets/')) {
-      print("Loading asset image: $imagePath");
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("Error loading asset image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
@@ -367,12 +358,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     }
     // Treat as local file path
     else {
-      print("Loading file image: $imagePath");
       return Image.file(
         File(imagePath),
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("Error loading file image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 80, color: Colors.grey),

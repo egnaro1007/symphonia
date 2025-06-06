@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:symphonia/services/playlist.dart';
 
 import '../navigation_bar_screen.dart';
@@ -14,6 +16,8 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
   final TextEditingController _nameController = TextEditingController();
   bool _isPrivate = false;
   bool _isButtonActive = false;
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -31,6 +35,30 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
     setState(() {
       _isButtonActive = _nameController.text.isNotEmpty;
     });
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Có lỗi xảy ra khi chọn ảnh'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -62,6 +90,93 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
+
+                    // Cover image section
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Ảnh bìa',
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            // Image preview
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child:
+                                    _selectedImage != null
+                                        ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.file(
+                                            _selectedImage!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.add_photo_alternate_outlined,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: _pickImage,
+                                    icon: const Icon(Icons.photo_library),
+                                    label: const Text('Chọn ảnh'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.grey.shade100,
+                                      foregroundColor: Colors.black87,
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                  if (_selectedImage != null) ...[
+                                    const SizedBox(height: 8),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedImage = null;
+                                        });
+                                      },
+                                      child: const Text(
+                                        'Xóa ảnh',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 14,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // Playlist name label
                     const Text(
                       'Tên playlist',
@@ -118,31 +233,85 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                   onPressed:
                       _isButtonActive
                           ? () async {
-                            // Get the playlist name
-                            String playlistName = _nameController.text;
-                            print("Playlist: $playlistName");
-
-                            // Call the addPlaylist function from the Playlist class
-                            bool success = await PlayListOperations.addPlaylist(
-                              playlistName,
-                              !_isPrivate,
+                            // Show loading indicator
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
                             );
-                            if (success) {
-                              print('Playlist created successfully');
-                            } else {
-                              print('Failed to create playlist');
+
+                            try {
+                              // Get the playlist name
+                              String playlistName = _nameController.text;
+
+                              bool success = false;
+                              String? playlistId;
+
+                              if (_selectedImage != null) {
+                                // Create playlist with cover image
+                                playlistId =
+                                    await PlayListOperations.addPlaylistWithCover(
+                                      playlistName,
+                                      !_isPrivate,
+                                      _selectedImage,
+                                    );
+                                success = playlistId != null;
+                              } else {
+                                // Create playlist without cover image
+                                success = await PlayListOperations.addPlaylist(
+                                  playlistName,
+                                  !_isPrivate,
+                                );
+                              }
+
+                              Navigator.pop(context); // Close loading dialog
+
+                              if (success) {
+                                // Success
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Playlist đã được tạo thành công!',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => NavigationBarScreen(
+                                          selectedBottom: 3,
+                                        ),
+                                  ),
+                                );
+                              } else {
+                                // Failed
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Có lỗi xảy ra khi tạo playlist',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              Navigator.pop(context); // Close loading dialog
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Có lỗi xảy ra khi tạo playlist',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             }
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        NavigationBarScreen(selectedBottom: 3),
-                              ),
-                            );
-
-                            // Navigator.pop(context);
                           }
                           : null,
                   style: ElevatedButton.styleFrom(

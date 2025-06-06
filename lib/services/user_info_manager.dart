@@ -37,7 +37,6 @@ class UserInfoManager {
 
       await file.writeAsString(jsonEncode(userInfo));
     } catch (e) {
-      print('Error saving user info: $e');
       // If we can't save to file, at least keep the data in memory
       _username = username ?? "";
       _firstName = firstName ?? "";
@@ -56,7 +55,6 @@ class UserInfoManager {
 
         // Check if content is empty or invalid
         if (content.trim().isEmpty) {
-          print('User info file is empty, clearing user info');
           await clearUserInfo();
           return;
         }
@@ -68,7 +66,6 @@ class UserInfoManager {
         _lastName = userInfo['last_name'];
         _email = userInfo['email'];
       } catch (e) {
-        print('Error loading user info: $e');
         // If there's an error parsing the file, clear it and reset user info
         await clearUserInfo();
       }
@@ -95,7 +92,6 @@ class UserInfoManager {
         await file.delete();
       }
     } catch (e) {
-      print('Error clearing user info file: $e');
       // Even if file deletion fails, we've cleared the in-memory data
     }
   }
@@ -152,7 +148,6 @@ class UserInfoManager {
         _email = "";
       }
     } catch (e) {
-      print('Error fetching user info: $e');
       // Clear user info if there's an error
       _username = "";
       _firstName = "";

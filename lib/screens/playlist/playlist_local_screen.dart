@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
-import 'package:symphonia/screens/navigation_bar_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
@@ -31,9 +30,6 @@ class PlaylistLocalScreen extends AbstractScreen {
 class _PlaylistLocalScreenState extends State<PlaylistLocalScreen> {
   @override
   Widget build(BuildContext context) {
-    // Print the playlist ID for debugging
-    print("Playlist ID: ${widget.playlistID}");
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -321,11 +317,11 @@ class _PlaylistLocalScreenState extends State<PlaylistLocalScreen> {
   Widget _buildPlaylistImage(PlayList playlist) {
     String imagePath = '';
 
-    // Check if playlist has songs and get the first song's image
-    if (playlist.songs.isNotEmpty) {
-      imagePath = playlist.songs[0].imagePath;
-    } else if (playlist.picture.isNotEmpty) {
+    // Priority: playlist cover image > first song's image > placeholder
+    if (playlist.picture.isNotEmpty) {
       imagePath = playlist.picture;
+    } else if (playlist.songs.isNotEmpty) {
+      imagePath = playlist.songs[0].imagePath;
     }
 
     if (imagePath.isEmpty) {
@@ -344,6 +340,15 @@ class _PlaylistLocalScreenState extends State<PlaylistLocalScreen> {
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+          );
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Center(child: CircularProgressIndicator()),
           );
         },
       );

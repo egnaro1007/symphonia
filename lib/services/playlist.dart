@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http_parser/http_parser.dart';
 
 import 'package:symphonia/models/playlist.dart';
 import 'package:http/http.dart' as http;
@@ -147,10 +149,19 @@ class PlayListOperations {
   static Future<bool> addPlaylist(String name, bool public) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
+      // Load tokens first to ensure we have valid authentication
+      await TokenManager.loadTokens();
+
+      if (TokenManager.accessToken == null) {
+        print('No access token available');
+        return false;
+      }
+
       final url = Uri.parse(
         '$serverUrl/api/library/playlists/',
       ); // Removed trailing slash
       print("Url: $url");
+      print("Using token: ${TokenManager.accessToken?.substring(0, 20)}...");
 
       final response = await http.post(
         url,
@@ -161,12 +172,12 @@ class PlayListOperations {
         body: jsonEncode({
           'name': name,
           'description': 'Playlist is created by API',
-          'songs': [],
           'share_permission': (public) ? 'public' : 'private',
         }),
       );
 
-      print("Response: $response");
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
 
       if (response.statusCode == 201) {
         return true;
@@ -176,6 +187,170 @@ class PlayListOperations {
       }
     } catch (e) {
       print('Error adding playlist: $e');
+      return false;
+    }
+  }
+
+  // Add playlist and return playlist data (improved version)
+  static Future<Map<String, dynamic>?> addPlaylistWithData(
+    String name,
+    bool public,
+  ) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      // Load tokens first to ensure we have valid authentication
+      await TokenManager.loadTokens();
+
+      if (TokenManager.accessToken == null) {
+        print('No access token available');
+        return null;
+      }
+
+      final url = Uri.parse('$serverUrl/api/library/playlists/');
+      print("Url: $url");
+      print("Using token: ${TokenManager.accessToken?.substring(0, 20)}...");
+
+      final response = await http.post(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          'name': name,
+          'description': 'Playlist is created by API',
+          'share_permission': (public) ? 'public' : 'private',
+        }),
+      );
+
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 201) {
+        final playlistData = jsonDecode(response.body);
+        return playlistData;
+      } else {
+        print('Failed to add playlist: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error adding playlist: $e');
+      return null;
+    }
+  }
+
+  // Add playlist with cover image (improved approach)
+  static Future<String?> addPlaylistWithCover(
+    String name,
+    bool public,
+    File? coverImage,
+  ) async {
+    try {
+      // Step 1: Create playlist and get the data immediately
+      print("Step 1: Creating playlist...");
+      Map<String, dynamic>? playlistData = await addPlaylistWithData(
+        name,
+        public,
+      );
+
+      if (playlistData == null) {
+        print("Failed to create playlist");
+        return null;
+      }
+
+      String playlistId = playlistData['id'].toString();
+      print("Created playlist with ID: $playlistId");
+
+      // Step 2: Upload cover image if provided
+      if (coverImage != null) {
+        print("Step 2: Uploading cover image...");
+        bool uploadSuccess = await uploadPlaylistCover(playlistId, coverImage);
+        if (!uploadSuccess) {
+          print("Failed to upload cover image, but playlist was created");
+        } else {
+          print("Cover image uploaded successfully");
+        }
+      }
+
+      return playlistId;
+    } catch (e) {
+      print('Error in addPlaylistWithCover: $e');
+      return null;
+    }
+  }
+
+  // Upload cover image to existing playlist
+  static Future<bool> uploadPlaylistCover(
+    String playlistId,
+    File coverImage,
+  ) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      // Load tokens first
+      await TokenManager.loadTokens();
+
+      if (TokenManager.accessToken == null) {
+        print('No access token available for uploadPlaylistCover');
+        return false;
+      }
+
+      final url = Uri.parse(
+        '$serverUrl/api/library/playlists/$playlistId/upload_cover/',
+      );
+      print("Upload cover URL: $url");
+      print("Cover image path: ${coverImage.path}");
+      print("Cover image exists: ${await coverImage.exists()}");
+      print("Cover image size: ${await coverImage.length()} bytes");
+
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({
+        "Authorization": "Bearer ${TokenManager.accessToken}",
+      });
+
+      // Add debug info about the multipart file and set proper content type
+      String? contentType;
+      String extension = coverImage.path.toLowerCase();
+      if (extension.endsWith('.jpg') || extension.endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else if (extension.endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (extension.endsWith('.gif')) {
+        contentType = 'image/gif';
+      }
+
+      var multipartFile = await http.MultipartFile.fromPath(
+        'cover_image',
+        coverImage.path,
+        contentType: contentType != null ? MediaType.parse(contentType) : null,
+      );
+
+      print("Multipart file field name: ${multipartFile.field}");
+      print("Multipart file filename: ${multipartFile.filename}");
+      print("Multipart file content type: ${multipartFile.contentType}");
+      print("Multipart file length: ${multipartFile.length}");
+      print("Detected content type: $contentType");
+
+      request.files.add(multipartFile);
+
+      print("Request headers: ${request.headers}");
+      print("Request files count: ${request.files.length}");
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      print("Upload cover response status: ${response.statusCode}");
+      print("Upload cover response headers: ${response.headers}");
+      print("Upload cover response body: $responseBody");
+
+      if (response.statusCode == 200) {
+        print("Cover image uploaded successfully!");
+        return true;
+      } else {
+        print("Failed to upload cover image. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print('Error uploading playlist cover: $e');
+      print('Stack trace: ${StackTrace.current}');
       return false;
     }
   }
@@ -211,6 +386,14 @@ class PlayListOperations {
   static Future<List<PlayList>> getLocalPlaylists() async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
+      // Load tokens first
+      await TokenManager.loadTokens();
+
+      if (TokenManager.accessToken == null) {
+        print('No access token available for getLocalPlaylists');
+        return [];
+      }
+
       final url = Uri.parse('$serverUrl/api/library/playlists/');
       print("Url: $url");
       final response = await http.get(
@@ -225,6 +408,53 @@ class PlayListOperations {
         print("Data: $data");
         List<PlayList> playlists = [];
         for (var playlist in data) {
+          // Handle cover image URL
+          String pictureUrl = '';
+          print("=== COVER IMAGE DEBUG for playlist ${playlist['id']} ===");
+          print("Raw cover_image_url: ${playlist['cover_image_url']}");
+          print("Raw cover_image: ${playlist['cover_image']}");
+
+          if (playlist['cover_image_url'] != null &&
+              playlist['cover_image_url'].isNotEmpty) {
+            String coverUrl = playlist['cover_image_url'];
+            if (!coverUrl.startsWith('http://') &&
+                !coverUrl.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$coverUrl';
+            } else {
+              pictureUrl = coverUrl;
+            }
+            print("Using cover_image_url: $pictureUrl");
+          } else if (playlist['cover_image'] != null &&
+              playlist['cover_image'].isNotEmpty) {
+            // If cover_image is a relative path, build full URL
+            String coverImage = playlist['cover_image'];
+            if (!coverImage.startsWith('http://') &&
+                !coverImage.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$coverImage';
+            } else {
+              pictureUrl = coverImage;
+            }
+            print("Using cover_image: $pictureUrl");
+          } else {
+            // Default placeholder image
+            pictureUrl =
+                'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
+            print("Using placeholder image");
+          }
+
+          print("Final picture URL: $pictureUrl");
+          print("=== END COVER IMAGE DEBUG ===");
+
           playlists.add(
             PlayList(
               id: playlist['id'].toString(),
@@ -233,8 +463,7 @@ class PlayListOperations {
               duration:
                   playlist['total_duration_seconds'] ??
                   0, // Use duration from API
-              picture:
-                  'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg', //playlist['picture'],
+              picture: pictureUrl,
               creator:
                   playlist['owner_name'] ??
                   'Unknown', // Use owner_name from API
@@ -273,14 +502,60 @@ class PlayListOperations {
         var data = jsonDecode(response.body);
         print("Data: $data");
 
+        // Handle cover image URL
+        String pictureUrl = '';
+        print("=== SINGLE PLAYLIST COVER DEBUG for playlist ${data['id']} ===");
+        print("Raw cover_image_url: ${data['cover_image_url']}");
+        print("Raw cover_image: ${data['cover_image']}");
+
+        if (data['cover_image_url'] != null &&
+            data['cover_image_url'].isNotEmpty) {
+          String coverUrl = data['cover_image_url'];
+          if (!coverUrl.startsWith('http://') &&
+              !coverUrl.startsWith('https://')) {
+            String baseUrl = serverUrl;
+            if (!baseUrl.startsWith('http://') &&
+                !baseUrl.startsWith('https://')) {
+              baseUrl = 'http://$baseUrl';
+            }
+            pictureUrl = '$baseUrl$coverUrl';
+          } else {
+            pictureUrl = coverUrl;
+          }
+          print("Using cover_image_url: $pictureUrl");
+        } else if (data['cover_image'] != null &&
+            data['cover_image'].isNotEmpty) {
+          // If cover_image is a relative path, build full URL
+          String coverImage = data['cover_image'];
+          if (!coverImage.startsWith('http://') &&
+              !coverImage.startsWith('https://')) {
+            String baseUrl = serverUrl;
+            if (!baseUrl.startsWith('http://') &&
+                !baseUrl.startsWith('https://')) {
+              baseUrl = 'http://$baseUrl';
+            }
+            pictureUrl = '$baseUrl$coverImage';
+          } else {
+            pictureUrl = coverImage;
+          }
+          print("Using cover_image: $pictureUrl");
+        } else {
+          // Default placeholder image
+          pictureUrl =
+              'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
+          print("Using placeholder image");
+        }
+
+        print("Final single playlist picture URL: $pictureUrl");
+        print("=== END SINGLE PLAYLIST COVER DEBUG ===");
+
         var playlist = PlayList(
           id: data['id'].toString(),
           title: data['name'],
           description: data['description'],
           duration:
               data['total_duration_seconds'] ?? 0, // Use duration from API
-          picture: '',
-          //playlist['picture'],
+          picture: pictureUrl,
           creator: data['owner_name'] ?? 'Unknown', // Use owner_name from API
           songs: [],
           sharePermission:

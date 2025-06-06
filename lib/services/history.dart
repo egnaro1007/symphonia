@@ -70,12 +70,10 @@ class HistoryOperations {
         }
       } else {
         print('Error: ${response.statusCode}');
-        print('Response: ${response.body}');
       }
 
       return songs;
     } catch (e) {
-      print('Error in getRecentlyPlayedSongs: $e');
       return [];
     }
   }
@@ -105,7 +103,6 @@ class HistoryOperations {
       }
       return success;
     } catch (e) {
-      print('Error adding to history: $e');
       return false;
     }
   }
@@ -135,7 +132,6 @@ class HistoryOperations {
       }
       return success;
     } catch (e) {
-      print('Error removing from history: $e');
       return false;
     }
   }

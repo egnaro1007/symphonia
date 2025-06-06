@@ -79,17 +79,12 @@ class PlayerController {
   }
 
   Future<void> _playSong(Song song) async {
-    print('PlayerController: Attempting to play song: ${song.title}');
-    print('PlayerController: Audio URL: "${song.audioUrl}"');
 
     _playingSong = song;
     _hasSong = true;
 
     // Check if song has valid audio URL
     if (song.audioUrl.isEmpty) {
-      print(
-        'PlayerController: WARNING - Song has no audio URL, cannot play: ${song.title}',
-      );
       // Still notify listeners about song change for UI updates
       _songChangeController.add(_playingSong);
       return;
@@ -98,9 +93,7 @@ class PlayerController {
     // Play through audio handler (this will show notification)
     try {
       await _audioHandler.playSong(song);
-      print('PlayerController: Successfully started playing: ${song.title}');
     } catch (e) {
-      print('PlayerController: Error playing song: $e');
     }
 
     // Notify listeners about song change after audio handler is set up
@@ -207,9 +200,7 @@ class PlayerController {
         songs: [],
       );
       _songChangeController.add(_playingSong);
-      print("Player state reset successfully");
     } catch (e) {
-      print("Error resetting player: $e");
     }
   }
 

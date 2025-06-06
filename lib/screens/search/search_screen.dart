@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
-import 'package:symphonia/services/like.dart';
-import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/searching.dart';
-import 'package:symphonia/controller/player_controller.dart';
-import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/widgets/song_item.dart';
 
 class SearchScreen extends AbstractScreen {
@@ -312,30 +307,4 @@ class _SearchPageState extends State<SearchScreen>
     );
   }
 
-  Widget _buildPlaylistResult(String name, String artist, String imagePath) {
-    return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: Icon(Icons.playlist_play),
-        ),
-      ),
-      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(artist),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.play_circle_outline),
-          SizedBox(width: 16),
-          Icon(Icons.more_vert),
-        ],
-      ),
-    );
-  }
 }

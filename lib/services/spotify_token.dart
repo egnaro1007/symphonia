@@ -9,8 +9,6 @@ class SpotifyToken {
     String CLIENT_ID = dotenv.env['CLIENT_ID'] ?? '';
     String CLIENT_SECRET = dotenv.env['CLIENT_SECRET'] ?? '';
 
-    print("CLIENT_ID: $CLIENT_ID");
-    print("CLIENT_SECRET: $CLIENT_SECRET");
 
     String urlStringBasic = 'https://accounts.spotify.com/api/token';
 
@@ -32,21 +30,12 @@ class SpotifyToken {
         final data = jsonDecode(response.body);
         String accessToken = data['access_token'];
 
-        print('Access Token: $accessToken');
         return accessToken;
       } else {
         throw Exception('Failed to get access token');
       }
     } catch (e) {
-      print(e);
       return "";
     }
   }
-}
-
-// Main function to test the above code
-void main() async {
-  print("Testing Spotify Token Retrieval");
-  String token = await SpotifyToken.getTokens();
-  print('Spotify Access Token: $token');
 }

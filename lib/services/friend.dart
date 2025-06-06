@@ -183,7 +183,6 @@ class FriendOperations {
       );
 
       if (response.statusCode == 200) {
-        print('Friend request sent successfully');
       } else {
         throw Exception('Failed to send friend request');
       }
@@ -221,7 +220,6 @@ class FriendOperations {
 
   static Future<void> unfriend(String userId) async {
     var serverUrl = dotenv.env['SERVER_URL'];
-    print("Unfriending user: $userId");
 
     try {
       final response = await http.post(
@@ -234,7 +232,6 @@ class FriendOperations {
       );
 
       if (response.statusCode == 200) {
-        print('Unfriend successfully');
       } else {
         throw Exception('Failed to unfriend');
       }

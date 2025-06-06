@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:symphonia/screens/search/search_screen.dart';
 
 class TrendingHeader extends StatelessWidget {
   const TrendingHeader({Key? key}) : super(key: key);

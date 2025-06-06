@@ -30,7 +30,6 @@ class DownloadController {
       await metadataFile.writeAsString('{}');
     }
 
-    print('Document: ${documentDirectory.path}');
   }
 
   static Future<void> downloadSong(Song song) async {
@@ -75,12 +74,8 @@ class DownloadController {
 
     await metadataFile.writeAsString(jsonEncode(metadata));
 
-    print(
-      'DownloadController: Successfully downloaded song ${song.id} - ${song.title}',
-    );
     // Notify that download data has changed
     DataEventManager.instance.notifyDownloadChanged(songId: song.id);
-    print('DownloadController: Triggered downloadChanged event');
   }
 
   static Future<void> deleteSong(int songId) async {
@@ -117,10 +112,8 @@ class DownloadController {
       metadata.remove(songId.toString());
       await metadataFile.writeAsString(jsonEncode(metadata));
 
-      print('DownloadController: Successfully deleted song $songId');
       // Notify that download data has changed
       DataEventManager.instance.notifyDownloadChanged(songId: songId);
-      print('DownloadController: Triggered downloadChanged event');
     }
   }
 

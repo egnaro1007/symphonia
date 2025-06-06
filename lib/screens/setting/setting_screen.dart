@@ -27,7 +27,6 @@ class _SettingScreenState extends State<SettingScreen> {
   String _selectedGender = 'Nam';
   DateTime _selectedDate = DateTime(2000, 1, 1);
   String _selectedAudioQuality = '320kbps';
-  bool _autoPlaySimilar = true;
   String _themeMode = 'Hệ thống';
   bool _showLyrics = true;
   bool _showVisualizer = true;

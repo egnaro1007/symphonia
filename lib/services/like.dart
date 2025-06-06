@@ -57,15 +57,8 @@ class LikeOperations {
 
       bool success = response.statusCode == 200;
       if (success) {
-        print(
-          'LikeOperations: Successfully liked song ${song.id} - ${song.title}',
-        );
         DataEventManager.instance.notifyLikeChanged(songId: song.id);
-        print('LikeOperations: Triggered likeChanged event');
       } else {
-        print(
-          'LikeOperations: Failed to like song ${song.id}, status: ${response.statusCode}',
-        );
       }
       return success;
     } catch (e) {
@@ -94,15 +87,8 @@ class LikeOperations {
 
       bool success = response.statusCode == 200;
       if (success) {
-        print(
-          'LikeOperations: Successfully unliked song ${song.id} - ${song.title}',
-        );
         DataEventManager.instance.notifyLikeChanged(songId: song.id);
-        print('LikeOperations: Triggered likeChanged event');
       } else {
-        print(
-          'LikeOperations: Failed to unlike song ${song.id}, status: ${response.statusCode}',
-        );
       }
       return success;
     } catch (e) {
@@ -181,12 +167,10 @@ class LikeOperations {
         }
       } else {
         print('Error: ${response.statusCode}');
-        print('Response: ${response.body}');
       }
 
       return songs;
     } catch (e) {
-      print('Error in getLikeSongs: $e');
       return [];
     }
   }

@@ -111,11 +111,8 @@ class SongItem extends StatelessWidget {
 
   Widget _buildSongImage() {
     String imagePath = song.imagePath;
-    print("SongItem: Building image for '${song.title}'");
-    print("SongItem: Image path = '$imagePath'");
 
     if (imagePath.isEmpty) {
-      print("SongItem: Image path is empty, showing placeholder icon");
       return Container(
         color: Colors.grey.shade300,
         child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -124,18 +121,13 @@ class SongItem extends StatelessWidget {
 
     // Check if it's a network URL
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      print("SongItem: Loading network image: $imagePath");
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) {
-            print("SongItem: Network image loaded successfully");
             return child;
           }
-          print(
-            "SongItem: Loading network image... ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}",
-          );
           return Container(
             color: Colors.grey.shade200,
             child: const Center(
@@ -144,7 +136,6 @@ class SongItem extends StatelessWidget {
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          print("SongItem: Error loading network image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -154,12 +145,10 @@ class SongItem extends StatelessWidget {
     }
     // Check if it's an asset path
     else if (imagePath.startsWith('assets/')) {
-      print("SongItem: Loading asset image: $imagePath");
       return Image.asset(
         imagePath,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("SongItem: Error loading asset image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
@@ -169,12 +158,10 @@ class SongItem extends StatelessWidget {
     }
     // Treat as local file path
     else {
-      print("SongItem: Loading local file image: $imagePath");
       return Image.file(
         File(imagePath),
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          print("SongItem: Error loading local file image: $error");
           return Container(
             color: Colors.grey.shade300,
             child: const Icon(Icons.music_note, size: 24, color: Colors.grey),
