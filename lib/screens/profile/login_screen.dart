@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/screens/navigation_bar_screen.dart';
 import 'package:symphonia/services/user_info_manager.dart';
 import 'package:symphonia/controller/player_controller.dart';
@@ -55,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _errorMessage =
             _isLoginMode
-                ? 'Invalid credentials or connection error. Please try again.'
-                : 'Failed to create account. Please try again.';
+                ? AppLocalizations.of(context)!.wrongCredentials
+                : AppLocalizations.of(context)!.createAccountFailed;
       });
     } finally {
       if (mounted) {
@@ -103,8 +104,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully! Please log in.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.accountCreatedSuccessfully),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
@@ -139,9 +140,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Symphonia',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.appTitle,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
@@ -157,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: _isLoginMode ? null : _switchMode,
                             child: Text(
-                              'Login',
+                              AppLocalizations.of(context)!.login,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight:
@@ -175,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: _isLoginMode ? _switchMode : null,
                             child: Text(
-                              'Sign Up',
+                              AppLocalizations.of(context)!.signUp,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight:
@@ -197,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: 'Username',
+                          labelText: AppLocalizations.of(context)!.username,
                           labelStyle: TextStyle(color: Colors.grey.shade300),
                           prefixIcon: Icon(
                             Icons.person,
@@ -216,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your username';
+                            return AppLocalizations.of(context)!.pleaseEnterUsername;
                           }
                           return null;
                         },
@@ -227,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: const TextStyle(color: Colors.white),
                         obscureText: true,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: AppLocalizations.of(context)!.password,
                           labelStyle: TextStyle(color: Colors.grey.shade300),
                           prefixIcon: Icon(
                             Icons.lock,
@@ -246,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return AppLocalizations.of(context)!.pleaseEnterPassword;
                           }
                           return null;
                         },
@@ -260,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           decoration: InputDecoration(
-                            labelText: 'Confirm Password',
+                            labelText: AppLocalizations.of(context)!.confirmPassword,
                             labelStyle: TextStyle(color: Colors.grey.shade300),
                             prefixIcon: Icon(
                               Icons.lock_outline,
@@ -281,10 +282,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please confirm your password';
+                              return AppLocalizations.of(context)!.pleaseConfirmPassword;
                             }
                             if (value != _passwordController.text) {
-                              return 'Passwords do not match';
+                              return AppLocalizations.of(context)!.passwordsDoNotMatch;
                             }
                             return null;
                           },
@@ -315,7 +316,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Colors.white,
                                 )
                                 : Text(
-                                  _isLoginMode ? 'Log In' : 'Sign Up',
+                                  _isLoginMode
+                                      ? AppLocalizations.of(context)!.login
+                                      : AppLocalizations.of(context)!.signUp,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -330,8 +333,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.pushNamed(context, '/forgot-password');
                           },
-                          child: const Text(
-                            'Forgot Password?',
+                          child: Text(
+                            AppLocalizations.of(context)!.forgotPassword,
                             style: TextStyle(color: Colors.grey),
                           ),
                         ),

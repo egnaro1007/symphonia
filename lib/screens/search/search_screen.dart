@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
@@ -134,7 +135,7 @@ class _SearchPageState extends State<SearchScreen>
                             controller: _searchController,
                             decoration: InputDecoration(
                               border: InputBorder.none,
-                              hintText: "Search",
+                              hintText: AppLocalizations.of(context)!.search,
                             ),
                             onChanged: (value) {
                               setState(() {
@@ -180,9 +181,9 @@ class _SearchPageState extends State<SearchScreen>
                     unselectedLabelColor: Colors.grey,
                     indicatorColor: Colors.deepPurple,
                     tabs: [
-                      Tab(text: "Songs"),
-                      Tab(text: "Artists"),
-                      Tab(text: "Albums"),
+                      Tab(text: AppLocalizations.of(context)!.songs),
+                      Tab(text: AppLocalizations.of(context)!.artists),
+                      Tab(text: AppLocalizations.of(context)!.albums),
                     ],
                   ),
                   Expanded(
@@ -244,7 +245,7 @@ class _SearchPageState extends State<SearchScreen>
   Widget _buildResultsTab<T>(Widget Function(T result) builder) {
     final filteredResults = _searchResults.whereType<T>().cast<T>().toList();
     if (filteredResults.isEmpty) {
-      return Center(child: Text("No results found"));
+      return Center(child: Text(AppLocalizations.of(context)!.noResultsFound));
     }
     return ListView(children: filteredResults.map(builder).toList());
   }
