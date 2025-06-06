@@ -4,6 +4,8 @@ import 'package:symphonia/models/user.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/friend.dart';
 import 'package:symphonia/services/playlist.dart';
+import 'package:symphonia/services/user_event_manager.dart';
+import 'dart:async';
 
 class UserScreen extends AbstractScreen {
   @override
@@ -36,12 +38,51 @@ class _UserScreenState extends State<UserScreen> {
   late List<PlayList> playlists = [];
   bool isLoadingUser = true;
   bool isLoadingPlaylists = true;
+  StreamSubscription<UserEvent>? _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _loadLocalPlaylists();
+    _setupEventListener();
+  }
+
+  void _setupEventListener() {
+    _eventSubscription = UserEventManager().events.listen((event) {
+      // Only react to events related to this user
+      if (event.userId == widget.userID) {
+        _loadUserData(); // Reload user data when status changes
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(UserScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload data when userID changes
+    if (oldWidget.userID != widget.userID) {
+      setState(() {
+        isLoadingUser = true;
+        isLoadingPlaylists = true;
+        // Reset user status to default while loading
+        userStatus = UserStatus(
+          id: '',
+          username: 'Loading...',
+          avatarUrl: '',
+          status: 'none',
+        );
+        playlists = [];
+      });
+      _loadUserData();
+      _loadLocalPlaylists();
+    }
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -113,26 +154,10 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                       ),
                       onPressed: () {
-                        print("Search query: ${widget.searchQuery}");
-                        widget.onTabSelected(10, widget.searchQuery);
+                        // Go back to previous screen using navigation stack
+                        widget.onTabSelected(-1, "");
                       },
                     ),
-                    actions: [
-                      IconButton(
-                        icon: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black38,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: const Icon(
-                            Icons.more_vert,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onPressed: () {},
-                      ),
-                    ],
                     expandedHeight: 240,
                     pinned: true,
                     flexibleSpace: FlexibleSpaceBar(
@@ -208,6 +233,10 @@ class _UserScreenState extends State<UserScreen> {
                                                       status: 'pending_sent',
                                                     );
                                                   });
+                                                  UserEventManager()
+                                                      .notifyFriendRequestSent(
+                                                        userStatus.id,
+                                                      );
                                                 } else if (userStatus.status ==
                                                     'pending_received') {
                                                   showDialog(
@@ -247,6 +276,11 @@ class _UserScreenState extends State<UserScreen> {
                                                                       'none',
                                                                 );
                                                               });
+                                                              UserEventManager()
+                                                                  .notifyFriendRequestRejected(
+                                                                    userStatus
+                                                                        .id,
+                                                                  );
                                                               ScaffoldMessenger.of(
                                                                 context,
                                                               ).showSnackBar(
@@ -289,6 +323,11 @@ class _UserScreenState extends State<UserScreen> {
                                                                       'friend',
                                                                 );
                                                               });
+                                                              UserEventManager()
+                                                                  .notifyFriendRequestAccepted(
+                                                                    userStatus
+                                                                        .id,
+                                                                  );
                                                               ScaffoldMessenger.of(
                                                                 context,
                                                               ).showSnackBar(
@@ -327,6 +366,10 @@ class _UserScreenState extends State<UserScreen> {
                                                       status: 'none',
                                                     );
                                                   });
+                                                  UserEventManager()
+                                                      .notifyUnfriended(
+                                                        userStatus.id,
+                                                      );
                                                 }
                                               } catch (e) {
                                                 ScaffoldMessenger.of(

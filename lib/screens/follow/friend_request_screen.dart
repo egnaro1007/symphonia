@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:symphonia/models/friend_request.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/friend.dart';
+import 'package:symphonia/services/user_event_manager.dart';
+import 'dart:async';
 
 class FriendRequestsScreen extends AbstractScreen {
   @override
@@ -18,11 +20,30 @@ class FriendRequestsScreen extends AbstractScreen {
 
 class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
   late List<FriendRequest> _friendRequests = [];
+  StreamSubscription<UserEvent>? _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadFriendRequests();
+    _setupEventListener();
+  }
+
+  void _setupEventListener() {
+    _eventSubscription = UserEventManager().events.listen((event) {
+      // Reload friend requests when relevant events occur
+      if (event.type == UserEventType.friendRequestSent ||
+          event.type == UserEventType.friendRequestAccepted ||
+          event.type == UserEventType.friendRequestRejected) {
+        _loadFriendRequests();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadFriendRequests() async {
@@ -41,79 +62,91 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         elevation: 0,
         title: const Text(
           'Lời mời kết bạn',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            widget.onTabSelected(2, "");
+            // Go back to previous screen using navigation stack
+            widget.onTabSelected(-1, "");
           },
         ),
       ),
-      body: _friendRequests.isEmpty
-          ? const Center(
-        child: Text(
-          'Không có lời mời kết bạn nào',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      )
-          : ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // Hiển thị số lượng lời mời
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Text(
-              '${_friendRequests.length} lời mời kết bạn',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      body:
+          _friendRequests.isEmpty
+              ? const Center(
+                child: Text(
+                  'Không có lời mời kết bạn nào',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              )
+              : ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // Hiển thị số lượng lời mời
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      '${_friendRequests.length} lời mời kết bạn',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  // Danh sách lời mời kết bạn
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _friendRequests.length,
+                    itemBuilder: (context, index) {
+                      final request = _friendRequests[index];
+                      return FriendRequestCard(
+                        request: request,
+                        onAccept: () async {
+                          await FriendOperations.responseFriendRequest(
+                            _friendRequests[index].id,
+                            "accept",
+                          );
+                          UserEventManager().notifyFriendRequestAccepted(
+                            _friendRequests[index].sender_id,
+                          );
+                          _loadFriendRequests();
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Đã chấp nhận lời mời từ ${request.name}',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        onDecline: () async {
+                          await FriendOperations.responseFriendRequest(
+                            _friendRequests[index].id,
+                            "reject",
+                          );
+                          UserEventManager().notifyFriendRequestRejected(
+                            _friendRequests[index].sender_id,
+                          );
+                          _loadFriendRequests();
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Đã từ chối lời mời từ ${request.name}',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
               ),
-            ),
-          ),
-
-          // Danh sách lời mời kết bạn
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _friendRequests.length,
-            itemBuilder: (context, index) {
-              final request = _friendRequests[index];
-              return FriendRequestCard(
-                request: request,
-                onAccept: () async {
-                  await FriendOperations.responseFriendRequest(_friendRequests[index].id, "accept");
-                  _loadFriendRequests();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Đã chấp nhận lời mời từ ${request.name}'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                onDecline: () async {
-                  await FriendOperations.responseFriendRequest(_friendRequests[index].id, "reject");
-                  _loadFriendRequests();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Đã từ chối lời mời từ ${request.name}'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 }
@@ -135,9 +168,7 @@ class FriendRequestCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

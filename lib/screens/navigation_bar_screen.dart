@@ -63,6 +63,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       ),
       SearchScreen(onTabSelected: _onPlaylistSelected),
       UserScreen(
+        key: const ValueKey("default"),
         userID: "1",
         searchQuery: "",
         onTabSelected: _onPlaylistSelected,
@@ -101,15 +102,35 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   void _onPlaylistSelected(int index, String playlistID) {
     if (index == -1) {
       setState(() {
-        int sourceTab = _screenSourceTabs[_selectedBody] ?? 0;
-        _selectedBottom = sourceTab;
+        // Find which tab contains the current screen in its navigation stack
+        int sourceTab = 0; // Default fallback
+        for (int tab = 0; tab < 5; tab++) {
+          if (_tabNavigationStacks[tab]!.contains(_selectedBody)) {
+            sourceTab = tab;
+            break;
+          }
+        }
+
+        // If not found in any tab stack, use _screenSourceTabs as fallback
+        if (sourceTab == 0 && _screenSourceTabs.containsKey(_selectedBody)) {
+          sourceTab = _screenSourceTabs[_selectedBody]!;
+        }
+
+        // Remove current screen from its tab's navigation stack
         if (_tabNavigationStacks[sourceTab]!.contains(_selectedBody)) {
           _tabNavigationStacks[sourceTab]!.remove(_selectedBody);
         }
+
+        // Ensure the tab stack is not empty
         if (_tabNavigationStacks[sourceTab]!.isEmpty) {
           _tabNavigationStacks[sourceTab]!.add(sourceTab);
         }
+
+        // Navigate to the previous screen in the stack
         _selectedBody = _tabNavigationStacks[sourceTab]!.last;
+        _selectedBottom = sourceTab;
+
+        // Clean up the screen source tracking
         _screenSourceTabs.remove(_selectedBody);
       });
       return;
@@ -118,6 +139,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     setState(() {
       if (_selectedBottom >= 0 && _selectedBottom < 5) {
         if (index >= 0 && index < 5) {
+          // Navigating to another main tab
           _selectedBottom = index;
           _tabNavigationStacks[index] = [index];
           _selectedBody = index;
@@ -125,6 +147,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
             (key, value) => value == index && key != index,
           );
         } else {
+          // Navigating to an extra screen from a main tab
           _tabNavigationStacks[_selectedBottom]!.add(index);
           _selectedBody = index;
           _screenSourceTabs[index] = _selectedBottom;
@@ -147,6 +170,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
           _extraScreens[1] = _screens[6];
         } else if (index == 8) {
           _screens[8] = UserScreen(
+            key: ValueKey(_playlistID),
             userID: _playlistID,
             searchQuery: "",
             onTabSelected: _onPlaylistSelected,
@@ -164,8 +188,18 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   }
 
   bool _canHandlePopInternally() {
-    int currentEffectiveTab = _selectedBottom;
-    if (_selectedBody >= 5 && _screenSourceTabs.containsKey(_selectedBody)) {
+    // Find which tab contains the current screen in its navigation stack
+    int currentEffectiveTab = _selectedBottom; // Default fallback
+    for (int tab = 0; tab < 5; tab++) {
+      if (_tabNavigationStacks[tab]!.contains(_selectedBody)) {
+        currentEffectiveTab = tab;
+        break;
+      }
+    }
+
+    // If not found in any tab stack, use _screenSourceTabs as fallback
+    if (currentEffectiveTab == _selectedBottom &&
+        _screenSourceTabs.containsKey(_selectedBody)) {
       currentEffectiveTab = _screenSourceTabs[_selectedBody]!;
     }
 
@@ -180,8 +214,18 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
   void _performInternalPop() {
     // Assumes _canHandlePopInternally() was true
-    int currentEffectiveTab = _selectedBottom;
-    if (_selectedBody >= 5 && _screenSourceTabs.containsKey(_selectedBody)) {
+    // Find which tab contains the current screen in its navigation stack
+    int currentEffectiveTab = _selectedBottom; // Default fallback
+    for (int tab = 0; tab < 5; tab++) {
+      if (_tabNavigationStacks[tab]!.contains(_selectedBody)) {
+        currentEffectiveTab = tab;
+        break;
+      }
+    }
+
+    // If not found in any tab stack, use _screenSourceTabs as fallback
+    if (currentEffectiveTab == _selectedBottom &&
+        _screenSourceTabs.containsKey(_selectedBody)) {
       currentEffectiveTab = _screenSourceTabs[_selectedBody]!;
     }
 
@@ -192,6 +236,8 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       _screenSourceTabs.remove(poppedScreen);
       if (_selectedBody < 5) {
         _selectedBottom = _selectedBody;
+      } else {
+        _selectedBottom = currentEffectiveTab;
       }
     });
   }

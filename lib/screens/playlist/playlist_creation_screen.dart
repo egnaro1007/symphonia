@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:symphonia/mock_data/playlist/playlist.dart';
 import 'package:symphonia/services/playlist.dart';
 
 import '../navigation_bar_screen.dart';
