@@ -3,6 +3,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/user.dart';
 import 'package:symphonia/services/friend.dart';
 import '../abstract_navigation_screen.dart';
+import 'package:symphonia/services/user_event_manager.dart';
+import 'dart:async';
 
 class FollowScreen extends AbstractScreen {
   @override
@@ -20,12 +22,35 @@ class FollowScreen extends AbstractScreen {
 class _FollowScreenState extends State<FollowScreen> {
   List<User> friends = [];
   int numberOfFriendRequests = 0;
+  StreamSubscription<UserEvent>? _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadFriends();
     _loadNumberOfFriendRequests();
+    _setupEventListener();
+  }
+
+  void _setupEventListener() {
+    _eventSubscription = UserEventManager().events.listen((event) {
+      // Reload friends list and friend requests when any friendship-related event occurs
+      if (event.type == UserEventType.friendRequestAccepted ||
+          event.type == UserEventType.unfriended) {
+        _loadFriends();
+      }
+      if (event.type == UserEventType.friendRequestSent ||
+          event.type == UserEventType.friendRequestAccepted ||
+          event.type == UserEventType.friendRequestRejected) {
+        _loadNumberOfFriendRequests();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadFriends() async {

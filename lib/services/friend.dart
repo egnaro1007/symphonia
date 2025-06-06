@@ -27,15 +27,18 @@ class FriendOperations {
 
         List<User> friends = [];
         for (var friend in jsonData['friends']) {
-          friends.add(User(
-            id: friend['id'].toString(),
-            username: friend['username'],
-            avatarUrl: "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg" // friend['avatar_url'],
-          ));
+          friends.add(
+            User(
+              id: friend['id'].toString(),
+              username: friend['username'],
+              avatarUrl:
+                  "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // friend['avatar_url'],
+              status: 'friend', // Friends have 'friend' status
+            ),
+          );
         }
 
         return friends;
-
       } else {
         throw Exception('Failed to load friends');
       }
@@ -62,7 +65,6 @@ class FriendOperations {
         var jsonData = jsonDecode(data);
 
         return jsonData['received_requests'].length;
-
       } else {
         throw Exception('Failed to load the number of friend requests');
       }
@@ -90,16 +92,18 @@ class FriendOperations {
 
         List<FriendRequest> friendRequests = [];
         for (var request in jsonData['received_requests']) {
-          friendRequests.add(FriendRequest(
-            id: request['id'].toString(),
-            sender_id: request['sender_user_id'].toString(),
-            name: request['sender_username'],
-            avatarUrl: "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg" // request['avatar_url'],
-          ));
+          friendRequests.add(
+            FriendRequest(
+              id: request['id'].toString(),
+              sender_id: request['sender_user_id'].toString(),
+              name: request['sender_username'],
+              avatarUrl:
+                  "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // request['avatar_url'],
+            ),
+          );
         }
 
         return friendRequests;
-
       } else {
         throw Exception('Failed to load friend requests');
       }
@@ -119,10 +123,7 @@ class FriendOperations {
           'Authorization': 'Bearer ${TokenManager.accessToken}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          "id": id,
-          "response": resp,
-        }),
+        body: jsonEncode({"id": id, "response": resp}),
       );
 
       if (response.statusCode == 200) {
@@ -155,7 +156,8 @@ class FriendOperations {
         return UserStatus(
           id: jsonData['id'].toString(),
           username: jsonData['username'],
-          avatarUrl: "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
+          avatarUrl:
+              "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
           status: jsonData['relationships_status'],
         );
       } else {
@@ -163,12 +165,7 @@ class FriendOperations {
       }
     } catch (e) {
       print('Error: $e');
-      return UserStatus(
-        id: '',
-        username: '',
-        avatarUrl: '',
-        status: '',
-      );
+      return UserStatus(id: '', username: '', avatarUrl: '', status: '');
     }
   }
 
@@ -182,9 +179,7 @@ class FriendOperations {
           'Authorization': 'Bearer ${TokenManager.accessToken}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          "id": userId,
-        }),
+        body: jsonEncode({"id": userId}),
       );
 
       if (response.statusCode == 200) {
@@ -197,7 +192,10 @@ class FriendOperations {
     }
   }
 
-  static Future<bool> responseFriendRequestByUserID(String userID, String resp) async {
+  static Future<bool> responseFriendRequestByUserID(
+    String userID,
+    String resp,
+  ) async {
     var serverUrl = dotenv.env['SERVER_URL'];
 
     try {
@@ -207,10 +205,7 @@ class FriendOperations {
           'Authorization': 'Bearer ${TokenManager.accessToken}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          "user_id": userID,
-          "response": resp,
-        }),
+        body: jsonEncode({"user_id": userID, "response": resp}),
       );
 
       if (response.statusCode == 200) {
@@ -235,9 +230,7 @@ class FriendOperations {
           'Authorization': 'Bearer ${TokenManager.accessToken}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          "id": userId,
-        }),
+        body: jsonEncode({"id": userId}),
       );
 
       if (response.statusCode == 200) {
