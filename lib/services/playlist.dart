@@ -147,6 +147,15 @@ class PlayListOperations {
 
   // Add playlist
   static Future<bool> addPlaylist(String name, bool public) async {
+    String sharePermission = public ? 'public' : 'private';
+    return await addPlaylistWithPermission(name, sharePermission);
+  }
+
+  // Add playlist with specific permission string
+  static Future<bool> addPlaylistWithPermission(
+    String name,
+    String sharePermission,
+  ) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       // Load tokens first to ensure we have valid authentication
@@ -172,7 +181,7 @@ class PlayListOperations {
         body: jsonEncode({
           'name': name,
           'description': 'Playlist is created by API',
-          'share_permission': (public) ? 'public' : 'private',
+          'share_permission': sharePermission,
         }),
       );
 
@@ -195,6 +204,15 @@ class PlayListOperations {
   static Future<Map<String, dynamic>?> addPlaylistWithData(
     String name,
     bool public,
+  ) async {
+    String sharePermission = public ? 'public' : 'private';
+    return await addPlaylistWithDataAndPermission(name, sharePermission);
+  }
+
+  // Add playlist with specific permission and return playlist data
+  static Future<Map<String, dynamic>?> addPlaylistWithDataAndPermission(
+    String name,
+    String sharePermission,
   ) async {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
@@ -219,7 +237,7 @@ class PlayListOperations {
         body: jsonEncode({
           'name': name,
           'description': 'Playlist is created by API',
-          'share_permission': (public) ? 'public' : 'private',
+          'share_permission': sharePermission,
         }),
       );
 
@@ -245,13 +263,25 @@ class PlayListOperations {
     bool public,
     File? coverImage,
   ) async {
+    String sharePermission = public ? 'public' : 'private';
+    return await addPlaylistWithCoverAndPermission(
+      name,
+      sharePermission,
+      coverImage,
+    );
+  }
+
+  // Add playlist with cover image and specific permission
+  static Future<String?> addPlaylistWithCoverAndPermission(
+    String name,
+    String sharePermission,
+    File? coverImage,
+  ) async {
     try {
       // Step 1: Create playlist and get the data immediately
       print("Step 1: Creating playlist...");
-      Map<String, dynamic>? playlistData = await addPlaylistWithData(
-        name,
-        public,
-      );
+      Map<String, dynamic>? playlistData =
+          await addPlaylistWithDataAndPermission(name, sharePermission);
 
       if (playlistData == null) {
         print("Failed to create playlist");
@@ -297,10 +327,6 @@ class PlayListOperations {
       final url = Uri.parse(
         '$serverUrl/api/library/playlists/$playlistId/upload_cover/',
       );
-      print("Upload cover URL: $url");
-      print("Cover image path: ${coverImage.path}");
-      print("Cover image exists: ${await coverImage.exists()}");
-      print("Cover image size: ${await coverImage.length()} bytes");
 
       var request = http.MultipartRequest('POST', url);
       request.headers.addAll({
@@ -324,22 +350,9 @@ class PlayListOperations {
         contentType: contentType != null ? MediaType.parse(contentType) : null,
       );
 
-      print("Multipart file field name: ${multipartFile.field}");
-      print("Multipart file filename: ${multipartFile.filename}");
-      print("Multipart file content type: ${multipartFile.contentType}");
-      print("Multipart file length: ${multipartFile.length}");
-      print("Detected content type: $contentType");
-
       request.files.add(multipartFile);
 
-      print("Request headers: ${request.headers}");
-      print("Request files count: ${request.files.length}");
-
       final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-      print("Upload cover response status: ${response.statusCode}");
-      print("Upload cover response headers: ${response.headers}");
-      print("Upload cover response body: $responseBody");
 
       if (response.statusCode == 200) {
         print("Cover image uploaded successfully!");
@@ -410,9 +423,6 @@ class PlayListOperations {
         for (var playlist in data) {
           // Handle cover image URL
           String pictureUrl = '';
-          print("=== COVER IMAGE DEBUG for playlist ${playlist['id']} ===");
-          print("Raw cover_image_url: ${playlist['cover_image_url']}");
-          print("Raw cover_image: ${playlist['cover_image']}");
 
           if (playlist['cover_image_url'] != null &&
               playlist['cover_image_url'].isNotEmpty) {
@@ -428,7 +438,6 @@ class PlayListOperations {
             } else {
               pictureUrl = coverUrl;
             }
-            print("Using cover_image_url: $pictureUrl");
           } else if (playlist['cover_image'] != null &&
               playlist['cover_image'].isNotEmpty) {
             // If cover_image is a relative path, build full URL
@@ -444,16 +453,11 @@ class PlayListOperations {
             } else {
               pictureUrl = coverImage;
             }
-            print("Using cover_image: $pictureUrl");
           } else {
             // Default placeholder image
             pictureUrl =
                 'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
-            print("Using placeholder image");
           }
-
-          print("Final picture URL: $pictureUrl");
-          print("=== END COVER IMAGE DEBUG ===");
 
           playlists.add(
             PlayList(
@@ -504,9 +508,6 @@ class PlayListOperations {
 
         // Handle cover image URL
         String pictureUrl = '';
-        print("=== SINGLE PLAYLIST COVER DEBUG for playlist ${data['id']} ===");
-        print("Raw cover_image_url: ${data['cover_image_url']}");
-        print("Raw cover_image: ${data['cover_image']}");
 
         if (data['cover_image_url'] != null &&
             data['cover_image_url'].isNotEmpty) {
@@ -566,10 +567,6 @@ class PlayListOperations {
         if (data['songs'] != null && data['songs'] is List) {
           for (var song in data['songs']) {
             int id = song['id'];
-            print("Processing song: ${song['title']} (ID: $id)");
-            print("Available fields: ${song.keys}");
-            print("Audio field value: ${song['audio']}");
-            print("Cover art field value: ${song['cover_art']}");
 
             // Parse artist information
             String artist = '';
@@ -674,30 +671,22 @@ class PlayListOperations {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/add-song-to-playlist/');
-      print("Url: $url");
-
-      print("Song ID: $songID");
-      print("Playlist ID: $playlistID");
 
       final response = await http.post(
         url,
         headers: {
           "Authorization": "Bearer ${TokenManager.accessToken}",
-          "Content-Type": "application/json", // Added content type header
+          "Content-Type": "application/json",
         },
         body: jsonEncode({'song_id': songID, 'playlist_id': playlistID}),
       );
 
-      print("Response: $response");
-
       if (response.statusCode == 201 || response.statusCode == 200) {
         return true;
       } else {
-        print('Failed to add song to playlist: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      print('Error adding song to playlist: $e');
       return false;
     }
   }

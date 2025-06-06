@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/services/playlist.dart';
-
-import '../playlist/playlist_creation_screen.dart';
+import 'package:symphonia/services/playlist_notifier.dart';
 
 class PlayListComponent extends StatefulWidget {
   final void Function(int, String) onTabSelected;
@@ -21,6 +20,16 @@ class _PlayListComponentState extends State<PlayListComponent> {
   void initState() {
     super.initState();
     _loadPlaylists();
+
+    // Listen for playlist updates
+    PlaylistUpdateNotifier().addListener(_refreshPlaylists);
+  }
+
+  @override
+  void dispose() {
+    // Remove listener when widget is disposed
+    PlaylistUpdateNotifier().removeListener(_refreshPlaylists);
+    super.dispose();
   }
 
   Future<void> _loadPlaylists() async {
@@ -28,6 +37,10 @@ class _PlayListComponentState extends State<PlayListComponent> {
     setState(() {
       playlists = loadedPlaylists;
     });
+  }
+
+  void _refreshPlaylists() {
+    _loadPlaylists();
   }
 
   @override
@@ -59,15 +72,9 @@ class _PlayListComponentState extends State<PlayListComponent> {
   Widget _buildPlaylistHeader() {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.playlist,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
-        ],
+      child: Text(
+        "Playlist của bạn",
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -88,10 +95,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PlaylistCreationScreen()),
-        );
+        widget.onTabSelected(14, "");
       },
     );
   }

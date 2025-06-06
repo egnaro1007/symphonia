@@ -6,6 +6,7 @@ import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/models/playlist.dart';
+import 'package:symphonia/services/playlist_notifier.dart';
 import 'dart:io';
 
 class SongItem extends StatelessWidget {
@@ -15,6 +16,7 @@ class SongItem extends StatelessWidget {
   final bool isHorizontal;
   final int? index;
   final bool showIndex;
+  final VoidCallback? onPlaylistUpdate; // New callback for playlist updates
 
   const SongItem({
     Key? key,
@@ -24,6 +26,7 @@ class SongItem extends StatelessWidget {
     this.isHorizontal = true,
     this.index,
     this.showIndex = false,
+    this.onPlaylistUpdate, // New callback
   }) : super(key: key);
 
   @override
@@ -341,9 +344,10 @@ class SongItem extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(isLike ? Icons.favorite : Icons.favorite_border),
-              title: Text(isLike
-                  ? AppLocalizations.of(context)!.removeFromFavorites
-                  : AppLocalizations.of(context)!.addToFavorites
+              title: Text(
+                isLike
+                    ? AppLocalizations.of(context)!.removeFromFavorites
+                    : AppLocalizations.of(context)!.addToFavorites,
               ),
               onTap: () async {
                 if (isLike) {
@@ -371,20 +375,151 @@ class SongItem extends StatelessWidget {
                     borderRadius: BorderRadius.zero,
                   ),
                   builder: (_) {
-                    return ListView.builder(
-                      itemCount: localPlaylists.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(localPlaylists[index].title),
-                          onTap: () {
-                            PlayListOperations.addSongToPlaylist(
-                              localPlaylists[index].id,
-                              song.id.toString(),
-                            );
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Chọn playlist',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        const Divider(height: 1),
+
+                        // Playlist list
+                        Flexible(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: localPlaylists.length,
+                            itemBuilder: (context, index) {
+                              final playlist = localPlaylists[index];
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                leading: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.grey[300],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child:
+                                        playlist.picture.isNotEmpty
+                                            ? Image.network(
+                                              playlist.picture,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) {
+                                                return const Center(
+                                                  child: Icon(
+                                                    Icons.music_note,
+                                                    color: Colors.grey,
+                                                  ),
+                                                );
+                                              },
+                                              loadingBuilder: (
+                                                context,
+                                                child,
+                                                loadingProgress,
+                                              ) {
+                                                if (loadingProgress == null)
+                                                  return child;
+                                                return const Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                );
+                                              },
+                                            )
+                                            : const Center(
+                                              child: Icon(
+                                                Icons.music_note,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                title: Text(
+                                  playlist.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  playlist.creator,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onTap: () async {
+                                  bool success =
+                                      await PlayListOperations.addSongToPlaylist(
+                                        playlist.id,
+                                        song.id.toString(),
+                                      );
+                                  Navigator.pop(
+                                    context,
+                                  ); // Close playlist selection
+                                  Navigator.pop(context); // Close song options
+
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Đã thêm "${song.title}" vào "${playlist.title}"',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+
+                                    // Trigger playlist refresh if callback is provided
+                                    if (onPlaylistUpdate != null) {
+                                      onPlaylistUpdate!();
+                                    }
+
+                                    // Also notify globally for playlist list refresh
+                                    PlaylistUpdateNotifier()
+                                        .notifyPlaylistUpdate();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Không thể thêm bài hát vào playlist',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     );
                   },
                 );

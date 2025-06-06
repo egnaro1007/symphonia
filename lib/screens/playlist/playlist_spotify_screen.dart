@@ -7,26 +7,26 @@ import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'dart:io';
 
-class PlaylistScreen extends AbstractScreen {
+class PlaylistSpotifyScreen extends AbstractScreen {
   final String playlistID;
 
-  const PlaylistScreen({
+  const PlaylistSpotifyScreen({
     super.key,
     required this.playlistID,
     required super.onTabSelected,
   });
 
   @override
-  State<PlaylistScreen> createState() => _PlaylistScreenState();
+  State<PlaylistSpotifyScreen> createState() => _PlaylistSpotifyScreenState();
 
   @override
   Icon get icon => const Icon(Icons.playlist_play);
 
   @override
-  String get title => "Playlist";
+  String get title => "Spotify Playlist";
 }
 
-class _PlaylistScreenState extends State<PlaylistScreen> {
+class _PlaylistSpotifyScreenState extends State<PlaylistSpotifyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +34,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       body: Column(
         children: [
           FutureBuilder<PlayList>(
-            future: PlayListOperations.getLocalPlaylist(widget.playlistID),
+            future: PlayListOperations.getPlaylist(widget.playlistID),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -60,8 +60,8 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () {
-          // Navigate back to the profile screen with symchart parameter
-          widget.onTabSelected(3, "symchart");
+          // Return to previous screen by passing -1
+          widget.onTabSelected(-1, "");
         },
       ),
     );
@@ -324,15 +324,6 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       imagePath,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) {
-          return child;
-        }
-        return Container(
-          color: Colors.grey.shade300,
-          child: const Center(child: CircularProgressIndicator()),
-        );
-      },
     );
   }
 
@@ -431,7 +422,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
 
       if (success) {
         _showSuccessMessage('Đã xóa playlist thành công!');
-        widget.onTabSelected(-1, ""); // Navigate back to previous screen
+        widget.onTabSelected(3, ""); // Navigate back to profile
       } else {
         _showErrorMessage('Có lỗi xảy ra khi xóa playlist');
       }

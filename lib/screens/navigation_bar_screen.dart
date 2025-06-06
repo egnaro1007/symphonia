@@ -8,13 +8,14 @@ import 'package:symphonia/screens/follow/search_user_screen.dart';
 import 'package:symphonia/screens/follow/user_screen.dart';
 import 'package:symphonia/screens/home/home_screen.dart';
 import 'package:symphonia/screens/player/mini_player.dart';
-import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
+import 'package:symphonia/screens/playlist/playlist_spotify_screen.dart';
 import 'package:symphonia/screens/profile/profile_screen.dart';
 import 'package:symphonia/screens/profile/song_list_screen.dart';
 import 'package:symphonia/screens/search/search_screen.dart';
 import 'package:symphonia/screens/setting/setting_screen.dart';
 import 'package:symphonia/screens/trending/trending_screen.dart';
+import 'package:symphonia/screens/playlist/playlist_creation_screen.dart';
 import 'package:symphonia/services/history.dart';
 import 'package:symphonia/services/like.dart';
 
@@ -58,11 +59,11 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
     ];
 
     _extraScreens = [
-      PlaylistScreen(
+      PlaylistSpotifyScreen(
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
-      PlaylistLocalScreen(
+      PlaylistScreen(
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
@@ -99,6 +100,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         titleColor: Colors.purple,
         onTabSelected: _onPlaylistSelected,
       ),
+      PlaylistCreationScreen(onTabSelected: _onPlaylistSelected),
     ];
 
     _screens = [..._mainTabScreens, ..._extraScreens];
@@ -186,13 +188,13 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       if (playlistID.isNotEmpty) {
         _playlistID = playlistID;
         if (index == 5) {
-          _screens[5] = PlaylistScreen(
+          _screens[5] = PlaylistSpotifyScreen(
             playlistID: _playlistID,
             onTabSelected: _onPlaylistSelected,
           );
           _extraScreens[0] = _screens[5];
         } else if (index == 6) {
-          _screens[6] = PlaylistLocalScreen(
+          _screens[6] = PlaylistScreen(
             playlistID: _playlistID,
             onTabSelected: _onPlaylistSelected,
           );

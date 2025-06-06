@@ -236,36 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       description: "Top những bài hát hot nhất Việt Nam",
                     ),
-                    _buildPlaylistItem(
-                      playlist: BriefPlayList(
-                        id: '7hJfYpKLDQwmeHIPTmNS5y',
-                        title: 'Chill Music',
-                        picture:
-                            'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da8473a121591cf84842f9383b93',
-                        creator: 'chill songs',
-                      ),
-                      description: 'Thư giãn với những bản nhạc nhẹ nhàng',
-                    ),
-                    _buildPlaylistItem(
-                      playlist: BriefPlayList(
-                        id: '1dvoCOb3vso33rTd4FWqRW',
-                        title: 'EDM Mix',
-                        picture:
-                            'https://mosaic.scdn.co/640/ab67616d00001e021a5eb771120e2ee3f6a44ed7ab67616d00001e02941dd3b3343d9cb9329d37bfab67616d00001e029cfe80c0c05ce104f7bab18eab67616d00001e02ffb343926530168be4724dd4',
-                        creator: 'Akhil Sagar',
-                      ),
-                      description: 'Năng lượng với những bản EDM hot',
-                    ),
-                    _buildPlaylistItem(
-                      playlist: BriefPlayList(
-                        id: '4ckPlRonCUjkAhVnOXV6Ne',
-                        title: 'Love Songs',
-                        picture:
-                            'https://mosaic.scdn.co/640/ab67616d00001e022ceedc8c879a1f6784fbeef5ab67616d00001e026f6fd002ef1fc6b1f3f90c87ab67616d00001e02a36f994bf8ef9912143d9a23ab67616d00001e02ad2852df5956130426085520',
-                        creator: 'Ramsey Kouri',
-                      ),
-                      description: 'Những bản tình ca ngọt ngào',
-                    ),
                   ],
                 ),
               ),
