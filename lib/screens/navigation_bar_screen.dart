@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:symphonia/screens/follow/user_screen.dart';
+import 'package:symphonia/controller/download_controller.dart';
+import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/screens/follow/follow_screen.dart';
 import 'package:symphonia/screens/follow/friend_request_screen.dart';
 import 'package:symphonia/screens/follow/search_user_screen.dart';
+import 'package:symphonia/screens/follow/user_screen.dart';
+import 'package:symphonia/screens/home/home_screen.dart';
+import 'package:symphonia/screens/player/player_screen.dart';
+import 'package:symphonia/screens/player/mini_player.dart';
 import 'package:symphonia/screens/playlist/playlist_local_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
-import 'abstract_navigation_screen.dart';
-import 'home/home_screen.dart';
-import 'trending/trending_screen.dart';
-import 'follow/follow_screen.dart';
-import 'profile/profile_screen.dart';
-import 'setting/setting_screen.dart';
-import 'search/search_screen.dart';
-import 'player/mini_player.dart';
+import 'package:symphonia/screens/profile/profile_screen.dart';
+import 'package:symphonia/screens/profile/song_list_screen.dart';
+import 'package:symphonia/screens/search/search_screen.dart';
+import 'package:symphonia/screens/setting/setting_screen.dart';
+import 'package:symphonia/screens/trending/trending_screen.dart';
+import 'package:symphonia/services/history.dart';
+import 'package:symphonia/services/like.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   final int selectedBottom;
@@ -71,6 +76,30 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       ),
       FriendRequestsScreen(onTabSelected: _onPlaylistSelected),
       SearchUserScreen(onTabSelected: _onPlaylistSelected),
+      SongListScreen(
+        key: const ValueKey("recently_played"),
+        screenTitle: 'Nghe gần đây',
+        songsLoader: () => HistoryOperations.getRecentlyPlayedSongs(),
+        titleIcon: Icons.schedule,
+        titleColor: Colors.orange,
+        onTabSelected: _onPlaylistSelected,
+      ),
+      SongListScreen(
+        key: const ValueKey("favorites"),
+        screenTitle: 'Yêu thích',
+        songsLoader: () => LikeOperations.getLikeSongs(),
+        titleIcon: Icons.favorite,
+        titleColor: Colors.blue,
+        onTabSelected: _onPlaylistSelected,
+      ),
+      SongListScreen(
+        key: const ValueKey("downloaded"),
+        screenTitle: 'Đã tải',
+        songsLoader: () => DownloadController.getDownloadedSongs(),
+        titleIcon: Icons.download_done,
+        titleColor: Colors.purple,
+        onTabSelected: _onPlaylistSelected,
+      ),
     ];
 
     _screens = [..._mainTabScreens, ..._extraScreens];

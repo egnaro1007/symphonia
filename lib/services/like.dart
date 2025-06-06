@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/token_manager.dart';
+import 'package:symphonia/services/data_event_manager.dart';
 
 class LikeOperations {
   LikeOperations._();
@@ -54,7 +55,19 @@ class LikeOperations {
         },
       );
 
-      return response.statusCode == 200;
+      bool success = response.statusCode == 200;
+      if (success) {
+        print(
+          'LikeOperations: Successfully liked song ${song.id} - ${song.title}',
+        );
+        DataEventManager.instance.notifyLikeChanged(songId: song.id);
+        print('LikeOperations: Triggered likeChanged event');
+      } else {
+        print(
+          'LikeOperations: Failed to like song ${song.id}, status: ${response.statusCode}',
+        );
+      }
+      return success;
     } catch (e) {
       print("Error: $e");
       return false;
@@ -79,7 +92,19 @@ class LikeOperations {
         },
       );
 
-      return response.statusCode == 200;
+      bool success = response.statusCode == 200;
+      if (success) {
+        print(
+          'LikeOperations: Successfully unliked song ${song.id} - ${song.title}',
+        );
+        DataEventManager.instance.notifyLikeChanged(songId: song.id);
+        print('LikeOperations: Triggered likeChanged event');
+      } else {
+        print(
+          'LikeOperations: Failed to unlike song ${song.id}, status: ${response.statusCode}',
+        );
+      }
+      return success;
     } catch (e) {
       print("Error: $e");
       return false;

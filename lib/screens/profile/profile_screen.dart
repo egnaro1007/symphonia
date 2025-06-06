@@ -3,22 +3,25 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/models/song.dart';
+import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
-import 'package:symphonia/screens/profile/song_list_screen.dart';
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/services/token_manager.dart';
-import '../../services/user_info_manager.dart';
-import '../abstract_navigation_screen.dart';
+import 'package:symphonia/services/user_info_manager.dart';
+import 'package:symphonia/services/history.dart';
 
 class ProfileScreen extends AbstractScreen {
-  @override
-  final String title = "Profile";
+  final void Function(int, String) onTabSelected;
+
+  ProfileScreen({required this.onTabSelected})
+    : super(onTabSelected: onTabSelected);
 
   @override
-  final Icon icon = const Icon(Icons.person);
+  String get title => "Cá Nhân";
 
-  ProfileScreen({required super.onTabSelected});
+  @override
+  Icon get icon => const Icon(Icons.person);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -28,101 +31,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.grey[100],
-        elevation: 0,
-        title: Text(
-          AppLocalizations.of(context)!.profile,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-
+      backgroundColor: const Color(0xFFF1F1F1),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Profile header
-              _buildProfileHeader(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile header
+            _buildProfileHeader(),
 
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              // Quick access buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildQuickAccessButton(
-                    Icons.schedule,
-                    AppLocalizations.of(context)!.recentlyPlayed,
-                    Colors.orange,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => SongListScreen(
-                                title: AppLocalizations.of(context)!.recentlyPlayed,
-                                songsFuture: _getRecentlyPlayedSongs(),
-                                titleIcon: Icons.schedule,
-                                titleColor: Colors.orange,
-                              ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildQuickAccessButton(
-                    Icons.favorite_border,
-                    AppLocalizations.of(context)!.favorites,
-                    Colors.blue,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => SongListScreen(
-                                title: AppLocalizations.of(context)!.favorites,
-                                songsFuture: LikeOperations.getLikeSongs(),
-                                titleIcon: Icons.favorite,
-                                titleColor: Colors.blue,
-                              ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildQuickAccessButton(
-                    Icons.arrow_downward,
-                    AppLocalizations.of(context)!.downloaded,
-                    Colors.purple,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => SongListScreen(
-                                title: AppLocalizations.of(context)!.downloaded,
-                                songsFuture:
-                                    DownloadController.getDownloadedSongs(),
-                                titleIcon: Icons.download_done,
-                                titleColor: Colors.purple,
-                              ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+            // Quick access buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildQuickAccessButton(
+                  Icons.schedule,
+                  AppLocalizations.of(context)!.recentlyPlayed,
+                  Colors.orange,
+                  () {
+                    // Navigate to recently played screen using navigation system
+                    widget.onTabSelected(
+                      11,
+                      "",
+                    ); // Index 11 for recently played
+                  },
+                ),
+                _buildQuickAccessButton(
+                  Icons.favorite_border,
+                  AppLocalizations.of(context)!.favorites,
+                  Colors.blue,
+                  () {
+                    // Navigate to favorites screen using navigation system
+                    widget.onTabSelected(12, ""); // Index 12 for favorites
+                  },
+                ),
+                _buildQuickAccessButton(
+                  Icons.arrow_downward,
+                  AppLocalizations.of(context)!.downloaded,
+                  Colors.purple,
+                  () {
+                    // Navigate to downloaded screen using navigation system
+                    widget.onTabSelected(13, ""); // Index 13 for downloaded
+                  },
+                ),
+              ],
+            ),
 
-              const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-              // Playlists Section
-              PlayListComponent(onTabSelected: widget.onTabSelected),
-            ],
-          ),
+            // Playlists Section
+            PlayListComponent(onTabSelected: widget.onTabSelected),
+          ],
         ),
       ),
     );
@@ -194,7 +155,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     title: Text(AppLocalizations.of(context)!.logout),
-                    content: Text(AppLocalizations.of(context)!.logoutConfirmation),
+                    content: Text(
+                      AppLocalizations.of(context)!.logoutConfirmation,
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
@@ -230,18 +193,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text(
               AppLocalizations.of(context)!.logout,
-              style: const TextStyle(color: Colors.white)
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
       ),
     );
-  }
-
-  // Method to get recently played songs (placeholder for now)
-  Future<List<Song>> _getRecentlyPlayedSongs() async {
-    // TODO: Implement actual recently played functionality
-    // For now, return an empty list
-    return [];
   }
 }

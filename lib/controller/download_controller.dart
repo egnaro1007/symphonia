@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:symphonia/services/data_event_manager.dart';
 
 class DownloadController {
   static String? _downloadMetadataFile;
@@ -73,6 +74,13 @@ class DownloadController {
     };
 
     await metadataFile.writeAsString(jsonEncode(metadata));
+
+    print(
+      'DownloadController: Successfully downloaded song ${song.id} - ${song.title}',
+    );
+    // Notify that download data has changed
+    DataEventManager.instance.notifyDownloadChanged(songId: song.id);
+    print('DownloadController: Triggered downloadChanged event');
   }
 
   static Future<void> deleteSong(int songId) async {
@@ -108,6 +116,11 @@ class DownloadController {
       // Remove from metadata
       metadata.remove(songId.toString());
       await metadataFile.writeAsString(jsonEncode(metadata));
+
+      print('DownloadController: Successfully deleted song $songId');
+      // Notify that download data has changed
+      DataEventManager.instance.notifyDownloadChanged(songId: songId);
+      print('DownloadController: Triggered downloadChanged event');
     }
   }
 
@@ -120,6 +133,9 @@ class DownloadController {
     await Directory(_downloadImagePath!).create(recursive: true);
 
     await loadPaths();
+
+    // Notify that all downloads have been cleared
+    DataEventManager.instance.notifyDownloadChanged();
   }
 
   static Future<List<Song>> getDownloadedSongs() async {

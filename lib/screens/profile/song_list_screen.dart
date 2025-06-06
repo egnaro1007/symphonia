@@ -1,21 +1,84 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:symphonia/models/song.dart';
-import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
+import 'package:symphonia/models/song.dart';
+import 'package:symphonia/screens/abstract_navigation_screen.dart';
+import 'package:symphonia/services/data_event_manager.dart';
+import 'package:symphonia/widgets/song_item.dart';
 
-class SongListScreen extends StatelessWidget {
-  final String title;
-  final Future<List<Song>> songsFuture;
+class SongListScreen extends AbstractScreen {
+  final String screenTitle;
+  final Future<List<Song>> Function() songsLoader;
   final IconData titleIcon;
   final Color titleColor;
 
   const SongListScreen({
     Key? key,
-    required this.title,
-    required this.songsFuture,
+    required this.screenTitle,
+    required this.songsLoader,
     required this.titleIcon,
     required this.titleColor,
+    required super.onTabSelected,
   }) : super(key: key);
+
+  @override
+  String get title => screenTitle;
+
+  @override
+  Icon get icon => Icon(titleIcon);
+
+  @override
+  State<SongListScreen> createState() => _SongListScreenState();
+}
+
+class _SongListScreenState extends State<SongListScreen> {
+  late Future<List<Song>> _songsFuture;
+  StreamSubscription<DataEvent>? _eventSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _songsFuture = widget.songsLoader();
+    _setupEventListener();
+  }
+
+  @override
+  void dispose() {
+    _eventSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupEventListener() {
+    _eventSubscription = DataEventManager.instance.events.listen((event) {
+      // Check if this event is relevant to this screen
+      bool shouldRefresh = false;
+
+      switch (widget.screenTitle) {
+        case 'Yêu thích':
+          shouldRefresh = event.type == DataEventType.likeChanged;
+          break;
+        case 'Đã tải':
+          shouldRefresh = event.type == DataEventType.downloadChanged;
+          break;
+        case 'Nghe gần đây':
+          shouldRefresh = event.type == DataEventType.historyChanged;
+          break;
+        default:
+          shouldRefresh = false;
+      }
+
+      if (shouldRefresh) {
+        print('Refreshing ${widget.screenTitle} due to ${event.type}');
+        _refreshData();
+      }
+    });
+  }
+
+  void _refreshData() {
+    setState(() {
+      _songsFuture = widget.songsLoader();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +89,15 @@ class SongListScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            widget.onTabSelected(-1, "");
           },
         ),
         title: Row(
           children: [
-            Icon(titleIcon, color: titleColor, size: 24),
+            Icon(widget.titleIcon, color: widget.titleColor, size: 24),
             const SizedBox(width: 8),
             Text(
-              title,
+              widget.screenTitle,
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 20,
@@ -45,13 +108,13 @@ class SongListScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-            onPressed: () {},
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _refreshData,
           ),
         ],
       ),
       body: FutureBuilder<List<Song>>(
-        future: songsFuture,
+        future: _songsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -71,10 +134,10 @@ class SongListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(titleIcon, size: 64, color: Colors.grey.shade400),
+                  Icon(widget.titleIcon, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
-                    'Chưa có bài hát nào trong $title',
+                    'Chưa có bài hát nào trong ${widget.screenTitle}',
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
                 ],
@@ -91,7 +154,10 @@ class SongListScreen extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [titleColor.withOpacity(0.1), Colors.white],
+                      colors: [
+                        widget.titleColor.withOpacity(0.1),
+                        Colors.white,
+                      ],
                     ),
                   ),
                   child: Column(
@@ -102,15 +168,19 @@ class SongListScreen extends StatelessWidget {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: titleColor.withOpacity(0.2),
+                          color: widget.titleColor.withOpacity(0.2),
                         ),
-                        child: Icon(titleIcon, size: 60, color: titleColor),
+                        child: Icon(
+                          widget.titleIcon,
+                          size: 60,
+                          color: widget.titleColor,
+                        ),
                       ),
                       const SizedBox(height: 16),
 
                       // Title
                       Text(
-                        title,
+                        widget.screenTitle,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -131,9 +201,31 @@ class SongListScreen extends StatelessWidget {
 
                       // Play all button
                       ElevatedButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           if (songs.isNotEmpty) {
-                            PlayerController.getInstance().loadSongs(songs);
+                            try {
+                              // Reload songs to ensure fresh data before playing
+                              final freshSongs = await widget.songsLoader();
+                              if (freshSongs.isNotEmpty) {
+                                PlayerController.getInstance().loadSongs(
+                                  freshSongs,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Không có bài hát nào để phát',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              print('Error loading fresh songs: $e');
+                              PlayerController.getInstance().loadSongs(
+                                songs,
+                              ); // Fallback
+                            }
                           }
                         },
                         icon: const Icon(Icons.play_arrow, color: Colors.white),
@@ -145,7 +237,7 @@ class SongListScreen extends StatelessWidget {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: titleColor,
+                          backgroundColor: widget.titleColor,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 12,
