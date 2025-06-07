@@ -34,6 +34,7 @@ class FriendOperations {
               avatarUrl:
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // friend['avatar_url'],
               status: 'friend', // Friends have 'friend' status
+              profilePictureUrl: friend['profile_picture_url']?.toString(),
             ),
           );
         }
@@ -99,6 +100,7 @@ class FriendOperations {
               name: request['sender_username'],
               avatarUrl:
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // request['avatar_url'],
+              profilePictureUrl: request['profile_picture_url']?.toString(),
             ),
           );
         }
@@ -159,6 +161,7 @@ class FriendOperations {
           avatarUrl:
               "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
           status: jsonData['relationships_status'],
+          profilePictureUrl: jsonData['profile_picture_url']?.toString(),
         );
       } else {
         throw Exception('Failed to load user');

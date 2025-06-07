@@ -3,11 +3,13 @@ class FriendRequest {
   final String sender_id;
   final String name;
   final String avatarUrl;
+  final String? profilePictureUrl;
 
   FriendRequest({
     required this.id,
     required this.sender_id,
     required this.name,
-    required this.avatarUrl
+    required this.avatarUrl,
+    this.profilePictureUrl,
   });
 }

@@ -6,6 +6,8 @@ import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
 import 'package:symphonia/screens/playlist/playlist_edit_screen.dart';
+import 'package:symphonia/widgets/user_avatar.dart';
+import 'package:symphonia/services/user_info_manager.dart';
 import 'dart:io';
 
 class PlaylistScreen extends AbstractScreen {
@@ -50,37 +52,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Không thể tải playlist',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Vui lòng kiểm tra kết nối và thử lại',
-                        style: TextStyle(color: Colors.grey.shade600),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _refreshPlaylist,
-                        child: const Text('Thử lại'),
-                      ),
-                    ],
-                  ),
-                );
+                return const Center(child: Text('Failed to load playlist'));
               } else if (!snapshot.hasData) {
                 return const Center(child: Text('No data available'));
               } else {
@@ -104,8 +76,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
               : IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () {
-                  // Navigate back to the profile screen with symchart parameter
-                  widget.onTabSelected(3, "symchart");
+                  widget.onTabSelected(-1, "");
                 },
               ),
       actions:
@@ -194,14 +165,11 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.deepPurple.shade300,
-              ),
-              child: const Icon(Icons.person, size: 16, color: Colors.white),
+            UserAvatar(
+              radius: 12,
+              avatarUrl: playlist.ownerAvatarUrl,
+              userName: playlist.creator,
+              isCurrentUser: playlist.ownerId == UserInfoManager.userId,
             ),
             const SizedBox(width: 8),
             Text(
@@ -452,68 +420,6 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         backgroundColor: Colors.orange,
         duration: Duration(seconds: 3),
       ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(PlayList playlist) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Xóa playlist'),
-          content: Text(
-            'Bạn có chắc chắn muốn xóa playlist "${playlist.title}"?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy'),
-            ),
-            TextButton(
-              onPressed: () => _deletePlaylist(playlist),
-              child: const Text('Xóa', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _deletePlaylist(PlayList playlist) async {
-    Navigator.pop(context); // Close dialog
-
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      bool success = await PlayListOperations.deletePlaylist(playlist.id);
-      Navigator.pop(context); // Close loading
-
-      if (success) {
-        _showSuccessMessage('Đã xóa playlist thành công!');
-        widget.onTabSelected(-1, ""); // Navigate back to previous screen
-      } else {
-        _showErrorMessage('Có lỗi xảy ra khi xóa playlist');
-      }
-    } catch (e) {
-      Navigator.pop(context); // Close loading
-      _showErrorMessage('Có lỗi xảy ra khi xóa playlist');
-    }
-  }
-
-  void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
-  }
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 

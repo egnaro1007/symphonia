@@ -471,6 +471,8 @@ class PlayListOperations {
               creator:
                   playlist['owner_name'] ??
                   'Unknown', // Use owner_name from API
+              ownerId: playlist['owner']?.toString(),
+              ownerAvatarUrl: playlist['owner_avatar_url'],
               songs: [],
               sharePermission:
                   playlist['share_permission'] ??
@@ -548,6 +550,8 @@ class PlayListOperations {
               data['total_duration_seconds'] ?? 0, // Use duration from API
           picture: pictureUrl,
           creator: data['owner_name'] ?? 'Unknown', // Use owner_name from API
+          ownerId: data['owner']?.toString(),
+          ownerAvatarUrl: data['owner_avatar_url'],
           songs: [],
           sharePermission:
               data['share_permission'] ?? 'private', // Added share permission
@@ -712,6 +716,8 @@ class PlayListOperations {
                     playlist['picture'] ??
                     'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg',
                 creator: playlist['creator'] ?? 'Unknown',
+                ownerId: playlist['owner']?.toString(),
+                ownerAvatarUrl: playlist['owner_avatar_url'],
                 songs: [],
                 sharePermission: sharePermission,
               ),

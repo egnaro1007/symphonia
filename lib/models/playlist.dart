@@ -23,6 +23,8 @@ class PlayList {
   int duration; // Duration in seconds
   String picture;
   String creator;
+  String? ownerId;
+  String? ownerAvatarUrl;
   String? sharePermission;
 
   List<Song> songs;
@@ -35,6 +37,8 @@ class PlayList {
     required this.picture,
     required this.creator,
     required this.songs,
+    this.ownerId,
+    this.ownerAvatarUrl,
     this.sharePermission,
   });
 

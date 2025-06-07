@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/user.dart';
 import 'package:symphonia/services/friend.dart';
+import 'package:symphonia/widgets/user_avatar.dart';
 import '../abstract_navigation_screen.dart';
 import 'package:symphonia/services/user_event_manager.dart';
 import 'dart:async';
@@ -158,14 +159,10 @@ class _FollowScreenState extends State<FollowScreen> {
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
-                  leading: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.blue.shade100,
-                        child: const Text('👤', style: TextStyle(fontSize: 24)),
-                      ),
-                    ],
+                  leading: UserAvatar(
+                    radius: 24,
+                    avatarUrl: friend.profilePictureUrl,
+                    userName: friend.username,
                   ),
                   title: GestureDetector(
                     onTap: () {
@@ -190,14 +187,18 @@ class _FollowScreenState extends State<FollowScreen> {
                         context: context,
                         builder:
                             (context) => AlertDialog(
-                              title: Text(AppLocalizations.of(context)!.confirm),
+                              title: Text(
+                                AppLocalizations.of(context)!.confirm,
+                              ),
                               content: Text(
                                 "${AppLocalizations.of(context)!.friendRemoveConfirmation} ${friend.username}?",
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: Text(AppLocalizations.of(context)!.cancel),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.cancel,
+                                  ),
                                 ),
                                 TextButton(
                                   onPressed: () async {
@@ -238,7 +239,9 @@ class _FollowScreenState extends State<FollowScreen> {
                                       );
                                     }
                                   },
-                                  child: Text(AppLocalizations.of(context)!.confirm),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.confirm,
+                                  ),
                                 ),
                               ],
                             ),

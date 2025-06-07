@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/models/user.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
@@ -121,6 +122,27 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
+  String? _processProfilePictureUrl(String? url) {
+    if (url == null || url.isEmpty || url == 'null') return null;
+
+    // If URL already starts with http, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    // Add server URL prefix if it's a relative path
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    if (serverUrl.isNotEmpty && url.startsWith('/')) {
+      // Ensure server URL doesn't end with slash
+      if (serverUrl.endsWith('/')) {
+        serverUrl = serverUrl.substring(0, serverUrl.length - 1);
+      }
+      return '$serverUrl$url';
+    }
+
+    return url;
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLoading = isLoadingUser || isLoadingPlaylists;
@@ -129,6 +151,14 @@ class _UserScreenState extends State<UserScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Process the profile picture URL to handle relative paths
+    String? backgroundImageUrl = _processProfilePictureUrl(
+      userStatus.profilePictureUrl,
+    );
+
+    // Debug prints to help troubleshoot
+    print('Raw profilePictureUrl: ${userStatus.profilePictureUrl}');
+    print('Processed backgroundImageUrl: $backgroundImageUrl');
 
     return Scaffold(
       body: SafeArea(
@@ -157,14 +187,16 @@ class _UserScreenState extends State<UserScreen> {
                         widget.onTabSelected(-1, "");
                       },
                     ),
-                    expandedHeight: 240,
+                    expandedHeight: 350,
                     pinned: true,
                     flexibleSpace: FlexibleSpaceBar(
                       background: Container(
                         decoration: BoxDecoration(
                           image: DecorationImage(
                             image: NetworkImage(
-                              "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
+                              backgroundImageUrl?.isNotEmpty == true
+                                  ? backgroundImageUrl!
+                                  : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
                             ),
                             fit: BoxFit.cover,
                           ),
@@ -212,7 +244,6 @@ class _UserScreenState extends State<UserScreen> {
                                         Expanded(
                                           child: OutlinedButton(
                                             onPressed: () async {
-
                                               try {
                                                 if (userStatus.status ==
                                                     'none') {
@@ -227,6 +258,9 @@ class _UserScreenState extends State<UserScreen> {
                                                       avatarUrl:
                                                           userStatus.avatarUrl,
                                                       status: 'pending_sent',
+                                                      profilePictureUrl:
+                                                          userStatus
+                                                              .profilePictureUrl,
                                                     );
                                                   });
                                                   UserEventManager()
@@ -270,6 +304,9 @@ class _UserScreenState extends State<UserScreen> {
                                                                           .avatarUrl,
                                                                   status:
                                                                       'none',
+                                                                  profilePictureUrl:
+                                                                      userStatus
+                                                                          .profilePictureUrl,
                                                                 );
                                                               });
                                                               UserEventManager()
@@ -317,6 +354,9 @@ class _UserScreenState extends State<UserScreen> {
                                                                           .avatarUrl,
                                                                   status:
                                                                       'friend',
+                                                                  profilePictureUrl:
+                                                                      userStatus
+                                                                          .profilePictureUrl,
                                                                 );
                                                               });
                                                               UserEventManager()
@@ -360,6 +400,9 @@ class _UserScreenState extends State<UserScreen> {
                                                       avatarUrl:
                                                           userStatus.avatarUrl,
                                                       status: 'none',
+                                                      profilePictureUrl:
+                                                          userStatus
+                                                              .profilePictureUrl,
                                                     );
                                                   });
                                                   UserEventManager()
@@ -468,32 +511,6 @@ class _UserScreenState extends State<UserScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: ElevatedButton(
-                                            onPressed: () {},
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(
-                                                0xFF8257E5,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(30),
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 12,
-                                                  ),
-                                            ),
-                                            child: const Text(
-                                              'PHÁT NHẠC',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
                                       ],
                                     ),
                                   ],
@@ -505,54 +522,6 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                     ),
                   ),
-
-                  // Song List
-                  // SliverToBoxAdapter(
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  //     child: Row(
-                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //       children: [
-                  //         const Text(
-                  //           'Bài Hát Nổi Bật',
-                  //           style: TextStyle(
-                  //             fontSize: 20,
-                  //             fontWeight: FontWeight.bold,
-                  //           ),
-                  //         ),
-                  //         Icon(
-                  //           Icons.chevron_right,
-                  //           color: Colors.grey[700],
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
-                  //
-                  // SliverList(
-                  //   delegate: SliverChildListDelegate([
-                  //     _buildSongItem(
-                  //       'Bắc Bling (Bắc Ninh)',
-                  //       'Hòa Minzy, Xuân Hinh, Tuấn Cry, Masew',
-                  //       'assets/images/song1.jpg',
-                  //     ),
-                  //     _buildSongItem(
-                  //       'Bật Tình Yêu Lên',
-                  //       'Tăng Duy Tân, Hòa Minzy',
-                  //       'assets/images/song2.jpg',
-                  //     ),
-                  //     _buildSongItem(
-                  //       'Rời Bỏ',
-                  //       'Hòa Minzy',
-                  //       'assets/images/song3.jpg',
-                  //     ),
-                  //     _buildSongItem(
-                  //       'Kén Cá Chọn Canh',
-                  //       'Hòa Minzy',
-                  //       'assets/images/song4.jpg',
-                  //     ),
-                  //   ]),
-                  // ),
 
                   // Playlist Section
                   SliverToBoxAdapter(

@@ -5,6 +5,8 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
+import 'package:symphonia/widgets/user_avatar.dart';
+import 'package:symphonia/services/user_info_manager.dart';
 import 'dart:io';
 
 class PlaylistSpotifyScreen extends AbstractScreen {
@@ -141,14 +143,11 @@ class _PlaylistSpotifyScreenState extends State<PlaylistSpotifyScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.deepPurple.shade300,
-              ),
-              child: const Icon(Icons.person, size: 16, color: Colors.white),
+            UserAvatar(
+              radius: 12,
+              avatarUrl: playlist.ownerAvatarUrl,
+              userName: playlist.creator,
+              isCurrentUser: playlist.ownerId == UserInfoManager.userId,
             ),
             const SizedBox(width: 8),
             Text(

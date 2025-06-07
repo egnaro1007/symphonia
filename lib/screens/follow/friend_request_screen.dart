@@ -4,6 +4,7 @@ import 'package:symphonia/models/friend_request.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/friend.dart';
 import 'package:symphonia/services/user_event_manager.dart';
+import 'package:symphonia/widgets/user_avatar.dart';
 import 'dart:async';
 
 class FriendRequestsScreen extends AbstractScreen {
@@ -117,7 +118,9 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.name}'),
+                              content: Text(
+                                '${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.name}',
+                              ),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -177,9 +180,10 @@ class FriendRequestCard extends StatelessWidget {
             Row(
               children: [
                 // Ảnh đại diện
-                CircleAvatar(
+                UserAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(request.avatarUrl),
+                  avatarUrl: request.profilePictureUrl,
+                  userName: request.name,
                 ),
                 const SizedBox(width: 16),
                 // Thông tin cơ bản

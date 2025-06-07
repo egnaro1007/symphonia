@@ -7,6 +7,7 @@ import 'package:symphonia/models/user.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/token_manager.dart';
 import 'package:symphonia/services/user_event_manager.dart';
+import 'package:symphonia/widgets/user_avatar.dart';
 
 class SearchUserScreen extends AbstractScreen {
   @override
@@ -86,6 +87,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
               avatarUrl:
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
               status: user['relationships_status'] ?? 'none',
+              profilePictureUrl: user['profile_picture_url']?.toString(),
             ),
           );
         }
@@ -130,7 +132,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         body: jsonEncode({"id": userId}),
       );
 
-
       if (response.statusCode >= 200 && response.statusCode < 300) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -160,8 +161,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             errorMessage =
                 errorData['error'] ?? errorData['message'] ?? errorMessage;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
@@ -170,7 +170,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.errorOccurredFriendRequest),
+          content: Text(
+            AppLocalizations.of(context)!.errorOccurredFriendRequest,
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -193,7 +195,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         },
         body: jsonEncode({"id": userId}),
       );
-
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -245,7 +246,6 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         },
         body: jsonEncode({"user_id": userId, "response": response}),
       );
-
 
       if (httpResponse.statusCode >= 200 && httpResponse.statusCode < 300) {
         String message =
@@ -409,9 +409,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           // Top row: Avatar and username
           Row(
             children: [
-              CircleAvatar(
+              UserAvatar(
                 radius: 30,
-                backgroundImage: NetworkImage(user.avatarUrl),
+                avatarUrl: user.profilePictureUrl,
+                userName: user.username,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -472,9 +473,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
       return Row(
         children: [
           // Avatar
-          CircleAvatar(
+          UserAvatar(
             radius: 30,
-            backgroundImage: NetworkImage(user.avatarUrl),
+            avatarUrl: user.profilePictureUrl,
+            userName: user.username,
           ),
           const SizedBox(width: 16),
           // Username
