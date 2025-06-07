@@ -88,6 +88,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
               status: user['relationships_status'] ?? 'none',
               profilePictureUrl: user['profile_picture_url']?.toString(),
+              firstName: user['first_name']?.toString(),
+              lastName: user['last_name']?.toString(),
+              gender: user['gender']?.toString(),
+              birthDate: user['birth_date']?.toString(),
+              email: user['email']?.toString(),
             ),
           );
         }
@@ -416,12 +421,21 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  user.username,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      '@${user.username}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -481,9 +495,21 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           const SizedBox(width: 16),
           // Username
           Expanded(
-            child: Text(
-              user.username,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.fullName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  '@${user.username}',
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
             ),
           ),
           // Action button

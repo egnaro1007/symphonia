@@ -168,9 +168,24 @@ class _FollowScreenState extends State<FollowScreen> {
                     onTap: () {
                       widget.onTabSelected(8, friend.id);
                     },
-                    child: Text(
-                      friend.username,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          friend.fullName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          '@${friend.username}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   trailing: ElevatedButton(
@@ -191,7 +206,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                 AppLocalizations.of(context)!.confirm,
                               ),
                               content: Text(
-                                "${AppLocalizations.of(context)!.friendRemoveConfirmation} ${friend.username}?",
+                                "${AppLocalizations.of(context)!.friendRemoveConfirmation} ${friend.fullName}?",
                               ),
                               actions: [
                                 TextButton(
@@ -207,7 +222,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          '${AppLocalizations.of(context)!.removingFriendWith} ${friend.username}...',
+                                          '${AppLocalizations.of(context)!.removingFriendWith} ${friend.fullName}...',
                                         ),
                                       ),
                                     );
@@ -223,7 +238,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            '${AppLocalizations.of(context)!.confirmRemovingFriendWith} ${friend.username}',
+                                            '${AppLocalizations.of(context)!.confirmRemovingFriendWith} ${friend.fullName}',
                                           ),
                                         ),
                                       );

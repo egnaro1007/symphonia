@@ -35,6 +35,11 @@ class FriendOperations {
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // friend['avatar_url'],
               status: 'friend', // Friends have 'friend' status
               profilePictureUrl: friend['profile_picture_url']?.toString(),
+              firstName: friend['first_name']?.toString(),
+              lastName: friend['last_name']?.toString(),
+              gender: friend['gender']?.toString(),
+              birthDate: friend['birth_date']?.toString(),
+              email: friend['email']?.toString(),
             ),
           );
         }
@@ -101,6 +106,11 @@ class FriendOperations {
               avatarUrl:
                   "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg", // request['avatar_url'],
               profilePictureUrl: request['profile_picture_url']?.toString(),
+              firstName: request['first_name']?.toString(),
+              lastName: request['last_name']?.toString(),
+              gender: request['gender']?.toString(),
+              birthDate: request['birth_date']?.toString(),
+              email: request['email']?.toString(),
             ),
           );
         }
@@ -162,13 +172,28 @@ class FriendOperations {
               "https://sites.dartmouth.edu/dems/files/2021/01/facebook-avatar-copy-4.jpg",
           status: jsonData['relationships_status'],
           profilePictureUrl: jsonData['profile_picture_url']?.toString(),
+          firstName: jsonData['first_name']?.toString(),
+          lastName: jsonData['last_name']?.toString(),
+          gender: jsonData['gender']?.toString(),
+          birthDate: jsonData['birth_date']?.toString(),
+          email: jsonData['email']?.toString(),
         );
       } else {
         throw Exception('Failed to load user');
       }
     } catch (e) {
       print('Error: $e');
-      return UserStatus(id: '', username: '', avatarUrl: '', status: '');
+      return UserStatus(
+        id: '',
+        username: '',
+        avatarUrl: '',
+        status: '',
+        firstName: '',
+        lastName: '',
+        gender: '',
+        birthDate: '',
+        email: '',
+      );
     }
   }
 

@@ -1,11 +1,14 @@
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/main.dart';
 import 'package:flutter/material.dart';
-import 'package:symphonia/widgets/user_avatar.dart';
+import '../abstract_navigation_screen.dart';
 import 'package:symphonia/services/user_info_manager.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../abstract_navigation_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:symphonia/services/token_manager.dart';
 
 class SettingScreen extends AbstractScreen {
   @override
@@ -22,7 +25,6 @@ class SettingScreen extends AbstractScreen {
 
 class _SettingScreenState extends State<SettingScreen> {
   // Controller for các input field
-  final TextEditingController _displayNameController = TextEditingController();
   final TextEditingController _currentPasswordController =
       TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
@@ -30,8 +32,6 @@ class _SettingScreenState extends State<SettingScreen> {
       TextEditingController();
 
   // State variables
-  String _selectedGender = 'Nam';
-  DateTime _selectedDate = DateTime(2000, 1, 1);
   String _selectedAudioQuality = '320kbps';
   String _themeMode = 'Hệ thống';
   bool _showLyrics = true;
@@ -89,7 +89,7 @@ class _SettingScreenState extends State<SettingScreen> {
           leading: const Icon(Icons.person),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            _showPersonalInfoDialog();
+            _showEditPersonalInfoDialog();
           },
         ),
 
@@ -144,19 +144,6 @@ class _SettingScreenState extends State<SettingScreen> {
             _showDeleteDataDialog();
           },
         ),
-
-        // Auto Play Similar
-        // SwitchListTile(
-        //   title: const Text('Tự động phát bài tương tự sau khi danh sách kết thúc'),
-        //   subtitle: const Text('Phát bài hát tương tự sau khi danh sách phát kết thúc'),
-        //   secondary: const Icon(Icons.repeat),
-        //   value: _autoPlaySimilar,
-        //   onChanged: (value) {
-        //     setState(() {
-        //       _autoPlaySimilar = value;
-        //     });
-        //   },
-        // ),
       ],
     );
   }
@@ -215,111 +202,6 @@ class _SettingScreenState extends State<SettingScreen> {
           },
         ),
       ],
-    );
-  }
-
-  void _showPersonalInfoDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Thông tin cá nhân'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Display Name
-                  TextField(
-                    controller: _displayNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Tên hiển thị',
-                      hintText: 'Nhập tên hiển thị của bạn',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Profile Picture
-                  GestureDetector(
-                    onTap: () {
-                      _showProfilePictureOptions();
-                    },
-                    child: Row(
-                      children: [
-                        UserAvatar(
-                          radius: 40,
-                          isCurrentUser: true,
-                          userName: UserInfoManager.username,
-                        ),
-                        const SizedBox(width: 16),
-                        const Text('Thay đổi ảnh đại diện'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Gender
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Giới tính'),
-                    value: _selectedGender,
-                    items:
-                        ['Nam', 'Nữ', 'Khác']
-                            .map(
-                              (gender) => DropdownMenuItem(
-                                value: gender,
-                                child: Text(gender),
-                              ),
-                            )
-                            .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Date of Birth
-                  ListTile(
-                    title: const Text('Ngày sinh'),
-                    subtitle: Text(
-                      '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                    ),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate,
-                        firstDate: DateTime(1900),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null && picked != _selectedDate) {
-                        setState(() {
-                          _selectedDate = picked;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Lưu thông tin người dùng
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Lưu'),
-              ),
-            ],
-          ),
     );
   }
 
@@ -628,7 +510,444 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  void _showProfilePictureOptions() {
+  void _showEditPersonalInfoDialog() {
+    // Controllers for input fields
+    final TextEditingController firstNameController = TextEditingController();
+    final TextEditingController lastNameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+
+    // State variables
+    String selectedGender = 'Nam';
+    DateTime selectedDate = DateTime(2000, 1, 1);
+    bool isLoading = false;
+    File? selectedProfileImage;
+    bool deleteAvatar = false;
+
+    // Load current user data
+    firstNameController.text = UserInfoManager.firstName;
+    lastNameController.text = UserInfoManager.lastName;
+    emailController.text = UserInfoManager.email;
+
+    // Load gender
+    String userGender = UserInfoManager.gender;
+    switch (userGender) {
+      case 'M':
+        selectedGender = 'Nam';
+        break;
+      case 'F':
+        selectedGender = 'Nữ';
+        break;
+      case 'O':
+        selectedGender = 'Khác';
+        break;
+      default:
+        selectedGender = 'Nam';
+    }
+
+    // Load birth date
+    String userBirthDate = UserInfoManager.birthDate;
+    if (userBirthDate.isNotEmpty) {
+      try {
+        List<String> dateParts = userBirthDate.split('-');
+        if (dateParts.length == 3) {
+          int year = int.parse(dateParts[0]);
+          int month = int.parse(dateParts[1]);
+          int day = int.parse(dateParts[2]);
+          selectedDate = DateTime(year, month, day);
+        }
+      } catch (e) {
+        selectedDate = DateTime(2000, 1, 1);
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => Transform.translate(
+                  offset: const Offset(0, -50),
+                  child: AlertDialog(
+                    title: const Text('Thông tin cá nhân'),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Profile Picture Section
+                            GestureDetector(
+                              onTap:
+                                  () => _showProfilePictureOptionsInDialog(
+                                    context,
+                                    setState,
+                                    selectedProfileImage,
+                                    (file, shouldDelete) {
+                                      setState(() {
+                                        selectedProfileImage = file;
+                                        deleteAvatar = shouldDelete;
+                                      });
+                                    },
+                                  ),
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 40,
+                                    backgroundImage:
+                                        selectedProfileImage != null
+                                            ? FileImage(selectedProfileImage!)
+                                            : (!deleteAvatar &&
+                                                    UserInfoManager
+                                                            .fullProfilePictureUrl !=
+                                                        null
+                                                ? NetworkImage(
+                                                  UserInfoManager
+                                                      .fullProfilePictureUrl!,
+                                                )
+                                                : null),
+                                    backgroundColor: Colors.grey[400],
+                                    child:
+                                        selectedProfileImage == null &&
+                                                (deleteAvatar ||
+                                                    UserInfoManager
+                                                            .fullProfilePictureUrl ==
+                                                        null)
+                                            ? Text(
+                                              UserInfoManager
+                                                      .username
+                                                      .isNotEmpty
+                                                  ? UserInfoManager.username[0]
+                                                      .toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(
+                                                fontSize: 24,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                            : null,
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // First Name
+                            TextField(
+                              controller: firstNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Tên *',
+                                border: OutlineInputBorder(),
+                              ),
+                              enabled: !isLoading,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Last Name
+                            TextField(
+                              controller: lastNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Họ *',
+                                border: OutlineInputBorder(),
+                              ),
+                              enabled: !isLoading,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Email
+                            TextField(
+                              controller: emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                border: OutlineInputBorder(),
+                              ),
+                              enabled: !isLoading,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Gender
+                            DropdownButtonFormField<String>(
+                              decoration: const InputDecoration(
+                                labelText: 'Giới tính',
+                                border: OutlineInputBorder(),
+                              ),
+                              value: selectedGender,
+                              items:
+                                  ['Nam', 'Nữ', 'Khác']
+                                      .map(
+                                        (gender) => DropdownMenuItem(
+                                          value: gender,
+                                          child: Text(gender),
+                                        ),
+                                      )
+                                      .toList(),
+                              onChanged:
+                                  isLoading
+                                      ? null
+                                      : (value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            selectedGender = value;
+                                          });
+                                        }
+                                      },
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Date of Birth
+                            InkWell(
+                              onTap:
+                                  isLoading
+                                      ? null
+                                      : () async {
+                                        final DateTime? picked =
+                                            await showDatePicker(
+                                              context: context,
+                                              initialDate: selectedDate,
+                                              firstDate: DateTime(1900),
+                                              lastDate: DateTime.now(),
+                                            );
+                                        if (picked != null &&
+                                            picked != selectedDate) {
+                                          setState(() {
+                                            selectedDate = picked;
+                                          });
+                                        }
+                                      },
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Ngày sinh',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        Text(
+                                          '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                    const Icon(Icons.calendar_today),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed:
+                            isLoading
+                                ? null
+                                : () => Navigator.of(context).pop(),
+                        child: const Text('Hủy'),
+                      ),
+                      TextButton(
+                        onPressed:
+                            isLoading
+                                ? null
+                                : () async {
+                                  // Validation
+                                  if (firstNameController.text.trim().isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Tên không được để trống',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  if (lastNameController.text.trim().isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Họ không được để trống'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+
+                                  await _savePersonalInfo(
+                                    firstNameController.text.trim(),
+                                    lastNameController.text.trim(),
+                                    emailController.text.trim(),
+                                    selectedGender,
+                                    selectedDate,
+                                    selectedProfileImage,
+                                    deleteAvatar,
+                                    () => setState(() => isLoading = false),
+                                  );
+                                },
+                        child:
+                            isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Text('Lưu'),
+                      ),
+                    ],
+                  ),
+                ),
+          ),
+    );
+  }
+
+  Future<void> _savePersonalInfo(
+    String firstName,
+    String lastName,
+    String email,
+    String selectedGender,
+    DateTime selectedDate,
+    File? selectedProfileImage,
+    bool deleteAvatar,
+    VoidCallback setLoadingFalse,
+  ) async {
+    try {
+      String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+
+      // Convert gender to backend format
+      String genderCode = '';
+      switch (selectedGender) {
+        case 'Nam':
+          genderCode = 'M';
+          break;
+        case 'Nữ':
+          genderCode = 'F';
+          break;
+        case 'Khác':
+          genderCode = 'O';
+          break;
+      }
+
+      // Format birth date as YYYY-MM-DD
+      String birthDateString =
+          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+      final response = await http.put(
+        Uri.parse('$serverUrl/api/auth/update_profile/'),
+        headers: {
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'first_name': firstName,
+          'last_name': lastName,
+          'email': email,
+          'gender': genderCode,
+          'birth_date': birthDateString,
+        }),
+      );
+
+      setLoadingFalse();
+
+      if (response.statusCode == 200) {
+        // Update profile picture if selected
+        if (selectedProfileImage != null) {
+          await UserInfoManager.updateProfilePicture(selectedProfileImage);
+        } else if (deleteAvatar) {
+          await UserInfoManager.deleteProfilePicture();
+        }
+
+        // Update local user info
+        await UserInfoManager.fetchUserInfo();
+
+        if (mounted) {
+          Navigator.of(context).pop(); // Close dialog
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cập nhật thông tin thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        var errorData = jsonDecode(response.body);
+        String errorMessage = 'Không thể cập nhật thông tin';
+
+        if (errorData is Map<String, dynamic>) {
+          List<String> errors = [];
+          errorData.forEach((key, value) {
+            if (value is List) {
+              errors.addAll(value.map((e) => e.toString()));
+            } else {
+              errors.add(value.toString());
+            }
+          });
+          if (errors.isNotEmpty) {
+            errorMessage = errors.join(', ');
+          }
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      setLoadingFalse();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showProfilePictureOptionsInDialog(
+    BuildContext context,
+    StateSetter setState,
+    File? currentSelectedImage,
+    Function(File?, bool) onImageSelected,
+  ) {
     showDialog(
       context: context,
       builder:
@@ -640,20 +959,33 @@ class _SettingScreenState extends State<SettingScreen> {
                 ListTile(
                   leading: const Icon(Icons.photo_library),
                   title: const Text('Chọn từ thư viện'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.of(context).pop();
-                    _pickImageFromGallery();
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (image != null) {
+                      onImageSelected(File(image.path), false);
+                    }
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt),
                   title: const Text('Chụp ảnh mới'),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.of(context).pop();
-                    _pickImageFromCamera();
+                    final ImagePicker picker = ImagePicker();
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.camera,
+                    );
+                    if (image != null) {
+                      onImageSelected(File(image.path), false);
+                    }
                   },
                 ),
-                if (UserInfoManager.profilePictureUrl != null)
+                if (currentSelectedImage != null ||
+                    UserInfoManager.profilePictureUrl != null)
                   ListTile(
                     leading: const Icon(Icons.delete, color: Colors.red),
                     title: const Text(
@@ -662,7 +994,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
                     onTap: () {
                       Navigator.of(context).pop();
-                      _deleteProfilePicture();
+                      onImageSelected(null, true);
                     },
                   ),
               ],
@@ -671,125 +1003,8 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  Future<void> _pickImageFromGallery() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      await _updateProfilePicture(File(image.path));
-    }
-  }
-
-  Future<void> _pickImageFromCamera() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.camera);
-
-    if (image != null) {
-      await _updateProfilePicture(File(image.path));
-    }
-  }
-
-  Future<void> _updateProfilePicture(File imageFile) async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => const AlertDialog(
-            content: Row(
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 16),
-                Text('Đang cập nhật ảnh đại diện...'),
-              ],
-            ),
-          ),
-    );
-
-    try {
-      bool success = await UserInfoManager.updateProfilePicture(imageFile);
-      Navigator.of(context).pop(); // Close loading dialog
-
-      if (success) {
-        await UserInfoManager.refreshUserInfo(); // Refresh user info
-        setState(() {}); // Refresh UI to show new avatar
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cập nhật ảnh đại diện thành công'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể cập nhật ảnh đại diện'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      Navigator.of(context).pop(); // Close loading dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _deleteProfilePicture() async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => const AlertDialog(
-            content: Row(
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 16),
-                Text('Đang xóa ảnh đại diện...'),
-              ],
-            ),
-          ),
-    );
-
-    try {
-      bool success = await UserInfoManager.deleteProfilePicture();
-      Navigator.of(context).pop(); // Close loading dialog
-
-      if (success) {
-        await UserInfoManager.refreshUserInfo(); // Refresh user info
-        setState(() {}); // Refresh UI to show default avatar
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã xóa ảnh đại diện'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể xóa ảnh đại diện'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      Navigator.of(context).pop(); // Close loading dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   void dispose() {
-    _displayNameController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();

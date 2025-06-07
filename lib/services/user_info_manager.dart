@@ -11,6 +11,8 @@ class UserInfoManager {
   static String? _firstName;
   static String? _lastName;
   static String? _email;
+  static String? _gender;
+  static String? _birthDate;
   static String? _profilePictureUrl;
 
   static final String _tokenFile = 'user-info.json';
@@ -21,6 +23,8 @@ class UserInfoManager {
     String? firstName,
     String? lastName,
     String? email,
+    String? gender,
+    String? birthDate,
     String? profilePictureUrl,
   ) async {
     try {
@@ -29,6 +33,8 @@ class UserInfoManager {
       _firstName = firstName ?? "";
       _lastName = lastName ?? "";
       _email = email ?? "";
+      _gender = gender ?? "";
+      _birthDate = birthDate ?? "";
       _profilePictureUrl = profilePictureUrl;
 
       final directory = await getApplicationDocumentsDirectory();
@@ -40,6 +46,8 @@ class UserInfoManager {
         'first_name': _firstName,
         'last_name': _lastName,
         'email': _email,
+        'gender': _gender,
+        'birth_date': _birthDate,
         'profile_picture_url': _profilePictureUrl,
       };
 
@@ -51,6 +59,8 @@ class UserInfoManager {
       _firstName = firstName ?? "";
       _lastName = lastName ?? "";
       _email = email ?? "";
+      _gender = gender ?? "";
+      _birthDate = birthDate ?? "";
       _profilePictureUrl = profilePictureUrl;
     }
   }
@@ -76,6 +86,8 @@ class UserInfoManager {
         _firstName = userInfo['first_name'];
         _lastName = userInfo['last_name'];
         _email = userInfo['email'];
+        _gender = userInfo['gender'];
+        _birthDate = userInfo['birth_date'];
         _profilePictureUrl = userInfo['profile_picture_url'];
       } catch (e) {
         // If there's an error parsing the file, clear it and reset user info
@@ -96,6 +108,8 @@ class UserInfoManager {
     _firstName = null;
     _lastName = null;
     _email = null;
+    _gender = null;
+    _birthDate = null;
     _profilePictureUrl = null;
 
     try {
@@ -128,6 +142,14 @@ class UserInfoManager {
 
   static String get email {
     return _email ?? "";
+  }
+
+  static String get gender {
+    return _gender ?? "";
+  }
+
+  static String get birthDate {
+    return _birthDate ?? "";
   }
 
   static String? get profilePictureUrl {
@@ -171,6 +193,8 @@ class UserInfoManager {
       _firstName = "";
       _lastName = "";
       _email = "";
+      _gender = "";
+      _birthDate = "";
       _profilePictureUrl = null;
       return;
     }
@@ -190,6 +214,8 @@ class UserInfoManager {
         _firstName = data['first_name'] ?? "";
         _lastName = data['last_name'] ?? "";
         _email = data['email'] ?? "";
+        _gender = data['gender'] ?? "";
+        _birthDate = data['birth_date'] ?? "";
 
         // Handle profile_picture_url properly
         var profilePictureData = data['profile_picture_url'];
@@ -206,6 +232,8 @@ class UserInfoManager {
           _firstName,
           _lastName,
           _email,
+          _gender,
+          _birthDate,
           _profilePictureUrl,
         );
       } else {
@@ -216,6 +244,8 @@ class UserInfoManager {
         _firstName = "";
         _lastName = "";
         _email = "";
+        _gender = "";
+        _birthDate = "";
         _profilePictureUrl = null;
       }
     } catch (e) {
@@ -225,6 +255,8 @@ class UserInfoManager {
       _firstName = "";
       _lastName = "";
       _email = "";
+      _gender = "";
+      _birthDate = "";
       _profilePictureUrl = null;
     }
   }
@@ -262,6 +294,8 @@ class UserInfoManager {
           _firstName,
           _lastName,
           _email,
+          _gender,
+          _birthDate,
           _profilePictureUrl,
         );
         return true;
@@ -301,6 +335,8 @@ class UserInfoManager {
           _firstName,
           _lastName,
           _email,
+          _gender,
+          _birthDate,
           _profilePictureUrl,
         );
         return true;

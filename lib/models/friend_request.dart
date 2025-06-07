@@ -4,6 +4,11 @@ class FriendRequest {
   final String name;
   final String avatarUrl;
   final String? profilePictureUrl;
+  final String? firstName;
+  final String? lastName;
+  final String? gender;
+  final String? birthDate;
+  final String? email;
 
   FriendRequest({
     required this.id,
@@ -11,5 +16,20 @@ class FriendRequest {
     required this.name,
     required this.avatarUrl,
     this.profilePictureUrl,
+    this.firstName,
+    this.lastName,
+    this.gender,
+    this.birthDate,
+    this.email,
   });
+
+  // Helper method to get full name in format "Last Name First Name"
+  String get fullName {
+    if ((lastName?.isEmpty ?? true) && (firstName?.isEmpty ?? true)) {
+      return name; // Fallback to name/username if no name provided
+    }
+    final last = lastName ?? '';
+    final first = firstName ?? '';
+    return '$last $first'.trim();
+  }
 }

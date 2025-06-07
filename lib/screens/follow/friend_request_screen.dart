@@ -119,7 +119,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.name}',
+                                '${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.fullName}',
                               ),
                               backgroundColor: Colors.green,
                             ),
@@ -138,7 +138,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '${AppLocalizations.of(context)!.declineFriendRequestFrom} ${request.name}',
+                                '${AppLocalizations.of(context)!.declineFriendRequestFrom} ${request.fullName}',
                               ),
                               backgroundColor: Colors.red,
                             ),
@@ -192,10 +192,17 @@ class FriendRequestCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        request.name,
+                        request.fullName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        '@${request.name}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
                         ),
                       ),
                     ],

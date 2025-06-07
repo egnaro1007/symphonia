@@ -35,6 +35,11 @@ class _UserScreenState extends State<UserScreen> {
     username: 'Unknown User',
     avatarUrl: '',
     status: 'none',
+    firstName: '',
+    lastName: '',
+    gender: '',
+    birthDate: '',
+    email: '',
   );
   late List<PlayList> playlists = [];
   bool isLoadingUser = true;
@@ -72,6 +77,11 @@ class _UserScreenState extends State<UserScreen> {
           username: 'Loading...',
           avatarUrl: '',
           status: 'none',
+          firstName: '',
+          lastName: '',
+          gender: '',
+          birthDate: '',
+          email: '',
         );
         playlists = [];
       });
@@ -141,6 +151,29 @@ class _UserScreenState extends State<UserScreen> {
     }
 
     return url;
+  }
+
+  String _formatGender(String? gender) {
+    switch (gender) {
+      case 'M':
+        return 'Nam';
+      case 'F':
+        return 'Nữ';
+      case 'O':
+        return 'Khác';
+      default:
+        return 'Không xác định';
+    }
+  }
+
+  String _formatBirthDate(String? birthDate) {
+    if (birthDate == null || birthDate.isEmpty) return 'Không có thông tin';
+    try {
+      final date = DateTime.parse(birthDate);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return birthDate; // Return as is if parsing fails
+    }
   }
 
   @override
@@ -231,11 +264,20 @@ class _UserScreenState extends State<UserScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      userStatus.username,
+                                      userStatus.fullName,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 36,
                                         fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '@${userStatus.username}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -261,6 +303,14 @@ class _UserScreenState extends State<UserScreen> {
                                                       profilePictureUrl:
                                                           userStatus
                                                               .profilePictureUrl,
+                                                      firstName:
+                                                          userStatus.firstName,
+                                                      lastName:
+                                                          userStatus.lastName,
+                                                      gender: userStatus.gender,
+                                                      birthDate:
+                                                          userStatus.birthDate,
+                                                      email: userStatus.email,
                                                     );
                                                   });
                                                   UserEventManager()
@@ -307,6 +357,21 @@ class _UserScreenState extends State<UserScreen> {
                                                                   profilePictureUrl:
                                                                       userStatus
                                                                           .profilePictureUrl,
+                                                                  firstName:
+                                                                      userStatus
+                                                                          .firstName,
+                                                                  lastName:
+                                                                      userStatus
+                                                                          .lastName,
+                                                                  gender:
+                                                                      userStatus
+                                                                          .gender,
+                                                                  birthDate:
+                                                                      userStatus
+                                                                          .birthDate,
+                                                                  email:
+                                                                      userStatus
+                                                                          .email,
                                                                 );
                                                               });
                                                               UserEventManager()
@@ -357,6 +422,21 @@ class _UserScreenState extends State<UserScreen> {
                                                                   profilePictureUrl:
                                                                       userStatus
                                                                           .profilePictureUrl,
+                                                                  firstName:
+                                                                      userStatus
+                                                                          .firstName,
+                                                                  lastName:
+                                                                      userStatus
+                                                                          .lastName,
+                                                                  gender:
+                                                                      userStatus
+                                                                          .gender,
+                                                                  birthDate:
+                                                                      userStatus
+                                                                          .birthDate,
+                                                                  email:
+                                                                      userStatus
+                                                                          .email,
                                                                 );
                                                               });
                                                               UserEventManager()
@@ -403,6 +483,14 @@ class _UserScreenState extends State<UserScreen> {
                                                       profilePictureUrl:
                                                           userStatus
                                                               .profilePictureUrl,
+                                                      firstName:
+                                                          userStatus.firstName,
+                                                      lastName:
+                                                          userStatus.lastName,
+                                                      gender: userStatus.gender,
+                                                      birthDate:
+                                                          userStatus.birthDate,
+                                                      email: userStatus.email,
                                                     );
                                                   });
                                                   UserEventManager()
@@ -519,6 +607,98 @@ class _UserScreenState extends State<UserScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ),
+
+                  // User Information Section
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Thông tin cá nhân',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.person_outline,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Giới tính: ${_formatGender(userStatus.gender)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.cake_outlined,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Ngày sinh: ${_formatBirthDate(userStatus.birthDate)}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (userStatus.email != null &&
+                              userStatus.email!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.email_outlined,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Email: ${userStatus.email}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black87,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),

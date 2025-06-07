@@ -105,7 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.accountCreatedSuccessfully),
+          content: Text(
+            AppLocalizations.of(context)!.accountCreatedSuccessfully,
+          ),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
@@ -198,10 +200,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _usernameController,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.username,
+                          labelText:
+                              _isLoginMode
+                                  ? "Username hoặc Email"
+                                  : AppLocalizations.of(context)!.username,
                           labelStyle: TextStyle(color: Colors.grey.shade300),
+                          hintText:
+                              _isLoginMode ? "Nhập username hoặc email" : null,
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
                           prefixIcon: Icon(
-                            Icons.person,
+                            _isLoginMode ? Icons.account_circle : Icons.person,
                             color: Colors.grey.shade300,
                           ),
                           enabledBorder: OutlineInputBorder(
@@ -217,7 +225,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return AppLocalizations.of(context)!.pleaseEnterUsername;
+                            return _isLoginMode
+                                ? "Vui lòng nhập username hoặc email"
+                                : AppLocalizations.of(
+                                  context,
+                                )!.pleaseEnterUsername;
                           }
                           return null;
                         },
@@ -247,7 +259,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.pleaseEnterPassword;
+                            return AppLocalizations.of(
+                              context,
+                            )!.pleaseEnterPassword;
                           }
                           return null;
                         },
@@ -261,7 +275,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           decoration: InputDecoration(
-                            labelText: AppLocalizations.of(context)!.confirmPassword,
+                            labelText:
+                                AppLocalizations.of(context)!.confirmPassword,
                             labelStyle: TextStyle(color: Colors.grey.shade300),
                             prefixIcon: Icon(
                               Icons.lock_outline,
@@ -282,10 +297,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(context)!.pleaseConfirmPassword;
+                              return AppLocalizations.of(
+                                context,
+                              )!.pleaseConfirmPassword;
                             }
                             if (value != _passwordController.text) {
-                              return AppLocalizations.of(context)!.passwordsDoNotMatch;
+                              return AppLocalizations.of(
+                                context,
+                              )!.passwordsDoNotMatch;
                             }
                             return null;
                           },

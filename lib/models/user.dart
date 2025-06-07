@@ -4,6 +4,11 @@ class User {
   String avatarUrl;
   String status;
   String? profilePictureUrl;
+  String? firstName;
+  String? lastName;
+  String? gender;
+  String? birthDate;
+  String? email;
 
   User({
     required this.id,
@@ -11,7 +16,22 @@ class User {
     required this.avatarUrl,
     this.status = 'none',
     this.profilePictureUrl,
+    this.firstName,
+    this.lastName,
+    this.gender,
+    this.birthDate,
+    this.email,
   });
+
+  // Helper method to get full name in format "Last Name First Name"
+  String get fullName {
+    if ((lastName?.isEmpty ?? true) && (firstName?.isEmpty ?? true)) {
+      return username; // Fallback to username if no name provided
+    }
+    final last = lastName ?? '';
+    final first = firstName ?? '';
+    return '$last $first'.trim();
+  }
 }
 
 class UserStatus {
@@ -20,6 +40,11 @@ class UserStatus {
   String avatarUrl;
   String status;
   String? profilePictureUrl;
+  String? firstName;
+  String? lastName;
+  String? gender;
+  String? birthDate;
+  String? email;
 
   UserStatus({
     required this.id,
@@ -27,5 +52,20 @@ class UserStatus {
     required this.avatarUrl,
     required this.status,
     this.profilePictureUrl,
+    this.firstName,
+    this.lastName,
+    this.gender,
+    this.birthDate,
+    this.email,
   });
+
+  // Helper method to get full name in format "Last Name First Name"
+  String get fullName {
+    if ((lastName?.isEmpty ?? true) && (firstName?.isEmpty ?? true)) {
+      return username; // Fallback to username if no name provided
+    }
+    final last = lastName ?? '';
+    final first = firstName ?? '';
+    return '$last $first'.trim();
+  }
 }
