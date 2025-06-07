@@ -35,50 +35,68 @@ class _AlbumScreenState extends State<AlbumScreen> {
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          FutureBuilder<Album>(
-            key: ValueKey(_refreshKey),
-            future: AlbumOperations.getAlbum(widget.albumID),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.grey,
+          // Check if albumID is valid before making API call
+          widget.albumID.isEmpty || widget.albumID == "0"
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.album, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Không có album được chọn',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey.shade600,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Không thể tải album',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade600,
-                        ),
+                    ),
+                  ],
+                ),
+              )
+              : FutureBuilder<Album>(
+                key: ValueKey(_refreshKey),
+                future: AlbumOperations.getAlbum(widget.albumID),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Không thể tải album',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            snapshot.error.toString(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        snapshot.error.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              } else if (!snapshot.hasData) {
-                return const Center(child: Text('Không có dữ liệu'));
-              } else {
-                final album = snapshot.data!;
-                return _buildAlbumContent(album);
-              }
-            },
-          ),
+                    );
+                  } else if (!snapshot.hasData) {
+                    return const Center(child: Text('Không có dữ liệu'));
+                  } else {
+                    final album = snapshot.data!;
+                    return _buildAlbumContent(album);
+                  }
+                },
+              ),
         ],
       ),
     );

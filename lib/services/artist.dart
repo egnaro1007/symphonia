@@ -57,6 +57,11 @@ class ArtistOperations {
 
   // Get artist by ID
   static Future<Artist> getArtist(String id) async {
+    // Validate ID before making API call
+    if (id.isEmpty || id == "0") {
+      throw Exception('Invalid artist ID: $id');
+    }
+
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/artists/$id/');

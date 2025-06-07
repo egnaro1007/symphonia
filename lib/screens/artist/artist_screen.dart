@@ -72,6 +72,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
   }
 
   Future<void> _loadArtistData() async {
+    // Skip loading if artistID is empty or invalid
+    if (widget.artistID.isEmpty || widget.artistID == "0") {
+      setState(() {
+        isLoadingArtist = false;
+      });
+      return;
+    }
+
     try {
       final result = await ArtistOperations.getArtist(widget.artistID);
       setState(() {
@@ -90,6 +98,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
   }
 
   Future<void> _loadArtistAlbums() async {
+    // Skip loading if artistID is empty or invalid
+    if (widget.artistID.isEmpty || widget.artistID == "0") {
+      setState(() {
+        isLoadingAlbums = false;
+      });
+      return;
+    }
+
     try {
       final result = await ArtistOperations.getArtistAlbums(widget.artistID);
       setState(() {
@@ -108,6 +124,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
   }
 
   Future<void> _loadArtistSongs() async {
+    // Skip loading if artistID is empty or invalid
+    if (widget.artistID.isEmpty || widget.artistID == "0") {
+      setState(() {
+        isLoadingSongs = false;
+      });
+      return;
+    }
+
     try {
       final result = await ArtistOperations.getArtistSongs(widget.artistID);
       setState(() {

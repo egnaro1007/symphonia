@@ -474,14 +474,49 @@ class SongItem extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.queue_play_next),
               title: Text(AppLocalizations.of(context)!.addToPlayNext),
-              onTap: () {
-                PlayerController.getInstance().addSongToPlaylist(song);
+              onTap: () async {
+                final playerController = PlayerController.getInstance();
+                final wasPlaying = playerController.hasSong;
+
+                // Check if this is the currently playing song
+                final isCurrentlyPlaying =
+                    wasPlaying &&
+                    playerController.currentPlaylist.songs.isNotEmpty &&
+                    playerController.currentSongIndex <
+                        playerController.currentPlaylist.songs.length &&
+                    playerController
+                            .currentPlaylist
+                            .songs[playerController.currentSongIndex]
+                            .id ==
+                        song.id;
+
+                if (isCurrentlyPlaying) {
+                  // Show message that operation was cancelled
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${AppLocalizations.of(context)!.songCurrentlyPlaying}: "${song.title}"',
+                      ),
+                      backgroundColor: Colors.orange,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+
+                await playerController.addSongToPlayNext(song);
                 Navigator.pop(context);
 
-                // Show confirmation
+                // Show appropriate confirmation message
+                final message =
+                    wasPlaying
+                        ? 'Đã thêm "${song.title}" vào phát tiếp'
+                        : 'Đang phát: "${song.title}"';
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Đã thêm "${song.title}" vào danh sách phát'),
+                    content: Text(message),
                     backgroundColor: Colors.green,
                     duration: const Duration(seconds: 2),
                   ),

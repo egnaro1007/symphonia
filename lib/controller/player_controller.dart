@@ -137,6 +137,50 @@ class PlayerController {
     _playlistChangeController.add(_currentPlaylist); // Notify playlist change
   }
 
+  // Add song to play next (right after current song)
+  Future<void> addSongToPlayNext(Song song) async {
+    if (!_hasSong || _currentPlaylist.songs.isEmpty) {
+      // If no song is playing, play this song immediately
+      await loadSong(song);
+    } else {
+      // Check if the song to add is the currently playing song
+      if (_currentPlaylist.songs.isNotEmpty &&
+          _currentSongIndex < _currentPlaylist.songs.length &&
+          _currentPlaylist.songs[_currentSongIndex].id == song.id) {
+        // Cancel operation - no need to add currently playing song to next
+        return;
+      }
+
+      // Check if song already exists in playlist and remove it first
+      int existingIndex = _currentPlaylist.songs.indexWhere(
+        (s) => s.id == song.id,
+      );
+
+      if (existingIndex != -1) {
+        // Song already exists, remove it first
+        _currentPlaylist.songs.removeAt(existingIndex);
+
+        // Adjust current song index if necessary
+        if (existingIndex < _currentSongIndex) {
+          _currentSongIndex--;
+        }
+        // Note: We already checked above that existingIndex != _currentSongIndex
+        // so we don't need the else if case here anymore
+      }
+
+      // Insert song right after the current song
+      int insertIndex = _currentSongIndex + 1;
+
+      // Make sure we don't insert beyond the list bounds
+      if (insertIndex > _currentPlaylist.songs.length) {
+        insertIndex = _currentPlaylist.songs.length;
+      }
+
+      _currentPlaylist.songs.insert(insertIndex, song);
+      _playlistChangeController.add(_currentPlaylist); // Notify playlist change
+    }
+  }
+
   // Add songs to current playlist
   void addSongsToPlaylist(List<Song> songs) {
     _currentPlaylist.songs.addAll(songs);

@@ -63,6 +63,9 @@
   "logoutConfirmation": "Bạn có chắc chắn muốn đăng xuất?",
   "recentlyPlayed": "Nghe gần đây",
   "favorites": "Yêu thích",
-  "downloaded": "Đã tải"
+  "downloaded": "Đã tải",
+  "addedToPlayNext": "Đã thêm vào phát tiếp",
+  "nowPlaying": "Đang phát",
+  "songCurrentlyPlaying": "Bài hát đang được phát"
 
 }

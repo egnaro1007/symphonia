@@ -63,6 +63,9 @@
   "logoutConfirmation": "Are you sure you want to logout?",
   "recentlyPlayed": "Recently Played",
   "favorites": "Favorites",
-  "downloaded": "Downloaded"
+  "downloaded": "Downloaded",
+  "addedToPlayNext": "Added to play next",
+  "nowPlaying": "Now playing",
+  "songCurrentlyPlaying": "Song is currently playing"
 
 }

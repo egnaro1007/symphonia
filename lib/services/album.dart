@@ -10,6 +10,11 @@ class AlbumOperations {
 
   // Get album by ID with songs
   static Future<Album> getAlbum(String id) async {
+    // Validate ID before making API call
+    if (id.isEmpty || id == "0") {
+      throw Exception('Invalid album ID: $id');
+    }
+
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/albums/$id/');
