@@ -34,9 +34,8 @@ class _SettingScreenState extends State<SettingScreen> {
   // State variables
   String _selectedAudioQuality = '320kbps';
   String _themeMode = 'Hệ thống';
-  bool _showLyrics = true;
-  bool _showVisualizer = true;
   String _selectedLanguage = 'Tiếng Việt';
+  bool _isChangePasswordLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -163,34 +162,6 @@ class _SettingScreenState extends State<SettingScreen> {
           },
         ),
 
-        // Auto Show Lyrics
-        SwitchListTile(
-          title: const Text('Hiển thị lời bài hát tự động'),
-          subtitle: const Text('Tự động hiển thị lời bài hát khi phát nhạc'),
-          secondary: const Icon(Icons.lyrics),
-          value: _showLyrics,
-          onChanged: (value) {
-            setState(() {
-              _showLyrics = value;
-            });
-          },
-        ),
-
-        // Visualizer Effect
-        SwitchListTile(
-          title: const Text('Hiệu ứng visualizer khi phát nhạc'),
-          subtitle: const Text(
-            'Hiển thị hiệu ứng visualizer khi đang phát nhạc',
-          ),
-          secondary: const Icon(Icons.waves),
-          value: _showVisualizer,
-          onChanged: (value) {
-            setState(() {
-              _showVisualizer = value;
-            });
-          },
-        ),
-
         // Language
         ListTile(
           title: const Text('Ngôn ngữ ứng dụng'),
@@ -209,63 +180,234 @@ class _SettingScreenState extends State<SettingScreen> {
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Đổi mật khẩu'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Current Password
-                  TextField(
-                    controller: _currentPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Mật khẩu hiện tại',
-                      hintText: 'Nhập mật khẩu hiện tại',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: const Text('Đổi mật khẩu'),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Current Password
+                        TextField(
+                          controller: _currentPasswordController,
+                          obscureText: true,
+                          enabled: !_isChangePasswordLoading,
+                          decoration: const InputDecoration(
+                            labelText: 'Mật khẩu hiện tại *',
+                            hintText: 'Nhập mật khẩu hiện tại',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
 
-                  // New Password
-                  TextField(
-                    controller: _newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Mật khẩu mới',
-                      hintText: 'Nhập mật khẩu mới',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                        // New Password
+                        TextField(
+                          controller: _newPasswordController,
+                          obscureText: true,
+                          enabled: !_isChangePasswordLoading,
+                          decoration: const InputDecoration(
+                            labelText: 'Mật khẩu mới *',
+                            hintText: 'Nhập mật khẩu mới (tối thiểu 6 ký tự)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
 
-                  // Confirm New Password
-                  TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Xác nhận mật khẩu mới',
-                      hintText: 'Nhập lại mật khẩu mới',
+                        // Confirm New Password
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: true,
+                          enabled: !_isChangePasswordLoading,
+                          decoration: const InputDecoration(
+                            labelText: 'Xác nhận mật khẩu mới *',
+                            hintText: 'Nhập lại mật khẩu mới',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Validate and save password
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Lưu'),
-              ),
-            ],
+                  actions: [
+                    TextButton(
+                      onPressed:
+                          _isChangePasswordLoading
+                              ? null
+                              : () {
+                                _currentPasswordController.clear();
+                                _newPasswordController.clear();
+                                _confirmPasswordController.clear();
+                                Navigator.of(context).pop();
+                              },
+                      child: const Text('Hủy'),
+                    ),
+                    TextButton(
+                      onPressed:
+                          _isChangePasswordLoading
+                              ? null
+                              : () async {
+                                await _changePassword(setState);
+                              },
+                      child:
+                          _isChangePasswordLoading
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text('Lưu'),
+                    ),
+                  ],
+                ),
           ),
     );
+  }
+
+  Future<void> _changePassword(StateSetter setState) async {
+    // Validation
+    String currentPassword = _currentPasswordController.text.trim();
+    String newPassword = _newPasswordController.text.trim();
+    String confirmPassword = _confirmPasswordController.text.trim();
+
+    if (currentPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập mật khẩu hiện tại'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (newPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập mật khẩu mới'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mật khẩu mới phải có ít nhất 6 ký tự'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mật khẩu mới và xác nhận mật khẩu không khớp'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (currentPassword == newPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mật khẩu mới phải khác mật khẩu hiện tại'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isChangePasswordLoading = true;
+    });
+
+    try {
+      String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+
+      final response = await http.post(
+        Uri.parse('$serverUrl/api/auth/change-password/'),
+        headers: {
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      setState(() {
+        _isChangePasswordLoading = false;
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Clear the text fields
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+
+        if (mounted) {
+          Navigator.of(context).pop(); // Close dialog
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đổi mật khẩu thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        String errorMessage = 'Không thể đổi mật khẩu';
+
+        try {
+          var errorData = jsonDecode(response.body);
+          if (errorData is Map<String, dynamic>) {
+            if (errorData.containsKey('current_password')) {
+              List<dynamic> errors = errorData['current_password'];
+              errorMessage =
+                  errors.isNotEmpty
+                      ? errors[0]
+                      : 'Mật khẩu hiện tại không đúng';
+            } else if (errorData.containsKey('new_password')) {
+              List<dynamic> errors = errorData['new_password'];
+              errorMessage =
+                  errors.isNotEmpty ? errors[0] : 'Mật khẩu mới không hợp lệ';
+            } else if (errorData.containsKey('detail')) {
+              errorMessage = errorData['detail'];
+            } else if (errorData.containsKey('error')) {
+              errorMessage = errorData['error'];
+            } else {
+              errorMessage = 'Không thể đổi mật khẩu';
+            }
+          }
+        } catch (e) {
+          errorMessage = 'Lỗi server không xác định';
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isChangePasswordLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi kết nối: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showDeleteAccountDialog() {
