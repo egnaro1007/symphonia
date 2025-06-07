@@ -17,8 +17,8 @@ class UserScreen extends AbstractScreen {
   @override
   final Icon icon = const Icon(Icons.person);
 
-  String userID;
-  String searchQuery;
+  final String userID;
+  final String searchQuery;
 
   UserScreen({
     super.key,
@@ -891,7 +891,10 @@ class _UserScreenState extends State<UserScreen> {
                         isHorizontal: false,
                         showTrailingControls: false,
                         onTap: () {
-                          widget.onTabSelected(ScreenIndex.playlist.value, playlist.id);
+                          widget.onTabSelected(
+                            ScreenIndex.playlist.value,
+                            playlist.id,
+                          );
                         },
                       );
                     }).toList(),
@@ -928,7 +931,10 @@ class _UserScreenState extends State<UserScreen> {
                         isHorizontal: false,
                         showTrailingControls: false,
                         onTap: () {
-                          widget.onTabSelected(ScreenIndex.playlist.value, playlist.id);
+                          widget.onTabSelected(
+                            ScreenIndex.playlist.value,
+                            playlist.id,
+                          );
                         },
                       );
                     }).toList(),

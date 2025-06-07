@@ -6,7 +6,6 @@ import 'package:symphonia/models/album.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
 import 'package:symphonia/services/album.dart';
-import 'package:symphonia/services/audio_handler.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/widgets/album_item.dart';
 import 'package:symphonia/constants/screen_index.dart';

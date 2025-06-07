@@ -27,13 +27,7 @@ class AlbumScreen extends AbstractScreen {
 }
 
 class _AlbumScreenState extends State<AlbumScreen> {
-  int _refreshKey = 0;
-
-  void _refreshAlbum() {
-    setState(() {
-      _refreshKey++;
-    });
-  }
+  final int _refreshKey = 0;
 
   @override
   Widget build(BuildContext context) {

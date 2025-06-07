@@ -5,8 +5,6 @@ import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/playlist_notifier.dart';
 import '../abstract_navigation_screen.dart';
 
-import '../navigation_bar_screen.dart';
-
 class PlaylistCreationScreen extends AbstractScreen {
   const PlaylistCreationScreen({Key? key, required super.onTabSelected})
     : super(key: key);
