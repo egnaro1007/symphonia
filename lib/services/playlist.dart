@@ -494,17 +494,13 @@ class PlayListOperations {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/playlists/$id');
-      print("Url: $url");
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer ${TokenManager.accessToken}'},
       );
 
-      print("Response: $response");
-
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        print("Data: $data");
 
         // Handle cover image URL
         String pictureUrl = '';
@@ -523,7 +519,6 @@ class PlayListOperations {
           } else {
             pictureUrl = coverUrl;
           }
-          print("Using cover_image_url: $pictureUrl");
         } else if (data['cover_image'] != null &&
             data['cover_image'].isNotEmpty) {
           // If cover_image is a relative path, build full URL
@@ -539,16 +534,11 @@ class PlayListOperations {
           } else {
             pictureUrl = coverImage;
           }
-          print("Using cover_image: $pictureUrl");
         } else {
           // Default placeholder image
           pictureUrl =
               'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
-          print("Using placeholder image");
         }
-
-        print("Final single playlist picture URL: $pictureUrl");
-        print("=== END SINGLE PLAYLIST COVER DEBUG ===");
 
         var playlist = PlayList(
           id: data['id'].toString(),
@@ -591,9 +581,6 @@ class PlayListOperations {
                 baseUrl = 'http://$baseUrl';
               }
               audioUrl = '$baseUrl/api/library/songs/$id/';
-              print("Audio field empty, using fallback URL: $audioUrl");
-            } else {
-              print("Using audio URL from API: $audioUrl");
             }
 
             // Handle cover art similar to audio URL
@@ -602,7 +589,6 @@ class PlayListOperations {
               // Use default placeholder
               imagePath =
                   'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1280px-Image_created_with_a_mobile_phone.png';
-              print("Cover art field empty, using placeholder image");
             } else if (!imagePath.startsWith('http://') &&
                 !imagePath.startsWith('https://')) {
               // If cover_art is a relative path, build full URL
@@ -612,11 +598,6 @@ class PlayListOperations {
                 baseUrl = 'http://$baseUrl';
               }
               imagePath = '$baseUrl$imagePath';
-              print(
-                "Cover art is relative path, building full URL: $imagePath",
-              );
-            } else {
-              print("Using cover art URL from API: $imagePath");
             }
 
             playlist.songs.add(
@@ -635,32 +616,12 @@ class PlayListOperations {
 
         return playlist;
       } else {
-        print('Failed to load local playlists: ${response.statusCode}');
-        return PlayList(
-          id: id,
-          title: '',
-          description: '',
-          duration: 0,
-          picture: '',
-          //playlist['picture'],
-          creator: 'Unknown', // Fallback value
-          //playlist['creator'],
-          songs: [],
-          sharePermission: 'private', // Added share permission
+        throw Exception(
+          'Failed to load playlist: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
-      print('Error fetching local playlists: $e');
-      return PlayList(
-        id: id,
-        title: '',
-        description: '',
-        duration: 0,
-        picture: '',
-        creator: 'Unknown', // Fallback value
-        songs: [],
-        sharePermission: 'private', // Added share permission
-      ); // Fallback to mock data
+      throw Exception('Error fetching playlist: $e');
     }
   }
 
@@ -682,6 +643,35 @@ class PlayListOperations {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> removeSongFromPlaylist(
+    String playlistID,
+    String songID,
+  ) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      final url = Uri.parse(
+        '$serverUrl/api/library/remove-song-from-playlist/',
+      );
+
+      final response = await http.delete(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({'song_id': songID, 'playlist_id': playlistID}),
+      );
+
+      if (response.statusCode == 200) {
         return true;
       } else {
         return false;
@@ -737,6 +727,86 @@ class PlayListOperations {
     } catch (e) {
       print('Error fetching user playlists: $e');
       return []; // Return empty list on error
+    }
+  }
+
+  // Update playlist with name, permission, and optionally cover image
+  static Future<bool> updatePlaylist(
+    String playlistId,
+    String name,
+    String sharePermission,
+    File? newImage,
+    bool removeImage,
+  ) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    try {
+      // Load tokens first to ensure we have valid authentication
+      await TokenManager.loadTokens();
+
+      if (TokenManager.accessToken == null) {
+        print('No access token available');
+        return false;
+      }
+
+      final url = Uri.parse('$serverUrl/api/library/playlists/$playlistId/');
+      print("Update playlist URL: $url");
+
+      // First, update basic playlist info (name and share permission)
+      final response = await http.patch(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({'name': name, 'share_permission': sharePermission}),
+      );
+
+      print("Basic update response status: ${response.statusCode}");
+      print("Basic update response body: ${response.body}");
+
+      if (response.statusCode != 200) {
+        print('Failed to update playlist basic info: ${response.statusCode}');
+        return false;
+      }
+
+      // Handle cover image update if needed
+      if (removeImage) {
+        // Remove existing cover image
+        final removeCoverUrl = Uri.parse(
+          '$serverUrl/api/library/playlists/$playlistId/remove_cover/',
+        );
+        final removeCoverResponse = await http.delete(
+          removeCoverUrl,
+          headers: {"Authorization": "Bearer ${TokenManager.accessToken}"},
+        );
+
+        print(
+          "Remove cover response status: ${removeCoverResponse.statusCode}",
+        );
+        if (removeCoverResponse.statusCode != 200 &&
+            removeCoverResponse.statusCode != 204) {
+          print(
+            'Failed to remove cover image: ${removeCoverResponse.statusCode}',
+          );
+          // Don't return false here as basic update was successful
+        }
+      } else if (newImage != null) {
+        // Upload new cover image
+        bool uploadSuccess = await uploadPlaylistCover(playlistId, newImage);
+        if (!uploadSuccess) {
+          print(
+            "Failed to upload new cover image, but basic update was successful",
+          );
+          // Don't return false here as basic update was successful
+        } else {
+          print("Cover image uploaded successfully");
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('Error updating playlist: $e');
+      return false;
     }
   }
 }

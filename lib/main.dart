@@ -25,8 +25,7 @@ Future<void> main() async {
       androidNotificationChannelId: 'com.symphonia.audio',
       androidNotificationChannelName: 'Music playback',
       androidNotificationChannelDescription: 'Symphonia music player controls',
-      androidNotificationOngoing:
-          false, // Thay đổi thành false để có thể dismiss
+      androidNotificationOngoing: false,
       androidShowNotificationBadge: true,
       androidNotificationClickStartsActivity: true,
       androidResumeOnClick: true,

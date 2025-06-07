@@ -17,6 +17,9 @@ class SongItem extends StatelessWidget {
   final int? index;
   final bool showIndex;
   final VoidCallback? onPlaylistUpdate; // New callback for playlist updates
+  final bool isDeleteMode; // New parameter for delete mode
+  final String? playlistId; // New parameter for playlist ID when deleting
+  final VoidCallback? onSongDeleted; // New callback when song is deleted
 
   const SongItem({
     Key? key,
@@ -27,6 +30,9 @@ class SongItem extends StatelessWidget {
     this.index,
     this.showIndex = false,
     this.onPlaylistUpdate, // New callback
+    this.isDeleteMode = false, // Default to false
+    this.playlistId, // Can be null when not needed
+    this.onSongDeleted, // Can be null when not needed
   }) : super(key: key);
 
   @override
@@ -227,44 +233,64 @@ class SongItem extends StatelessWidget {
             if (showTrailingControls)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      song.audioUrl.isNotEmpty
-                          ? Icons.play_circle_outline
-                          : Icons.error_outline,
-                      size: 28,
-                      color:
-                          song.audioUrl.isNotEmpty ? null : Colors.red.shade400,
-                    ),
-                    onPressed:
-                        song.audioUrl.isNotEmpty
-                            ? () {
-                              if (onTap != null) {
-                                onTap!();
-                              } else {
-                                PlayerController.getInstance().loadSong(song);
-                              }
-                            }
-                            : () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Bài hát "${song.title}" không có file âm thanh để phát',
-                                  ),
-                                  backgroundColor: Colors.red.shade400,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
+                children:
+                    isDeleteMode
+                        ? [
+                          // In delete mode, show only delete icon
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                              size: 28,
+                            ),
+                            onPressed: () => _handleDeleteSong(context),
+                          ),
+                        ]
+                        : [
+                          // Normal mode - show play and options icons
+                          IconButton(
+                            icon: Icon(
+                              song.audioUrl.isNotEmpty
+                                  ? Icons.play_circle_outline
+                                  : Icons.error_outline,
+                              size: 28,
+                              color:
+                                  song.audioUrl.isNotEmpty
+                                      ? null
+                                      : Colors.red.shade400,
+                            ),
+                            onPressed:
+                                song.audioUrl.isNotEmpty
+                                    ? () {
+                                      if (onTap != null) {
+                                        onTap!();
+                                      } else {
+                                        PlayerController.getInstance().loadSong(
+                                          song,
+                                        );
+                                      }
+                                    }
+                                    : () {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Bài hát "${song.title}" không có file âm thanh để phát',
+                                          ),
+                                          backgroundColor: Colors.red.shade400,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert),
+                            onPressed: () {
+                              _showSongOptions(context);
                             },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () {
-                      _showSongOptions(context);
-                    },
-                  ),
-                ],
+                          ),
+                        ],
               ),
           ],
         ),
@@ -273,6 +299,15 @@ class SongItem extends StatelessWidget {
   }
 
   Widget _buildTrailingControls(BuildContext context) {
+    // In delete mode, show only delete icon
+    if (isDeleteMode) {
+      return IconButton(
+        icon: const Icon(Icons.delete_outline, color: Colors.red),
+        onPressed: () => _handleDeleteSong(context),
+      );
+    }
+
+    // Normal mode - show play and options icons
     bool canPlay = song.audioUrl.isNotEmpty;
 
     return Row(
@@ -315,6 +350,70 @@ class SongItem extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _handleDeleteSong(BuildContext context) async {
+    if (playlistId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể xóa bài hát: thiếu thông tin playlist'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      bool success = await PlayListOperations.removeSongFromPlaylist(
+        playlistId!,
+        song.id.toString(),
+      );
+
+      Navigator.pop(context); // Close loading dialog
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã xóa "${song.title}" khỏi playlist'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Trigger callbacks
+        if (onSongDeleted != null) {
+          onSongDeleted!();
+        }
+        if (onPlaylistUpdate != null) {
+          onPlaylistUpdate!();
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không thể xóa bài hát khỏi playlist'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Có lỗi xảy ra khi xóa bài hát'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Future<void> _showSongOptions(BuildContext context) async {

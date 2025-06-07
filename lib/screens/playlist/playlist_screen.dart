@@ -5,6 +5,7 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/controller/player_controller.dart';
+import 'package:symphonia/screens/playlist/playlist_edit_screen.dart';
 import 'dart:io';
 
 class PlaylistScreen extends AbstractScreen {
@@ -27,6 +28,15 @@ class PlaylistScreen extends AbstractScreen {
 }
 
 class _PlaylistScreenState extends State<PlaylistScreen> {
+  bool _isDeleteMode = false;
+  int _refreshKey = 0;
+
+  void _refreshPlaylist() {
+    setState(() {
+      _refreshKey++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,12 +44,43 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       body: Column(
         children: [
           FutureBuilder<PlayList>(
+            key: ValueKey(_refreshKey),
             future: PlayListOperations.getLocalPlaylist(widget.playlistID),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Không thể tải playlist',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Vui lòng kiểm tra kết nối và thử lại',
+                        style: TextStyle(color: Colors.grey.shade600),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _refreshPlaylist,
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                );
               } else if (!snapshot.hasData) {
                 return const Center(child: Text('No data available'));
               } else {
@@ -57,13 +98,25 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () {
-          // Navigate back to the profile screen with symchart parameter
-          widget.onTabSelected(3, "symchart");
-        },
-      ),
+      leading:
+          _isDeleteMode
+              ? null
+              : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  // Navigate back to the profile screen with symchart parameter
+                  widget.onTabSelected(3, "symchart");
+                },
+              ),
+      actions:
+          _isDeleteMode
+              ? [
+                IconButton(
+                  icon: const Icon(Icons.done, color: Colors.black),
+                  onPressed: _exitDeleteMode,
+                ),
+              ]
+              : null,
     );
   }
 
@@ -217,18 +270,19 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildActionButtons(PlayList playlist) {
+    if (_isDeleteMode) {
+      return const SizedBox.shrink(); // Hide all action buttons in delete mode
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildActionButton(
           icon: Icons.edit_outlined,
-          onTap: () => _handleEditPlaylist(),
+          onTap: () => _handleEditPlaylist(playlist),
         ),
         _buildPlayButton(playlist),
-        _buildActionButton(
-          icon: Icons.delete_outline,
-          onTap: () => _showDeleteConfirmationDialog(playlist),
-        ),
+        _buildActionButton(icon: Icons.delete_outline, onTap: _enterDeleteMode),
       ],
     );
   }
@@ -252,16 +306,17 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlayButton(PlayList playlist) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.deepPurple,
+    return ElevatedButton.icon(
+      onPressed: () => _handlePlayPlaylist(playlist),
+      icon: const Icon(Icons.play_arrow, color: Colors.white),
+      label: const Text(
+        'PHÁT TẤT CẢ',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
-      child: IconButton(
-        icon: const Icon(Icons.play_arrow, color: Colors.white, size: 32),
-        onPressed: () => _handlePlayPlaylist(playlist),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepPurple,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       ),
     );
   }
@@ -280,7 +335,13 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                 isHorizontal: true,
                 index: index,
                 showIndex: true,
-                onTap: () => _handleSongTap(playlist, index),
+                isDeleteMode: _isDeleteMode,
+                playlistId: playlist.id,
+                onTap:
+                    _isDeleteMode
+                        ? null
+                        : () => _handleSongTap(playlist, index),
+                onSongDeleted: () => _refreshPlaylist(),
               );
             }).toList(),
       ),
@@ -353,12 +414,15 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   // Event handlers
-  void _handleEditPlaylist() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Chức năng chỉnh sửa playlist'),
-        backgroundColor: Colors.blue,
-        duration: Duration(seconds: 2),
+  void _handleEditPlaylist(PlayList playlist) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => PlaylistEditScreen(
+              playlist: playlist,
+              onTabSelected: widget.onTabSelected,
+            ),
       ),
     );
   }
@@ -491,5 +555,18 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       default:
         return Colors.orange;
     }
+  }
+
+  // Delete mode methods
+  void _enterDeleteMode() {
+    setState(() {
+      _isDeleteMode = true;
+    });
+  }
+
+  void _exitDeleteMode() {
+    setState(() {
+      _isDeleteMode = false;
+    });
   }
 }
