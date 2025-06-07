@@ -216,18 +216,25 @@ class _PlaylistSpotifyScreenState extends State<PlaylistSpotifyScreen> {
   }
 
   Widget _buildActionButtons(PlayList playlist) {
+    // Check if current user is the owner of the playlist
+    bool isOwner = playlist.ownerId == UserInfoManager.userId;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildActionButton(
-          icon: Icons.edit_outlined,
-          onTap: () => _handleEditPlaylist(),
-        ),
+        // Only show edit button if user is the owner
+        if (isOwner)
+          _buildActionButton(
+            icon: Icons.edit_outlined,
+            onTap: () => _handleEditPlaylist(),
+          ),
         _buildPlayButton(playlist),
-        _buildActionButton(
-          icon: Icons.delete_outline,
-          onTap: () => _showDeleteConfirmationDialog(playlist),
-        ),
+        // Only show delete button if user is the owner
+        if (isOwner)
+          _buildActionButton(
+            icon: Icons.delete_outline,
+            onTap: () => _showDeleteConfirmationDialog(playlist),
+          ),
       ],
     );
   }

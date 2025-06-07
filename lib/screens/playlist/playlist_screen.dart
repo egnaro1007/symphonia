@@ -242,15 +242,25 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
       return const SizedBox.shrink(); // Hide all action buttons in delete mode
     }
 
+    // Check if current user is the owner of the playlist
+    bool isOwner = playlist.ownerId == UserInfoManager.userId;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildActionButton(
-          icon: Icons.edit_outlined,
-          onTap: () => _handleEditPlaylist(playlist),
-        ),
+        // Only show edit button if user is the owner
+        if (isOwner)
+          _buildActionButton(
+            icon: Icons.edit_outlined,
+            onTap: () => _handleEditPlaylist(playlist),
+          ),
         _buildPlayButton(playlist),
-        _buildActionButton(icon: Icons.delete_outline, onTap: _enterDeleteMode),
+        // Only show delete button if user is the owner
+        if (isOwner)
+          _buildActionButton(
+            icon: Icons.delete_outline,
+            onTap: _enterDeleteMode,
+          ),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/services/playlist.dart';
+import 'package:symphonia/services/user_info_manager.dart';
 import 'dart:io';
 
 class PlaylistItem extends StatelessWidget {
@@ -191,41 +192,50 @@ class PlaylistItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             if (showTrailingControls)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children:
-                    isDeleteMode
-                        ? [
-                          // In delete mode, show only delete icon
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
-                              size: 28,
-                            ),
-                            onPressed: () => _handleDeletePlaylist(context),
-                          ),
-                        ]
-                        : [
-                          // Normal mode - show play and options icons
-                          IconButton(
-                            icon: const Icon(
-                              Icons.play_circle_outline,
-                              size: 28,
-                            ),
-                            onPressed: () {
-                              if (onTap != null) {
-                                onTap!();
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.more_vert),
-                            onPressed: () {
-                              _showPlaylistOptions(context);
-                            },
-                          ),
-                        ],
+              Builder(
+                builder: (context) {
+                  // Check if current user is the owner of the playlist
+                  bool isOwner = playlist.ownerId == UserInfoManager.userId;
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children:
+                        isDeleteMode
+                            ? [
+                              // In delete mode, show only delete icon if user is the owner
+                              if (isOwner)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                    size: 28,
+                                  ),
+                                  onPressed:
+                                      () => _handleDeletePlaylist(context),
+                                ),
+                            ]
+                            : [
+                              // Normal mode - show play and options icons
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.play_circle_outline,
+                                  size: 28,
+                                ),
+                                onPressed: () {
+                                  if (onTap != null) {
+                                    onTap!();
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.more_vert),
+                                onPressed: () {
+                                  _showPlaylistOptions(context);
+                                },
+                              ),
+                            ],
+                  );
+                },
               ),
           ],
         ),
@@ -234,12 +244,19 @@ class PlaylistItem extends StatelessWidget {
   }
 
   Widget _buildTrailingControls(BuildContext context) {
-    // In delete mode, show only delete icon
+    // Check if current user is the owner of the playlist
+    bool isOwner = playlist.ownerId == UserInfoManager.userId;
+
+    // In delete mode, show only delete icon if user is the owner
     if (isDeleteMode) {
-      return IconButton(
-        icon: const Icon(Icons.delete_outline, color: Colors.red),
-        onPressed: () => _handleDeletePlaylist(context),
-      );
+      if (isOwner) {
+        return IconButton(
+          icon: const Icon(Icons.delete_outline, color: Colors.red),
+          onPressed: () => _handleDeletePlaylist(context),
+        );
+      } else {
+        return const SizedBox.shrink(); // Hide delete button for non-owners
+      }
     }
 
     // Normal mode - show play and options icons
@@ -343,6 +360,9 @@ class PlaylistItem extends StatelessWidget {
   }
 
   Future<void> _showPlaylistOptions(BuildContext context) async {
+    // Check if current user is the owner of the playlist
+    bool isOwner = playlist.ownerId == UserInfoManager.userId;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -359,17 +379,19 @@ class PlaylistItem extends StatelessWidget {
                 }
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text(
-                'Xóa playlist',
-                style: TextStyle(color: Colors.red),
+            // Only show delete option if user is the owner
+            if (isOwner)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text(
+                  'Xóa playlist',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleDeletePlaylist(context);
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _handleDeletePlaylist(context);
-              },
-            ),
           ],
         );
       },

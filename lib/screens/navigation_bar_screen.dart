@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
-import 'package:symphonia/screens/follow/follow_screen.dart';
+import 'package:symphonia/screens/follow/friend_screen.dart';
 import 'package:symphonia/screens/follow/friend_request_screen.dart';
 import 'package:symphonia/screens/follow/search_user_screen.dart';
 import 'package:symphonia/screens/follow/user_screen.dart';

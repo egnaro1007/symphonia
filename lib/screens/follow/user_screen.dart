@@ -470,34 +470,124 @@ class _UserScreenState extends State<UserScreen> {
                                                   );
                                                 } else if (userStatus.status ==
                                                     'friend') {
-                                                  await FriendOperations.unfriend(
-                                                    userStatus.id,
-                                                  );
-                                                  setState(() {
-                                                    userStatus = UserStatus(
-                                                      id: userStatus.id,
-                                                      username:
-                                                          userStatus.username,
-                                                      avatarUrl:
-                                                          userStatus.avatarUrl,
-                                                      status: 'none',
-                                                      profilePictureUrl:
-                                                          userStatus
-                                                              .profilePictureUrl,
-                                                      firstName:
-                                                          userStatus.firstName,
-                                                      lastName:
-                                                          userStatus.lastName,
-                                                      gender: userStatus.gender,
-                                                      birthDate:
-                                                          userStatus.birthDate,
-                                                      email: userStatus.email,
-                                                    );
-                                                  });
-                                                  UserEventManager()
-                                                      .notifyUnfriended(
-                                                        userStatus.id,
+                                                  // Show confirmation dialog for unfriending
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (
+                                                      BuildContext context,
+                                                    ) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                          'Xác nhận',
+                                                        ),
+                                                        content: Text(
+                                                          'Bạn có chắc chắn muốn hủy kết bạn với ${userStatus.fullName}?',
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed:
+                                                                () =>
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                    ),
+                                                            child: const Text(
+                                                              'Hủy',
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () async {
+                                                              Navigator.pop(
+                                                                context,
+                                                              );
+
+                                                              // Show loading message
+                                                              ScaffoldMessenger.of(
+                                                                context,
+                                                              ).showSnackBar(
+                                                                SnackBar(
+                                                                  content: Text(
+                                                                    'Đang hủy kết bạn với ${userStatus.fullName}...',
+                                                                  ),
+                                                                ),
+                                                              );
+
+                                                              try {
+                                                                await FriendOperations.unfriend(
+                                                                  userStatus.id,
+                                                                );
+                                                                setState(() {
+                                                                  userStatus = UserStatus(
+                                                                    id:
+                                                                        userStatus
+                                                                            .id,
+                                                                    username:
+                                                                        userStatus
+                                                                            .username,
+                                                                    avatarUrl:
+                                                                        userStatus
+                                                                            .avatarUrl,
+                                                                    status:
+                                                                        'none',
+                                                                    profilePictureUrl:
+                                                                        userStatus
+                                                                            .profilePictureUrl,
+                                                                    firstName:
+                                                                        userStatus
+                                                                            .firstName,
+                                                                    lastName:
+                                                                        userStatus
+                                                                            .lastName,
+                                                                    gender:
+                                                                        userStatus
+                                                                            .gender,
+                                                                    birthDate:
+                                                                        userStatus
+                                                                            .birthDate,
+                                                                    email:
+                                                                        userStatus
+                                                                            .email,
+                                                                  );
+                                                                });
+                                                                UserEventManager()
+                                                                    .notifyUnfriended(
+                                                                      userStatus
+                                                                          .id,
+                                                                    );
+
+                                                                // Show success message
+                                                                ScaffoldMessenger.of(
+                                                                  context,
+                                                                ).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text(
+                                                                      'Đã hủy kết bạn với ${userStatus.fullName}',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              } catch (e) {
+                                                                ScaffoldMessenger.of(
+                                                                  context,
+                                                                ).showSnackBar(
+                                                                  SnackBar(
+                                                                    content: Text(
+                                                                      'Lỗi khi hủy kết bạn: ${e.toString()}',
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                            child: const Text(
+                                                              'Xác nhận',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       );
+                                                    },
+                                                  );
                                                 }
                                               } catch (e) {
                                                 ScaffoldMessenger.of(
@@ -708,64 +798,7 @@ class _UserScreenState extends State<UserScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Playlist',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (playlists.isNotEmpty)
-                                Text(
-                                  '${playlists.length} playlist${playlists.length > 1 ? 's' : ''}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          if (playlists.isEmpty)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32.0),
-                                child: Text(
-                                  'Không có playlist công khai',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              child: Row(
-                                children:
-                                    playlists.map((playlist) {
-                                      return PlaylistItem(
-                                        playlist: playlist,
-                                        isHorizontal: false,
-                                        showTrailingControls: false,
-                                        onTap: () {
-                                          widget.onTabSelected(6, playlist.id);
-                                        },
-                                      );
-                                    }).toList(),
-                              ),
-                            ),
-                        ],
-                      ),
+                      child: _buildPlaylistSections(),
                     ),
                   ),
                 ],
@@ -774,6 +807,135 @@ class _UserScreenState extends State<UserScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPlaylistSections() {
+    // Separate playlists by permission type
+    List<PlayList> friendsPlaylists =
+        playlists
+            .where((playlist) => playlist.sharePermission == 'friends')
+            .toList();
+    List<PlayList> publicPlaylists =
+        playlists
+            .where((playlist) => playlist.sharePermission == 'public')
+            .toList();
+
+    // Check if user is friend to determine if we should show friends playlists
+    bool isFriend = userStatus.status == 'friend';
+    bool hasVisiblePlaylists =
+        publicPlaylists.isNotEmpty || (isFriend && friendsPlaylists.isNotEmpty);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header with total count
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Playlist',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            if (hasVisiblePlaylists)
+              Text(
+                '${(isFriend ? friendsPlaylists.length : 0) + publicPlaylists.length} playlist',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Show message if no playlists are visible
+        if (!hasVisiblePlaylists)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                'Không có playlist công khai',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          )
+        else ...[
+          // Friends Playlists Section (only if user is friend and has friends playlists)
+          if (isFriend && friendsPlaylists.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(Icons.people, size: 20, color: Colors.deepPurple),
+                const SizedBox(width: 8),
+                Text(
+                  'Playlist dành cho bạn bè (${friendsPlaylists.length})',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.deepPurple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children:
+                    friendsPlaylists.map((playlist) {
+                      return PlaylistItem(
+                        playlist: playlist,
+                        isHorizontal: false,
+                        showTrailingControls: false,
+                        onTap: () {
+                          widget.onTabSelected(6, playlist.id);
+                        },
+                      );
+                    }).toList(),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Public Playlists Section
+          if (publicPlaylists.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(Icons.public, size: 20, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(
+                  'Playlist công khai (${publicPlaylists.length})',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children:
+                    publicPlaylists.map((playlist) {
+                      return PlaylistItem(
+                        playlist: playlist,
+                        isHorizontal: false,
+                        showTrailingControls: false,
+                        onTap: () {
+                          widget.onTabSelected(6, playlist.id);
+                        },
+                      );
+                    }).toList(),
+              ),
+            ),
+          ],
+        ],
+      ],
     );
   }
 }
