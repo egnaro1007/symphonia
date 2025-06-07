@@ -26,9 +26,12 @@ class _NextTrackTabState extends State<NextTrackTab>
 
   // Track current song to detect changes
   String _currentSongId = '';
+  int _currentSongIndex = -1;
+  int _playlistLength = 0;
 
-  // Subscription for song changes
+  // Subscriptions for changes
   StreamSubscription? _songChangeSubscription;
+  StreamSubscription? _playlistChangeSubscription;
 
   // Flag to track initialization
   bool _isInitialized = false;
@@ -45,17 +48,40 @@ class _NextTrackTabState extends State<NextTrackTab>
   void _initializeTab() {
     if (_isInitialized) return;
 
-    // Get initial song ID
+    // Get initial song ID, index and playlist length
     _currentSongId = _playerController.playingSong.id.toString();
+    _currentSongIndex = _playerController.currentSongIndex;
+    _playlistLength = _playerController.currentPlaylist.songs.length;
 
     // Listen for song changes
     _songChangeSubscription = _playerController.onSongChange.listen((song) {
       final newSongId = song.id.toString();
-      if (_currentSongId != newSongId) {
+      final newSongIndex = _playerController.currentSongIndex;
+
+      if (_currentSongId != newSongId || _currentSongIndex != newSongIndex) {
         setState(() {
           _currentSongId = newSongId;
-          // Refresh playlist content when song changes
-          // Add your refresh logic here
+          _currentSongIndex = newSongIndex;
+        });
+      }
+    });
+
+    // Listen for playlist changes
+    _playlistChangeSubscription = _playerController.onPlaylistChange.listen((
+      playlist,
+    ) {
+      final newPlaylistLength = playlist.songs.length;
+      final newSongIndex = _playerController.currentSongIndex;
+      final newSongId = _playerController.playingSong.id.toString();
+
+      // Update state if anything changed
+      if (_playlistLength != newPlaylistLength ||
+          _currentSongIndex != newSongIndex ||
+          _currentSongId != newSongId) {
+        setState(() {
+          _playlistLength = newPlaylistLength;
+          _currentSongIndex = newSongIndex;
+          _currentSongId = newSongId;
         });
       }
     });
@@ -72,6 +98,7 @@ class _NextTrackTabState extends State<NextTrackTab>
   @override
   void dispose() {
     _songChangeSubscription?.cancel();
+    _playlistChangeSubscription?.cancel();
     super.dispose();
   }
 
@@ -102,28 +129,54 @@ class _NextTrackTabState extends State<NextTrackTab>
   }
 
   Widget _buildPlaylistContent() {
-    final nextSongs = _playerController.queueSongs;
+    final allSongs = _playerController.currentPlaylist.songs;
+    final currentIndex = _currentSongIndex;
 
-    if (nextSongs.isEmpty) {
+    if (allSongs.isEmpty) {
       return const Center(
         child: Text(
-          "Không có bài hát nào trong danh sách phát tiếp theo",
+          "Không có bài hát nào trong danh sách phát",
           style: TextStyle(color: Colors.white, fontSize: 16),
           textAlign: TextAlign.center,
         ),
       );
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: nextSongs.length,
+      itemCount: allSongs.length,
+      onReorder: (oldIndex, newIndex) {
+        _playerController.reorderSongs(oldIndex, newIndex);
+      },
       itemBuilder: (context, index) {
-        return SongItem(
-          song: nextSongs[index],
-          showTrailingControls: true,
-          isHorizontal: true,
-          index: index,
-          showIndex: false,
+        final isCurrentSong =
+            index == currentIndex &&
+            allSongs[index].id.toString() == _currentSongId;
+
+        return Container(
+          key: ValueKey(
+            allSongs[index].id,
+          ), // Important: unique key for each item
+          decoration:
+              isCurrentSong
+                  ? BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  )
+                  : null,
+          child: SongItem(
+            song: allSongs[index],
+            showTrailingControls: true,
+            isHorizontal: true,
+            index: index,
+            showIndex: false,
+            isDragMode: true, // Enable drag mode
+            showDeleteIcon:
+                !isCurrentSong, // Show delete icon if not current song
+            onDeletePressed:
+                !isCurrentSong ? () => _handleDeleteSong(index) : null,
+            onTap: () => _handleSongTap(index),
+          ),
         );
       },
     );
@@ -133,5 +186,15 @@ class _NextTrackTabState extends State<NextTrackTab>
   void _handleTabTap(int index) {
     if (index == _tabIndex) return; // Already on this tab
     widget.onTabChange(index);
+  }
+
+  // Handle song tap to play specific song from playlist
+  void _handleSongTap(int index) {
+    _playerController.gotoIndex(index);
+  }
+
+  // Handle delete song
+  void _handleDeleteSong(int index) {
+    _playerController.removeSongFromPlaylist(index);
   }
 }

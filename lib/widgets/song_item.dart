@@ -20,6 +20,9 @@ class SongItem extends StatelessWidget {
   final bool isDeleteMode; // New parameter for delete mode
   final String? playlistId; // New parameter for playlist ID when deleting
   final VoidCallback? onSongDeleted; // New callback when song is deleted
+  final bool isDragMode; // New parameter for drag mode
+  final bool showDeleteIcon; // New parameter to show delete icon
+  final VoidCallback? onDeletePressed; // New callback for delete action
 
   const SongItem({
     Key? key,
@@ -33,6 +36,9 @@ class SongItem extends StatelessWidget {
     this.isDeleteMode = false, // Default to false
     this.playlistId, // Can be null when not needed
     this.onSongDeleted, // Can be null when not needed
+    this.isDragMode = false, // Default to false
+    this.showDeleteIcon = false, // Default to false
+    this.onDeletePressed, // Can be null when not needed
   }) : super(key: key);
 
   @override
@@ -307,6 +313,46 @@ class SongItem extends StatelessWidget {
       );
     }
 
+    // In drag mode, show drag handle with optional delete icon
+    if (isDragMode) {
+      if (showDeleteIcon) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.delete_outline,
+                color: Colors.red,
+                size: 20,
+              ),
+              onPressed: onDeletePressed,
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+            ReorderableDragStartListener(
+              index: index ?? 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.drag_handle,
+                  color: Colors.grey[600],
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
+        );
+      } else {
+        return ReorderableDragStartListener(
+          index: index ?? 0,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Icon(Icons.drag_handle, color: Colors.grey[600], size: 24),
+          ),
+        );
+      }
+    }
+
     // Normal mode - show play and options icons
     bool canPlay = song.audioUrl.isNotEmpty;
 
@@ -429,8 +475,17 @@ class SongItem extends StatelessWidget {
               leading: const Icon(Icons.queue_play_next),
               title: Text(AppLocalizations.of(context)!.addToPlayNext),
               onTap: () {
-                PlayerController.getInstance().loadSong(song, false);
+                PlayerController.getInstance().addSongToPlaylist(song);
                 Navigator.pop(context);
+
+                // Show confirmation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã thêm "${song.title}" vào danh sách phát'),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
               },
             ),
             ListTile(

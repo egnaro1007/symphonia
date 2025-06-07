@@ -262,7 +262,7 @@ class _SongListScreenState extends State<SongListScreen> {
                           showTrailingControls: true,
                           isHorizontal: true,
                           index: index,
-                          showIndex: true,
+                          showIndex: false,
                         );
                       },
                     ),

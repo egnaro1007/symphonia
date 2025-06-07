@@ -11,6 +11,8 @@ class PlayerController {
   static PlayerController? _instance;
   final StreamController<Song> _songChangeController =
       StreamController<Song>.broadcast();
+  final StreamController<PlayList> _playlistChangeController =
+      StreamController<PlayList>.broadcast();
 
   bool _hasSong = false;
   Song _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
@@ -50,6 +52,7 @@ class PlayerController {
   Stream<PlaybackState> get onPlayerStateChanged => _audioHandler.playbackState;
   Stream<Duration?> get onDurationChanged => _audioHandler.durationStream;
   Stream<Song> get onSongChange => _songChangeController.stream;
+  Stream<PlayList> get onPlaylistChange => _playlistChangeController.stream;
 
   // Getters
   Song get playingSong => _playingSong;
@@ -79,7 +82,6 @@ class PlayerController {
   }
 
   Future<void> _playSong(Song song) async {
-
     _playingSong = song;
     _hasSong = true;
 
@@ -93,8 +95,7 @@ class PlayerController {
     // Play through audio handler (this will show notification)
     try {
       await _audioHandler.playSong(song);
-    } catch (e) {
-    }
+    } catch (e) {}
 
     // Notify listeners about song change after audio handler is set up
     _songChangeController.add(_playingSong);
@@ -107,6 +108,7 @@ class PlayerController {
       _currentSongIndex = 0;
     }
     _currentPlaylist.songs.add(song);
+    _playlistChangeController.add(_currentPlaylist); // Notify playlist change
     if (resetQueue || !hasSong) {
       _currentSongIndex = 0;
       await _playSong(_currentPlaylist.songs[_currentSongIndex]);
@@ -117,6 +119,7 @@ class PlayerController {
     _currentPlaylist.songs.clear();
     _currentPlaylist.songs.addAll(playlist.songs);
     _currentSongIndex = index;
+    _playlistChangeController.add(_currentPlaylist); // Notify playlist change
     await _playSong(_currentPlaylist.songs[_currentSongIndex]);
   }
 
@@ -124,7 +127,80 @@ class PlayerController {
     _currentPlaylist.songs.clear();
     _currentPlaylist.songs.addAll(songs);
     _currentSongIndex = index;
+    _playlistChangeController.add(_currentPlaylist); // Notify playlist change
     await _playSong(_currentPlaylist.songs[_currentSongIndex]);
+  }
+
+  // Add song to current playlist
+  void addSongToPlaylist(Song song) {
+    _currentPlaylist.songs.add(song);
+    _playlistChangeController.add(_currentPlaylist); // Notify playlist change
+  }
+
+  // Add songs to current playlist
+  void addSongsToPlaylist(List<Song> songs) {
+    _currentPlaylist.songs.addAll(songs);
+    _playlistChangeController.add(_currentPlaylist); // Notify playlist change
+  }
+
+  // Remove song from current playlist
+  void removeSongFromPlaylist(int index) {
+    if (index >= 0 && index < _currentPlaylist.songs.length) {
+      _currentPlaylist.songs.removeAt(index);
+      // Adjust current index if necessary
+      if (index < _currentSongIndex) {
+        _currentSongIndex--;
+      } else if (index == _currentSongIndex &&
+          _currentSongIndex >= _currentPlaylist.songs.length) {
+        _currentSongIndex = _currentPlaylist.songs.length - 1;
+      }
+      _playlistChangeController.add(_currentPlaylist); // Notify playlist change
+    }
+  }
+
+  // Reorder songs in current playlist
+  void reorderSongs(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    if (oldIndex >= 0 &&
+        oldIndex < _currentPlaylist.songs.length &&
+        newIndex >= 0 &&
+        newIndex < _currentPlaylist.songs.length) {
+      final Song song = _currentPlaylist.songs.removeAt(oldIndex);
+      _currentPlaylist.songs.insert(newIndex, song);
+
+      // Store old current index for comparison
+      final oldCurrentIndex = _currentSongIndex;
+
+      // Adjust current song index
+      if (oldIndex == _currentSongIndex) {
+        // The currently playing song was moved
+        _currentSongIndex = newIndex;
+      } else if (oldIndex < _currentSongIndex &&
+          newIndex >= _currentSongIndex) {
+        // Song moved from before current to after current
+        _currentSongIndex--;
+      } else if (oldIndex > _currentSongIndex &&
+          newIndex <= _currentSongIndex) {
+        // Song moved from after current to before current
+        _currentSongIndex++;
+      }
+
+      // Debug print to track changes
+      print(
+        'Reorder: oldIndex=$oldIndex, newIndex=$newIndex, oldCurrentIndex=$oldCurrentIndex, newCurrentIndex=$_currentSongIndex',
+      );
+
+      // Notify playlist change
+      _playlistChangeController.add(_currentPlaylist);
+
+      // If the current song index changed, also emit song change to ensure UI updates
+      if (oldCurrentIndex != _currentSongIndex) {
+        _songChangeController.add(_playingSong);
+      }
+    }
   }
 
   // Controls - delegate to audio handler
@@ -200,12 +276,12 @@ class PlayerController {
         songs: [],
       );
       _songChangeController.add(_playingSong);
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   void dispose() {
     _songChangeController.close();
+    _playlistChangeController.close();
   }
 
   // Thiết lập callbacks cho audio handler
