@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:symphonia/services/spotify_token.dart';
 
 import '../models/song.dart';
 import 'package:http/http.dart' as http;
@@ -10,47 +9,8 @@ class SongOperations {
   SongOperations._();
 
   static Future<List<Song>> getTrendingSongs() async {
-    try {
-      final id = '0aiBKNSqiPnhtcw1QlXK5s';
-      final token = await SpotifyToken.getTokens();
-      final url = Uri.parse('https://api.spotify.com/v1/playlists/$id/tracks');
-      final response = await http.get(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        // Parse the JSON response
-        final data = jsonDecode(response.body);
-        var trackData = data['items'];
-
-        // for all JSON in JSONArray songData
-        List<Song> songs = [];
-        int songID = 0;
-        for (var track in trackData) {
-          ++songID;
-          if (songID > 20) break; // Limit to 10 songs
-
-          songs.add(
-            Song(
-              // rank: songID.toString(),
-              title: track['track']['name'],
-              artist: track['track']['artists']
-                  .map((artist) => artist['name'])
-                  .join(', '),
-              imagePath: track['track']['album']['images'][0]['url'],
-              audioUrl: track['track']['preview_url'] ?? "",
-            ),
-          );
-        }
-
-        return songs;
-      } else {
-        throw Exception('Failed to load songs');
-      }
-    } catch (e) {
-      return [];
-    }
+    // Now returns local trending songs instead of Spotify data
+    return getSuggestedSongs();
   }
 
   static Future<List<Song>> getSuggestedSongs() async {
@@ -67,7 +27,6 @@ class SongOperations {
 
         List<Song> songs = [];
         for (var song in jsonData) {
-
           // Parse artist information
           String artist = '';
           if (song['artist'] != null && song['artist'] is List) {
@@ -91,8 +50,7 @@ class SongOperations {
               baseUrl = 'http://$baseUrl';
             }
             audioUrl = '$baseUrl/api/library/songs/${song['id']}/';
-          } else {
-          }
+          } else {}
 
           // Handle cover art similar to audio URL
           String imagePath = song['cover_art'] ?? '';

@@ -6,6 +6,7 @@ import 'package:symphonia/screens/profile/login_screen.dart';
 import 'package:symphonia/screens/profile/playlist.dart';
 import 'package:symphonia/services/token_manager.dart';
 import 'package:symphonia/services/user_info_manager.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class ProfileScreen extends AbstractScreen {
   final void Function(int, String) onTabSelected;
@@ -48,10 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Colors.orange,
                   () {
                     // Navigate to recently played screen using navigation system
-                    widget.onTabSelected(
-                      11,
-                      "",
-                    ); // Index 11 for recently played
+                    widget.onTabSelected(ScreenIndex.recentlyPlayed.value, "");
                   },
                 ),
                 _buildQuickAccessButton(
@@ -60,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Colors.blue,
                   () {
                     // Navigate to favorites screen using navigation system
-                    widget.onTabSelected(12, ""); // Index 12 for favorites
+                    widget.onTabSelected(ScreenIndex.favorites.value, "");
                   },
                 ),
                 _buildQuickAccessButton(
@@ -69,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Colors.purple,
                   () {
                     // Navigate to downloaded screen using navigation system
-                    widget.onTabSelected(13, ""); // Index 13 for downloaded
+                    widget.onTabSelected(ScreenIndex.downloaded.value, "");
                   },
                 ),
               ],

@@ -8,6 +8,7 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/token_manager.dart';
 import 'package:symphonia/services/user_event_manager.dart';
 import 'package:symphonia/widgets/user_avatar.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class SearchUserScreen extends AbstractScreen {
   @override
@@ -383,7 +384,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                           final user = _searchResults[index];
                           return GestureDetector(
                             onTap: () {
-                              widget.onTabSelected(8, user.id);
+                              widget.onTabSelected(
+                                ScreenIndex.userProfile.value,
+                                user.id,
+                              );
                             },
                             child: Card(
                               margin: const EdgeInsets.only(bottom: 16),

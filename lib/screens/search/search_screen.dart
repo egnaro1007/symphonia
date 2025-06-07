@@ -5,6 +5,7 @@ import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
 import 'package:symphonia/widgets/song_item.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class SearchScreen extends AbstractScreen {
   const SearchScreen({super.key, required super.onTabSelected});
@@ -111,7 +112,7 @@ class _SearchPageState extends State<SearchScreen>
                       _isSearchSubmitted = false;
                     });
                     // Navigate back
-                    widget.onTabSelected(0, "");
+                    widget.onTabSelected(ScreenIndex.home.value, "");
                   },
                 ),
                 Expanded(
@@ -306,5 +307,4 @@ class _SearchPageState extends State<SearchScreen>
       ),
     );
   }
-
 }

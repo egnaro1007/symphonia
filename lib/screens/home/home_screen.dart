@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/controller/player_controller.dart';
-import 'package:symphonia/models/playlist.dart';
+
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/services/song.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import '../abstract_navigation_screen.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class HomeScreen extends AbstractScreen {
   @override
@@ -77,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            widget.onTabSelected(7, "");
+                            widget.onTabSelected(ScreenIndex.search.value, "");
                           },
                           child: const Icon(Icons.search, size: 24),
                         ),
@@ -195,50 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-
-              // Recommended Playlists Title
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 16.0,
-                  bottom: 8.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.suggestPlaylists,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Icon(Icons.chevron_right),
-                  ],
-                ),
-              ),
-
-              // Recommended Playlists Horizontal Scrollable
-              SizedBox(
-                height: 200,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  children: [
-                    _buildPlaylistItem(
-                      playlist: BriefPlayList(
-                        id: '616iSon5fJRnCwYbAJZ9kE',
-                        title: 'Vietnam Top 100',
-                        picture:
-                            'https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c465991ae29721b9576b2cffc',
-                        creator: 'Top 100',
-                      ),
-                      description: "Top những bài hát hot nhất Việt Nam",
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -254,135 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: SongItem(song: suggestedSong),
-    );
-  }
-
-  Widget _buildPlaylistItem({
-    required BriefPlayList playlist,
-    required String description,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        widget.onTabSelected(5, playlist.id);
-      },
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Playlist cover image
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: Image.network(playlist.picture).image,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: Text(
-                playlist.title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Flexible(
-              child: Text(
-                description,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentItem({
-    IconData? icon,
-    String? label,
-    List<Color>? gradient,
-    Color? backgroundColor,
-    Color? iconColor,
-    required String title,
-    bool hasPlayButton = false,
-  }) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        gradient:
-            gradient != null
-                ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: gradient,
-                )
-                : null,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null)
-                  Icon(
-                    icon,
-                    size: 30,
-                    color: iconColor ?? Colors.orange.shade300,
-                  ),
-                if (label != null)
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: gradient != null ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (hasPlayButton)
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  size: 20,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

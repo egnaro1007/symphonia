@@ -9,7 +9,7 @@ import 'package:symphonia/screens/follow/user_screen.dart';
 import 'package:symphonia/screens/home/home_screen.dart';
 import 'package:symphonia/screens/player/mini_player.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
-import 'package:symphonia/screens/playlist/playlist_spotify_screen.dart';
+
 import 'package:symphonia/screens/profile/profile_screen.dart';
 import 'package:symphonia/screens/profile/song_list_screen.dart';
 import 'package:symphonia/screens/search/search_screen.dart';
@@ -18,6 +18,7 @@ import 'package:symphonia/screens/trending/trending_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_creation_screen.dart';
 import 'package:symphonia/services/history.dart';
 import 'package:symphonia/services/like.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   final int selectedBottom;
@@ -51,32 +52,39 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
   void initState() {
     super.initState();
     _mainTabScreens = [
-      HomeScreen(onTabSelected: _onPlaylistSelected),
-      TrendingScreen(onTabSelected: _onPlaylistSelected),
-      FollowScreen(onTabSelected: _onPlaylistSelected),
-      ProfileScreen(onTabSelected: _onPlaylistSelected),
-      SettingScreen(onTabSelected: _onPlaylistSelected),
+      HomeScreen(onTabSelected: _onPlaylistSelected), // ScreenIndex.home
+      TrendingScreen(
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.trending
+      FollowScreen(onTabSelected: _onPlaylistSelected), // ScreenIndex.follow
+      ProfileScreen(onTabSelected: _onPlaylistSelected), // ScreenIndex.profile
+      SettingScreen(onTabSelected: _onPlaylistSelected), // ScreenIndex.setting
     ];
 
     _extraScreens = [
-      PlaylistSpotifyScreen(
-        playlistID: _playlistID,
-        onTabSelected: _onPlaylistSelected,
-      ),
       PlaylistScreen(
+        // ScreenIndex.playlist (5)
         playlistID: _playlistID,
         onTabSelected: _onPlaylistSelected,
       ),
-      SearchScreen(onTabSelected: _onPlaylistSelected),
+      SearchScreen(
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.search (6)
       UserScreen(
+        // ScreenIndex.userProfile (7)
         key: const ValueKey("default"),
         userID: "1",
         searchQuery: "",
         onTabSelected: _onPlaylistSelected,
       ),
-      FriendRequestsScreen(onTabSelected: _onPlaylistSelected),
-      SearchUserScreen(onTabSelected: _onPlaylistSelected),
+      FriendRequestsScreen(
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.friendRequests (8)
+      SearchUserScreen(
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.searchUser (9)
       SongListScreen(
+        // ScreenIndex.recentlyPlayed (10)
         key: const ValueKey("recently_played"),
         screenTitle: 'Nghe gần đây',
         songsLoader: () => HistoryOperations.getRecentlyPlayedSongs(),
@@ -85,6 +93,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         onTabSelected: _onPlaylistSelected,
       ),
       SongListScreen(
+        // ScreenIndex.favorites (11)
         key: const ValueKey("favorites"),
         screenTitle: 'Yêu thích',
         songsLoader: () => LikeOperations.getLikeSongs(),
@@ -93,6 +102,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         onTabSelected: _onPlaylistSelected,
       ),
       SongListScreen(
+        // ScreenIndex.downloaded (12)
         key: const ValueKey("downloaded"),
         screenTitle: 'Đã tải',
         songsLoader: () => DownloadController.getDownloadedSongs(),
@@ -100,7 +110,9 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         titleColor: Colors.purple,
         onTabSelected: _onPlaylistSelected,
       ),
-      PlaylistCreationScreen(onTabSelected: _onPlaylistSelected),
+      PlaylistCreationScreen(
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.playlistCreation (13)
     ];
 
     _screens = [..._mainTabScreens, ..._extraScreens];
@@ -187,26 +199,20 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
 
       if (playlistID.isNotEmpty) {
         _playlistID = playlistID;
-        if (index == 5) {
-          _screens[5] = PlaylistSpotifyScreen(
+        if (index == ScreenIndex.playlist.value) {
+          _screens[ScreenIndex.playlist.value] = PlaylistScreen(
             playlistID: _playlistID,
             onTabSelected: _onPlaylistSelected,
           );
-          _extraScreens[0] = _screens[5];
-        } else if (index == 6) {
-          _screens[6] = PlaylistScreen(
-            playlistID: _playlistID,
-            onTabSelected: _onPlaylistSelected,
-          );
-          _extraScreens[1] = _screens[6];
-        } else if (index == 8) {
-          _screens[8] = UserScreen(
+          _extraScreens[0] = _screens[ScreenIndex.playlist.value];
+        } else if (index == ScreenIndex.userProfile.value) {
+          _screens[ScreenIndex.userProfile.value] = UserScreen(
             key: ValueKey(_playlistID),
             userID: _playlistID,
             searchQuery: "",
             onTabSelected: _onPlaylistSelected,
           );
-          _extraScreens[3] = _screens[8];
+          _extraScreens[2] = _screens[ScreenIndex.userProfile.value];
         }
       }
     });

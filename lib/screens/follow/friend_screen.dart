@@ -5,6 +5,7 @@ import 'package:symphonia/services/friend.dart';
 import 'package:symphonia/widgets/user_avatar.dart';
 import '../abstract_navigation_screen.dart';
 import 'package:symphonia/services/user_event_manager.dart';
+import 'package:symphonia/constants/screen_index.dart';
 import 'dart:async';
 
 class FollowScreen extends AbstractScreen {
@@ -85,7 +86,7 @@ class _FollowScreenState extends State<FollowScreen> {
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
-              widget.onTabSelected(10, "");
+              widget.onTabSelected(ScreenIndex.searchUser.value, "");
             },
           ),
           // Nút thông báo
@@ -95,7 +96,7 @@ class _FollowScreenState extends State<FollowScreen> {
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.black),
                 onPressed: () {
-                  widget.onTabSelected(9, "");
+                  widget.onTabSelected(ScreenIndex.friendRequests.value, "");
                 },
               ),
               if (numberOfFriendRequests > 0)
@@ -166,7 +167,7 @@ class _FollowScreenState extends State<FollowScreen> {
                   ),
                   title: GestureDetector(
                     onTap: () {
-                      widget.onTabSelected(8, friend.id);
+                      widget.onTabSelected(ScreenIndex.userProfile.value, friend.id,);
                     },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

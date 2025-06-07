@@ -4,6 +4,7 @@ import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/playlist_notifier.dart';
 import 'package:symphonia/widgets/playlist_item.dart';
+import 'package:symphonia/constants/screen_index.dart';
 
 class PlayListComponent extends StatefulWidget {
   final void Function(int, String) onTabSelected;
@@ -67,7 +68,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
               showTrailingControls: true,
               isDeleteMode: true,
               onTap: () {
-                widget.onTabSelected(6, playlist.id);
+                widget.onTabSelected(ScreenIndex.playlist.value, playlist.id);
               },
               onPlaylistDeleted: () {
                 _loadPlaylists();
@@ -107,7 +108,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       onTap: () {
-        widget.onTabSelected(14, "");
+        widget.onTabSelected(ScreenIndex.playlistCreation.value, "");
       },
     );
   }

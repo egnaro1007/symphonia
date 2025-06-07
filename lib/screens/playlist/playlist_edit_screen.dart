@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/playlist_notifier.dart';
+import 'package:symphonia/constants/screen_index.dart';
 import '../abstract_navigation_screen.dart';
 
 class PlaylistEditScreen extends AbstractScreen {
@@ -214,7 +215,7 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                   onPressed: () {
                     // Navigate back to playlist screen with refresh
                     Navigator.pop(context);
-                    widget.onTabSelected(6, widget.playlist.id);
+                    widget.onTabSelected(ScreenIndex.playlist.value, widget.playlist.id);
                   },
                   child: const Text(
                     'Done',

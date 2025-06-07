@@ -7,6 +7,7 @@ import 'package:symphonia/services/friend.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/user_event_manager.dart';
 import 'package:symphonia/widgets/playlist_item.dart';
+import 'package:symphonia/constants/screen_index.dart';
 import 'dart:async';
 
 class UserScreen extends AbstractScreen {
@@ -890,7 +891,7 @@ class _UserScreenState extends State<UserScreen> {
                         isHorizontal: false,
                         showTrailingControls: false,
                         onTap: () {
-                          widget.onTabSelected(6, playlist.id);
+                          widget.onTabSelected(ScreenIndex.playlist.value, playlist.id);
                         },
                       );
                     }).toList(),
@@ -927,7 +928,7 @@ class _UserScreenState extends State<UserScreen> {
                         isHorizontal: false,
                         showTrailingControls: false,
                         onTap: () {
-                          widget.onTabSelected(6, playlist.id);
+                          widget.onTabSelected(ScreenIndex.playlist.value, playlist.id);
                         },
                       );
                     }).toList(),

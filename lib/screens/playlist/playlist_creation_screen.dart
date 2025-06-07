@@ -484,8 +484,8 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                                   ),
                                 );
 
-                                // Navigate to profile tab to see the created playlist
-                                widget.onTabSelected(3, "");
+                                // Navigate back to previous screen
+                                widget.onTabSelected(-1, "");
                               } else {
                                 // Failed
                                 ScaffoldMessenger.of(context).showSnackBar(
