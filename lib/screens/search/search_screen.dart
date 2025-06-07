@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
+import 'package:symphonia/models/album.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
+import 'package:symphonia/services/album.dart';
+import 'package:symphonia/services/audio_handler.dart';
 import 'package:symphonia/widgets/song_item.dart';
+import 'package:symphonia/widgets/album_item.dart';
 import 'package:symphonia/constants/screen_index.dart';
 
 class SearchScreen extends AbstractScreen {
@@ -201,11 +205,7 @@ class _SearchPageState extends State<SearchScreen>
                         ),
                         // Albums tab
                         _buildResultsTab<AlbumSearchResult>(
-                          (result) => _buildAlbumResult(
-                            result.name,
-                            result.artist,
-                            result.image,
-                          ),
+                          (result) => _buildAlbumResult(result),
                         ),
                       ],
                     ),
@@ -281,30 +281,28 @@ class _SearchPageState extends State<SearchScreen>
     );
   }
 
-  Widget _buildAlbumResult(String name, String artist, String imagePath) {
-    return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: Icon(Icons.playlist_play),
-        ),
-      ),
-      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(artist),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.play_circle_outline),
-          SizedBox(width: 16),
-          Icon(Icons.more_vert),
-        ],
-      ),
+  Widget _buildAlbumResult(AlbumSearchResult result) {
+    // Convert AlbumSearchResult to Album for widget compatibility
+    Album album = AlbumOperations.createSimpleAlbum(
+      id: result.id,
+      title: result.name,
+      artist: result.artist,
+      coverArt: result.image,
+      releaseDate: result.releaseDate,
+    );
+
+    return AlbumItem(
+      album: album,
+      isHorizontal: true,
+      showTrailingControls: true,
+      onTap: () {
+        // Navigate to album screen
+        widget.onTabSelected(ScreenIndex.album.value, album.id.toString());
+      },
+      onAlbumUpdate: () {
+        // Handle album update if needed
+        print('Album updated: ${album.title}');
+      },
     );
   }
 }

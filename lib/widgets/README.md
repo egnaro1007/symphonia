@@ -206,4 +206,152 @@ GridView.builder(
     );
   },
 )
-``` 
+```
+
+# Widgets
+
+This directory contains reusable Flutter widgets for the Symphonia music app.
+
+## Available Widgets
+
+### 1. PlaylistItem Widget
+A versatile widget for displaying playlist information with support for both horizontal and vertical layouts.
+
+**Key Features:**
+- Horizontal (list) and vertical (grid) layout options
+- Play and option controls
+- Delete functionality for playlist owners
+- Image loading with fallbacks (network, asset, file)
+- Indexed display option
+
+**Usage:**
+```dart
+PlaylistItem(
+  playlist: myPlaylist,
+  isHorizontal: true,
+  showTrailingControls: true,
+  onTap: () {
+    // Handle playlist tap
+  },
+)
+```
+
+### 2. AlbumItem Widget
+A widget similar to PlaylistItem but specifically designed for displaying album information.
+
+**Key Features:**
+- Horizontal (list) and vertical (grid) layout options
+- Play button control
+- Album information display (artist, release year, track count)
+- Image loading with fallbacks (network, asset, file)
+- Indexed display option
+- Clean, simplified interface focused on playback
+
+**Usage:**
+```dart
+AlbumItem(
+  album: myAlbum,
+  isHorizontal: true,
+  showTrailingControls: true,
+  onTap: () {
+    // Handle album tap (play album)
+  },
+  onAlbumUpdate: () {
+    // Handle album updates
+  },
+)
+```
+
+**Vertical layout usage:**
+```dart
+AlbumItem(
+  album: myAlbum,
+  isHorizontal: false,
+  showTrailingControls: true,
+  onTap: () {
+    // Play album
+  },
+)
+```
+
+### 3. SongItem Widget
+A widget for displaying individual song information in playlists and album views.
+
+### 4. UserAvatar Widget  
+A widget for displaying user profile pictures with fallback handling.
+
+## Widget Properties
+
+### AlbumItem Properties
+- `album` (required): Album object containing album data
+- `showTrailingControls`: Show/hide play and menu buttons (default: true)
+- `onTap`: Callback when album is tapped
+- `isHorizontal`: Layout orientation (default: true)
+- `index`: Display index number (optional)
+- `showIndex`: Show/hide index number (default: false)
+- `onAlbumUpdate`: Callback for album updates
+
+### Layout Support
+All major widgets support both horizontal (list-style) and vertical (card-style) layouts:
+- **Horizontal**: Suitable for list views with detailed information
+- **Vertical**: Suitable for grid views with compact card design
+
+## Related Models and Services
+
+### Album Model (`symphonia/lib/models/album.dart`)
+Contains album data structure with properties:
+- `id`, `title`, `artist`, `picture`
+- `description`, `releaseDate`, `trackCount`
+- `songIds` (list of song IDs in the album)
+
+### Album Service (`symphonia/lib/services/album.dart`)
+Provides API operations for albums:
+- `getAlbum(id)`: Get album by ID
+- `getAlbums()`: Get all albums
+- `getAlbumSongs(albumId)`: Get songs in album
+- `searchAlbums(query)`: Search albums
+- `getFeaturedAlbums()`: Get featured albums
+- `getLatestAlbums()`: Get latest albums
+
+## Search Integration
+
+The AlbumItem widget is now integrated into the search functionality:
+
+### Search Screen Integration
+```dart
+// In search_screen.dart
+Widget _buildAlbumResult(AlbumSearchResult result) {
+  Album album = AlbumOperations.createSimpleAlbum(
+    id: result.id,
+    title: result.name,
+    artist: result.artist,
+    coverArt: result.image,
+  );
+
+  return AlbumItem(
+    album: album,
+    isHorizontal: true,
+    showTrailingControls: true,
+    onTap: () {
+      // Handle album playback
+    },
+  );
+}
+```
+
+This replaces the previous simple ListTile with a streamlined album widget that provides:
+- Consistent styling with other album displays
+- Functional play integration with audio handler
+- Enhanced image loading with debug information
+- Proper serverUrl prefix for album cover art
+- Loading states and comprehensive error handling
+- Focused user experience without menu clutter
+
+## Implementation Notes
+
+- All widgets handle loading states and error conditions gracefully
+- Image loading supports network URLs, asset paths, and local files
+- Consistent Material Design styling across all widgets
+- Responsive design for different screen sizes
+- Vietnamese localization support
+- Seamless integration with search results and other app features 

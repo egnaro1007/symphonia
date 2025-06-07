@@ -109,12 +109,21 @@ class Searching {
         }
 
         for (var song in data['albums']) {
+          DateTime? releaseDate;
+          if (song['release_date'] != null) {
+            releaseDate = DateTime.parse(song['release_date']);
+          }
+
           results.add(
             AlbumSearchResult(
               id: song['id'],
               name: song['title'],
               artist: song['artist'].map((artist) => artist['name']).join(', '),
-              image: song['cover_art'] ?? '',
+              image:
+                  song['cover_art'] != null && song['cover_art'].isNotEmpty
+                      ? serverUrl + song['cover_art']
+                      : '',
+              releaseDate: releaseDate,
             ),
           );
         }

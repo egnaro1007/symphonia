@@ -40,15 +40,19 @@ class ArtistSearchResult extends SearchResult {
 
 class AlbumSearchResult extends SearchResult {
   final String _artist;
+  final DateTime? _releaseDate;
 
   AlbumSearchResult({
     required super.id,
     required super.name,
     required super.image,
     required String artist,
-  }) : _artist = artist;
+    DateTime? releaseDate,
+  }) : _artist = artist,
+       _releaseDate = releaseDate;
 
   String get artist => _artist;
+  DateTime? get releaseDate => _releaseDate;
 }
 
 class PlaylistSearchResult extends SearchResult {
