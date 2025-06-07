@@ -312,7 +312,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
                 showTrailingControls: true,
                 isHorizontal: true,
                 index: index,
-                showIndex: true,
+                showIndex: false,
                 isDeleteMode: _isDeleteMode,
                 playlistId: playlist.id,
                 onTap:

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../controller/player_controller.dart';
-import '../../../models/song.dart';
 import '../../../widgets/song_item.dart';
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
@@ -124,7 +123,7 @@ class _NextTrackTabState extends State<NextTrackTab>
           showTrailingControls: true,
           isHorizontal: true,
           index: index,
-          showIndex: true,
+          showIndex: false,
         );
       },
     );

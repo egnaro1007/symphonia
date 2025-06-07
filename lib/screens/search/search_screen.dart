@@ -102,7 +102,7 @@ class _SearchPageState extends State<SearchScreen>
         children: [
           // Search bar
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.only(left: 8, right: 12, top: 8, bottom: 8),
             child: Row(
               children: [
                 IconButton(
@@ -120,6 +120,9 @@ class _SearchPageState extends State<SearchScreen>
                     widget.onTabSelected(ScreenIndex.home.value, "");
                   },
                 ),
+
+                SizedBox(width: 5),
+
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(

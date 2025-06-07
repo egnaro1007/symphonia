@@ -59,7 +59,6 @@ class _LyricsTabState extends State<LyricsTab>
 
   // For lyrics timing
   Duration _currentPosition = Duration.zero;
-  bool _isPlaying = false;
   bool _userTapped = false; // Track if user manually tapped a line
 
   // Subscriptions
@@ -196,15 +195,8 @@ class _LyricsTabState extends State<LyricsTab>
 
     // Listen for player state changes
     _playerController.onPlayerStateChanged.listen((state) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = state.playing;
-        });
-      }
+      // Player state changes are handled but we don't need to store the state
     });
-
-    // Get initial state
-    _isPlaying = _playerController.isPlaying();
 
     // Get current position and force sync of the lyrics
     _playerController.getCurrentPosition().then((position) {
@@ -320,7 +312,6 @@ class _LyricsTabState extends State<LyricsTab>
 
     final currentLine = _lyricsLines[_currentLineIndex];
     final GlobalKey key = currentLine.key;
-
 
     if (key.currentContext != null) {
       setState(() {
