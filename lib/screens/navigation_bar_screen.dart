@@ -10,6 +10,7 @@ import 'package:symphonia/screens/home/home_screen.dart';
 import 'package:symphonia/screens/player/mini_player.dart';
 import 'package:symphonia/screens/playlist/playlist_screen.dart';
 import 'package:symphonia/screens/album/album_screen.dart';
+import 'package:symphonia/screens/artist/artist_screen.dart';
 
 import 'package:symphonia/screens/profile/profile_screen.dart';
 import 'package:symphonia/screens/profile/song_list_screen.dart';
@@ -118,6 +119,10 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         albumID: _playlistID, // Using same variable for album ID
         onTabSelected: _onPlaylistSelected,
       ), // ScreenIndex.album (14)
+      ArtistScreen(
+        artistID: _playlistID, // Using same variable for artist ID
+        onTabSelected: _onPlaylistSelected,
+      ), // ScreenIndex.artist (15)
     ];
 
     _screens = [..._mainTabScreens, ..._extraScreens];
@@ -227,6 +232,15 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
               _screens[ScreenIndex
                   .album
                   .value]; // index 9 in _extraScreens for album (14-5)
+        } else if (index == ScreenIndex.artist.value) {
+          _screens[ScreenIndex.artist.value] = ArtistScreen(
+            artistID: _playlistID,
+            onTabSelected: _onPlaylistSelected,
+          );
+          _extraScreens[10] =
+              _screens[ScreenIndex
+                  .artist
+                  .value]; // index 10 in _extraScreens for artist (15-5)
         }
       }
     });

@@ -3,11 +3,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:symphonia/models/song.dart';
 import 'package:symphonia/models/search_result.dart';
 import 'package:symphonia/models/album.dart';
+import 'package:symphonia/models/artist.dart';
 import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/searching.dart';
 import 'package:symphonia/services/album.dart';
 import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/widgets/album_item.dart';
+import 'package:symphonia/widgets/artist_item.dart';
 import 'package:symphonia/constants/screen_index.dart';
 
 class SearchScreen extends AbstractScreen {
@@ -195,12 +197,7 @@ class _SearchPageState extends State<SearchScreen>
                         ),
                         // Artists tab
                         _buildResultsTab<ArtistSearchResult>(
-                          (result) => _buildArtistResult(
-                            result.id.toString(),
-                            result.name,
-                            "Artist",
-                            result.image,
-                          ),
+                          (result) => _buildArtistResult(result),
                         ),
                         // Albums tab
                         _buildResultsTab<AlbumSearchResult>(
@@ -257,26 +254,22 @@ class _SearchPageState extends State<SearchScreen>
     return SongItem(song: song);
   }
 
-  Widget _buildArtistResult(
-    String id,
-    String name,
-    String subtitle,
-    String imagePath,
-  ) {
-    return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          shape: BoxShape.circle,
-        ),
-        child: ClipOval(child: Icon(Icons.person)),
-      ),
-      title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      trailing: Icon(Icons.chevron_right),
-      onTap: () {},
+  Widget _buildArtistResult(ArtistSearchResult result) {
+    // Convert ArtistSearchResult to Artist for widget compatibility
+    Artist artist = ArtistItem.createArtistFromSearchResult(
+      id: result.id,
+      name: result.name,
+      image: result.image,
+    );
+
+    return ArtistItem(
+      artist: artist,
+      isHorizontal: true,
+      showTrailingControls: false,
+      onTabSelected: widget.onTabSelected,
+      onArtistUpdate: () {
+        // Handle artist update if needed
+      },
     );
   }
 

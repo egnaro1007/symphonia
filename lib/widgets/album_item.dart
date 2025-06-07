@@ -166,7 +166,9 @@ class AlbumItem extends StatelessWidget {
         margin: const EdgeInsets.only(right: 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Album cover image
             Container(
               height: 160,
               width: 160,
@@ -176,40 +178,44 @@ class AlbumItem extends StatelessWidget {
                 child: _buildAlbumImage(),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              album.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              album.artistNames,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 12,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (album.releaseDate != null)
-              Text(
-                '${album.releaseDate!.year}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 11,
+            const SizedBox(height: 5),
+
+            // Text content with fixed height to prevent overflow
+            SizedBox(
+              height: 50, // Fixed height for 3 lines of text
+              child: Padding(
+                padding: const EdgeInsets.only(left: 3.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Line 1: Album title
+                    Text(
+                      album.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    // Line 2: Artist name and Release year
+                    Text(
+                      album.releaseDate != null
+                          ? '${album.artistNames} • ${album.releaseDate!.year}'
+                          : album.artistNames,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            if (showTrailingControls)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.play_circle_outline, size: 28),
-                  onPressed: () => _handlePlayAlbum(context),
-                ),
-              ),
+            ),
           ],
         ),
       ),

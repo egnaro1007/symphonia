@@ -1,31 +1,5 @@
 import 'package:symphonia/models/song.dart';
-
-class Artist {
-  final int id;
-  final String name;
-  final String? bio;
-  final String? artistPicture;
-
-  Artist({required this.id, required this.name, this.bio, this.artistPicture});
-
-  factory Artist.fromJson(Map<String, dynamic> json) {
-    return Artist(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      bio: json['bio'] as String?,
-      artistPicture: json['artist_picture'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'bio': bio,
-      'artist_picture': artistPicture,
-    };
-  }
-}
+import 'package:symphonia/models/artist.dart';
 
 class Album {
   final int id;

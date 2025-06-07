@@ -99,11 +99,19 @@ class Searching {
         }
 
         for (var artist in data['artists']) {
+          String artistImage = artist['artist_picture'] ?? '';
+          // Process artist picture URL to make it full URL
+          if (artistImage.isNotEmpty &&
+              !artistImage.startsWith('http://') &&
+              !artistImage.startsWith('https://')) {
+            artistImage = serverUrl + artistImage;
+          }
+
           results.add(
             ArtistSearchResult(
               id: artist['id'],
               name: artist['name'],
-              image: artist['artist_picture'] ?? '',
+              image: artistImage,
             ),
           );
         }
