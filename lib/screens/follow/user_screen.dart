@@ -6,6 +6,7 @@ import 'package:symphonia/screens/abstract_navigation_screen.dart';
 import 'package:symphonia/services/friend.dart';
 import 'package:symphonia/services/playlist.dart';
 import 'package:symphonia/services/user_event_manager.dart';
+import 'package:symphonia/widgets/playlist_item.dart';
 import 'dart:async';
 
 class UserScreen extends AbstractScreen {
@@ -746,125 +747,22 @@ class _UserScreenState extends State<UserScreen> {
                               ),
                             )
                           else
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 16,
-                                    childAspectRatio: 0.75,
-                                  ),
-                              itemCount: playlists.length,
-                              itemBuilder: (context, index) {
-                                final playlist = playlists[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    widget.onTabSelected(6, playlist.id);
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                image: DecorationImage(
-                                                  image: NetworkImage(
-                                                    playlist.picture,
-                                                  ),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                            // Privacy indicator
-                                            Positioned(
-                                              top: 8,
-                                              right: 8,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      playlist.sharePermission ==
-                                                              'public'
-                                                          ? Colors.green
-                                                              .withOpacity(0.8)
-                                                          : Colors.blue
-                                                              .withOpacity(0.8),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      playlist.sharePermission ==
-                                                              'public'
-                                                          ? Icons.public
-                                                          : Icons.people,
-                                                      color: Colors.white,
-                                                      size: 12,
-                                                    ),
-                                                    const SizedBox(width: 2),
-                                                    Text(
-                                                      playlist.sharePermission ==
-                                                              'public'
-                                                          ? 'Công khai'
-                                                          : 'Bạn bè',
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        playlist.title,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      if (playlist.description.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 2,
-                                          ),
-                                          child: Text(
-                                            playlist.description,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                );
-                              },
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Row(
+                                children:
+                                    playlists.map((playlist) {
+                                      return PlaylistItem(
+                                        playlist: playlist,
+                                        isHorizontal: false,
+                                        showTrailingControls: false,
+                                        onTap: () {
+                                          widget.onTabSelected(6, playlist.id);
+                                        },
+                                      );
+                                    }).toList(),
+                              ),
                             ),
                         ],
                       ),
@@ -876,33 +774,6 @@ class _UserScreenState extends State<UserScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPlaylistItem(PlayList playlist) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: NetworkImage(playlist.picture),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          playlist.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-      ],
     );
   }
 }

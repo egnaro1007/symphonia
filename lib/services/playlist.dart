@@ -690,13 +690,10 @@ class PlayListOperations {
     String serverUrl = dotenv.env['SERVER_URL'] ?? '';
     try {
       final url = Uri.parse('$serverUrl/api/library/user-playlists/$userId/');
-      print("Fetching user playlists from: $url");
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer ${TokenManager.accessToken}'},
       );
-
-      print("Response: ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -706,6 +703,59 @@ class PlayListOperations {
           // Only include playlists that are friends or public
           String sharePermission = playlist['share_permission'] ?? 'private';
           if (sharePermission == 'friends' || sharePermission == 'public') {
+            // Handle cover image URL (same logic as getLocalPlaylists)
+            String pictureUrl = '';
+
+            if (playlist['cover_image_url'] != null &&
+                playlist['cover_image_url'].isNotEmpty) {
+              String coverUrl = playlist['cover_image_url'];
+              if (!coverUrl.startsWith('http://') &&
+                  !coverUrl.startsWith('https://')) {
+                String baseUrl = serverUrl;
+                if (!baseUrl.startsWith('http://') &&
+                    !baseUrl.startsWith('https://')) {
+                  baseUrl = 'http://$baseUrl';
+                }
+                pictureUrl = '$baseUrl$coverUrl';
+              } else {
+                pictureUrl = coverUrl;
+              }
+            } else if (playlist['cover_image'] != null &&
+                playlist['cover_image'].isNotEmpty) {
+              // If cover_image is a relative path, build full URL
+              String coverImage = playlist['cover_image'];
+              if (!coverImage.startsWith('http://') &&
+                  !coverImage.startsWith('https://')) {
+                String baseUrl = serverUrl;
+                if (!baseUrl.startsWith('http://') &&
+                    !baseUrl.startsWith('https://')) {
+                  baseUrl = 'http://$baseUrl';
+                }
+                pictureUrl = '$baseUrl$coverImage';
+              } else {
+                pictureUrl = coverImage;
+              }
+            } else if (playlist['picture'] != null &&
+                playlist['picture'].isNotEmpty) {
+              // Fallback: try to use 'picture' field if available
+              String picture = playlist['picture'];
+              if (!picture.startsWith('http://') &&
+                  !picture.startsWith('https://')) {
+                String baseUrl = serverUrl;
+                if (!baseUrl.startsWith('http://') &&
+                    !baseUrl.startsWith('https://')) {
+                  baseUrl = 'http://$baseUrl';
+                }
+                pictureUrl = '$baseUrl$picture';
+              } else {
+                pictureUrl = picture;
+              }
+            } else {
+              // Default placeholder image (same as getLocalPlaylists)
+              pictureUrl =
+                  'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
+            }
+
             playlists.add(
               PlayList(
                 id: playlist['id'].toString(),
@@ -713,8 +763,7 @@ class PlayListOperations {
                 description: playlist['description'] ?? '',
                 duration: 0,
                 picture:
-                    playlist['picture'] ??
-                    'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg',
+                    pictureUrl, // Use processed pictureUrl instead of raw 'picture'
                 creator: playlist['creator'] ?? 'Unknown',
                 ownerId: playlist['owner']?.toString(),
                 ownerAvatarUrl: playlist['owner_avatar_url'],
@@ -755,7 +804,6 @@ class PlayListOperations {
       }
 
       final url = Uri.parse('$serverUrl/api/library/playlists/$playlistId/');
-      print("Update playlist URL: $url");
 
       // First, update basic playlist info (name and share permission)
       final response = await http.patch(
@@ -766,9 +814,6 @@ class PlayListOperations {
         },
         body: jsonEncode({'name': name, 'share_permission': sharePermission}),
       );
-
-      print("Basic update response status: ${response.statusCode}");
-      print("Basic update response body: ${response.body}");
 
       if (response.statusCode != 200) {
         print('Failed to update playlist basic info: ${response.statusCode}');
