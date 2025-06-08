@@ -60,9 +60,6 @@ class _SongListScreenState extends State<SongListScreen> {
         case 'Đã tải':
           shouldRefresh = event.type == DataEventType.downloadChanged;
           break;
-        case 'Nghe gần đây':
-          shouldRefresh = event.type == DataEventType.historyChanged;
-          break;
         default:
           shouldRefresh = false;
       }

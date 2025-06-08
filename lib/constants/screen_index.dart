@@ -13,11 +13,10 @@ enum ScreenIndex {
   userProfile(7),
   friendRequests(8),
   searchUser(9),
-  recentlyPlayed(10),
-  favorites(11),
-  downloaded(12),
-  playlistCreation(13),
-  album(14),
+  favorites(10),
+  downloaded(11),
+  playlistCreation(12),
+  album(13),
   artist(15);
 
   const ScreenIndex(this.value);

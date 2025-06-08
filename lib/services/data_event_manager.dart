@@ -1,11 +1,6 @@
 import 'dart:async';
 
-enum DataEventType {
-  likeChanged,
-  downloadChanged,
-  historyChanged,
-  playlistChanged,
-}
+enum DataEventType { likeChanged, downloadChanged, playlistChanged }
 
 class DataEvent {
   final DataEventType type;
@@ -34,12 +29,6 @@ class DataEventManager {
   void notifyDownloadChanged({int? songId}) {
     _eventController.add(
       DataEvent(type: DataEventType.downloadChanged, data: {'songId': songId}),
-    );
-  }
-
-  void notifyHistoryChanged({int? songId}) {
-    _eventController.add(
-      DataEvent(type: DataEventType.historyChanged, data: {'songId': songId}),
     );
   }
 

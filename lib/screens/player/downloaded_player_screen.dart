@@ -491,7 +491,7 @@ class _DownloadedPlayerScreenState extends State<DownloadedPlayerScreen>
           },
           icon: Icon(
             Icons.shuffle,
-            size: _isShuffleOn ? 32 : 28,
+            size: _isShuffleOn ? 32 : 25,
             color:
                 _isShuffleOn
                     ? Theme.of(context).colorScheme.primary
@@ -550,7 +550,7 @@ class _DownloadedPlayerScreenState extends State<DownloadedPlayerScreen>
             _playerController.repeatMode == RepeatMode.repeatOne
                 ? Icons.repeat_one
                 : Icons.repeat,
-            size: _playerController.repeatMode == RepeatMode.noRepeat ? 28 : 32,
+            size: _playerController.repeatMode == RepeatMode.noRepeat ? 25 : 32,
             color:
                 _playerController.repeatMode == RepeatMode.noRepeat
                     ? Theme.of(context).colorScheme.onSurfaceVariant

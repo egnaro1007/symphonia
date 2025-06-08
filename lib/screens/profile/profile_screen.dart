@@ -42,17 +42,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Quick access buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildQuickAccessButton(
-                  Icons.schedule,
-                  AppLocalizations.of(context)!.recentlyPlayed,
-                  Theme.of(context).colorScheme.tertiary,
-                  () {
-                    // Navigate to recently played screen using navigation system
-                    widget.onTabSelected(ScreenIndex.recentlyPlayed.value, "");
-                  },
-                ),
                 _buildQuickAccessButton(
                   Icons.favorite_border,
                   AppLocalizations.of(context)!.favorites,

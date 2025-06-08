@@ -237,6 +237,7 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                       ScreenIndex.playlist.value,
                       widget.playlist.id,
                     );
+                    widget.onTabSelected(-1, "");
                   },
                   child: Text(
                     'Done',

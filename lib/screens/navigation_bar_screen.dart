@@ -17,7 +17,7 @@ import 'package:symphonia/screens/search/search_screen.dart';
 import 'package:symphonia/screens/setting/setting_screen.dart';
 import 'package:symphonia/screens/trending/trending_screen.dart';
 import 'package:symphonia/screens/playlist/playlist_creation_screen.dart';
-import 'package:symphonia/services/history.dart';
+
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/constants/screen_index.dart';
 
@@ -85,16 +85,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         onTabSelected: _onPlaylistSelected,
       ), // ScreenIndex.searchUser (9)
       SongListScreen(
-        // ScreenIndex.recentlyPlayed (10)
-        key: const ValueKey("recently_played"),
-        screenTitle: 'Nghe gần đây',
-        songsLoader: () => HistoryOperations.getRecentlyPlayedSongs(),
-        titleIcon: Icons.schedule,
-        titleColor: Colors.orange,
-        onTabSelected: _onPlaylistSelected,
-      ),
-      SongListScreen(
-        // ScreenIndex.favorites (11)
+        // ScreenIndex.favorites (10)
         key: const ValueKey("favorites"),
         screenTitle: 'Yêu thích',
         songsLoader: () => LikeOperations.getLikeSongs(),
@@ -103,7 +94,7 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
         onTabSelected: _onPlaylistSelected,
       ),
       SongListScreen(
-        // ScreenIndex.downloaded (12)
+        // ScreenIndex.downloaded (11)
         key: const ValueKey("downloaded"),
         screenTitle: 'Đã tải',
         songsLoader: () => DownloadController.getDownloadedSongs(),
@@ -113,11 +104,11 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
       ),
       PlaylistCreationScreen(
         onTabSelected: _onPlaylistSelected,
-      ), // ScreenIndex.playlistCreation (13)
+      ), // ScreenIndex.playlistCreation (12)
       AlbumScreen(
         albumID: _playlistID, // Using same variable for album ID
         onTabSelected: _onPlaylistSelected,
-      ), // ScreenIndex.album (14)
+      ), // ScreenIndex.album (13)
       ArtistScreen(
         artistID: _playlistID, // Using same variable for artist ID
         onTabSelected: _onPlaylistSelected,
