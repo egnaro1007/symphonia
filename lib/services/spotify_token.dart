@@ -9,10 +9,9 @@ class SpotifyToken {
     String clientId = dotenv.env['CLIENT_ID'] ?? '';
     String clientSecret = dotenv.env['CLIENT_SECRET'] ?? '';
 
-
     String urlStringBasic = 'https://accounts.spotify.com/api/token';
 
-    String market = 'VN'; // Thay đổi mã quốc gia tại đây
+    String market = 'US'; // Thay đổi mã quốc gia tại đây
     String urlString = '$urlStringBasic?market=$market';
 
     try {

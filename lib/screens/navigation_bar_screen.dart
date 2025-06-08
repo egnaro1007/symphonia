@@ -21,7 +21,6 @@ import 'package:symphonia/screens/playlist/playlist_creation_screen.dart';
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/constants/screen_index.dart';
 import 'package:symphonia/services/navigation_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   final int selectedBottom;
@@ -220,19 +219,19 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
             albumID: _playlistID,
             onTabSelected: _onPlaylistSelected,
           );
-          _extraScreens[9] =
+          _extraScreens[8] =
               _screens[ScreenIndex
                   .album
-                  .value]; // index 9 in _extraScreens for album (14-5)
+                  .value]; // index 8 in _extraScreens for album (13-5)
         } else if (index == ScreenIndex.artist.value) {
           _screens[ScreenIndex.artist.value] = ArtistScreen(
             artistID: _playlistID,
             onTabSelected: _onPlaylistSelected,
           );
-          _extraScreens[10] =
+          _extraScreens[9] =
               _screens[ScreenIndex
                   .artist
-                  .value]; // index 10 in _extraScreens for artist (15-5)
+                  .value]; // index 9 in _extraScreens for artist (14-5)
         }
       }
     });

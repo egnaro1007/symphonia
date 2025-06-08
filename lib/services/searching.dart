@@ -24,6 +24,11 @@ class Searching {
     );
 
     try {
+      if (token.isEmpty) {
+        print('No Spotify token available for suggestions');
+        return [];
+      }
+
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
@@ -33,36 +38,48 @@ class Searching {
         final data = jsonDecode(response.body);
         List<String> suggestions = [];
 
-        if (data['tracks'] != null && data['tracks']['items'] != null) {
+        // Handle tracks
+        if (data['tracks'] != null &&
+            data['tracks']['items'] != null &&
+            data['tracks']['items'] is List) {
           for (var track in data['tracks']['items']) {
-            if (track['name'] != null) {
-              suggestions.add(track['name']);
+            if (track != null && track['name'] != null) {
+              suggestions.add(track['name'].toString());
             }
           }
         }
 
-        if (data['artists'] != null && data['artists']['items'] != null) {
+        // Handle artists
+        if (data['artists'] != null &&
+            data['artists']['items'] != null &&
+            data['artists']['items'] is List) {
           for (var artist in data['artists']['items']) {
-            if (artist['name'] != null) {
-              suggestions.add(artist['name']);
+            if (artist != null && artist['name'] != null) {
+              suggestions.add(artist['name'].toString());
             }
           }
         }
 
-        if (data['albums'] != null && data['albums']['items'] != null) {
+        // Handle albums
+        if (data['albums'] != null &&
+            data['albums']['items'] != null &&
+            data['albums']['items'] is List) {
           for (var album in data['albums']['items']) {
-            if (album['name'] != null) {
-              suggestions.add(album['name']);
+            if (album != null && album['name'] != null) {
+              suggestions.add(album['name'].toString());
             }
           }
         }
+
         // Remove duplicates and return
         return suggestions.toSet().toList();
       } else {
         print('Failed to load suggestions: ${response.statusCode}');
+        print('Response body: ${response.body}');
         return [];
       }
     } catch (e) {
+      print('Error in searchSuggestions: $e');
       return [];
     }
   }
@@ -349,13 +366,21 @@ class Searching {
   static Future<List<SongSearchResult>> getSongSearchResults(
     String word,
   ) async {
-    final String encodedWord = Uri.encodeComponent(word);
-    final token = await SpotifyToken.getTokens();
-    final url = Uri.parse(
-      'https://api.spotify.com/v1/search?q=$encodedWord&type=track&limit=10',
-    );
+    if (word.isEmpty) return [];
 
     try {
+      final String encodedWord = Uri.encodeComponent(word);
+      final token = await SpotifyToken.getTokens();
+
+      if (token.isEmpty) {
+        print('No Spotify token available for song search');
+        return [];
+      }
+
+      final url = Uri.parse(
+        'https://api.spotify.com/v1/search?q=$encodedWord&type=track&limit=10',
+      );
+
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
@@ -363,27 +388,65 @@ class Searching {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        var trackData = data['tracks']['items'];
 
+        if (data['tracks'] == null ||
+            data['tracks']['items'] == null ||
+            data['tracks']['items'] is! List) {
+          return [];
+        }
+
+        var trackData = data['tracks']['items'] as List;
         List<SongSearchResult> songs = [];
+
         for (var track in trackData) {
-          songs.add(
-            SongSearchResult(
-              id: track['id'],
-              name: track['name'],
-              artist: track['artists']
-                  .map((artist) => artist['name'])
-                  .join(', '),
-              image: track['album']['images'][0]['url'],
-              audio_url: 'example.com',
-            ),
-          );
+          if (track == null) continue;
+
+          try {
+            // Safely get artist names
+            String artistNames = '';
+            if (track['artists'] != null && track['artists'] is List) {
+              List<String> names = [];
+              for (var artist in track['artists']) {
+                if (artist != null && artist['name'] != null) {
+                  names.add(artist['name'].toString());
+                }
+              }
+              artistNames = names.join(', ');
+            }
+
+            // Safely get image URL
+            String imageUrl = '';
+            if (track['album'] != null &&
+                track['album']['images'] != null &&
+                track['album']['images'] is List &&
+                (track['album']['images'] as List).isNotEmpty &&
+                track['album']['images'][0] != null &&
+                track['album']['images'][0]['url'] != null) {
+              imageUrl = track['album']['images'][0]['url'].toString();
+            }
+
+            songs.add(
+              SongSearchResult(
+                id: track['id'] ?? '',
+                name: track['name']?.toString() ?? 'Unknown Song',
+                artist: artistNames.isNotEmpty ? artistNames : 'Unknown Artist',
+                image: imageUrl,
+                audio_url: '', // Spotify doesn't provide actual audio URLs
+              ),
+            );
+          } catch (e) {
+            print('Error processing track: $e');
+            continue;
+          }
         }
         return songs;
       } else {
-        throw Exception('Failed to load songs');
+        print('Failed to load songs: ${response.statusCode}');
+        print('Response: ${response.body}');
+        return [];
       }
     } catch (e) {
+      print('Error in getSongSearchResults: $e');
       return [];
     }
   }
@@ -391,13 +454,21 @@ class Searching {
   static Future<List<ArtistSearchResult>> getArtistSearchResults(
     String word,
   ) async {
-    final String encodedWord = Uri.encodeComponent(word);
-    final token = await SpotifyToken.getTokens();
-    final url = Uri.parse(
-      'https://api.spotify.com/v1/search?q=$encodedWord&type=artist&limit=10',
-    );
+    if (word.isEmpty) return [];
 
     try {
+      final String encodedWord = Uri.encodeComponent(word);
+      final token = await SpotifyToken.getTokens();
+
+      if (token.isEmpty) {
+        print('No Spotify token available for artist search');
+        return [];
+      }
+
+      final url = Uri.parse(
+        'https://api.spotify.com/v1/search?q=$encodedWord&type=artist&limit=10',
+      );
+
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
@@ -405,23 +476,50 @@ class Searching {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        var artistData = data['artists']['items'];
 
+        if (data['artists'] == null ||
+            data['artists']['items'] == null ||
+            data['artists']['items'] is! List) {
+          return [];
+        }
+
+        var artistData = data['artists']['items'] as List;
         List<ArtistSearchResult> artists = [];
+
         for (var artist in artistData) {
-          artists.add(
-            ArtistSearchResult(
-              id: artist['id'],
-              name: artist['name'],
-              image: artist['images'][0]['url'],
-            ),
-          );
+          if (artist == null) continue;
+
+          try {
+            // Safely get image URL
+            String imageUrl = '';
+            if (artist['images'] != null &&
+                artist['images'] is List &&
+                (artist['images'] as List).isNotEmpty &&
+                artist['images'][0] != null &&
+                artist['images'][0]['url'] != null) {
+              imageUrl = artist['images'][0]['url'].toString();
+            }
+
+            artists.add(
+              ArtistSearchResult(
+                id: artist['id'] ?? '',
+                name: artist['name']?.toString() ?? 'Unknown Artist',
+                image: imageUrl,
+              ),
+            );
+          } catch (e) {
+            print('Error processing artist: $e');
+            continue;
+          }
         }
         return artists;
       } else {
-        throw Exception('Failed to load artists');
+        print('Failed to load artists: ${response.statusCode}');
+        print('Response: ${response.body}');
+        return [];
       }
     } catch (e) {
+      print('Error in getArtistSearchResults: $e');
       return [];
     }
   }
@@ -429,13 +527,21 @@ class Searching {
   static Future<List<PlaylistSearchResult>> getPlaylistSearchResults(
     String word,
   ) async {
-    final String encodedWord = Uri.encodeComponent(word);
-    final token = await SpotifyToken.getTokens();
-    final url = Uri.parse(
-      'https://api.spotify.com/v1/search?q=$encodedWord&type=playlist&limit=10',
-    );
+    if (word.isEmpty) return [];
 
     try {
+      final String encodedWord = Uri.encodeComponent(word);
+      final token = await SpotifyToken.getTokens();
+
+      if (token.isEmpty) {
+        print('No Spotify token available for playlist search');
+        return [];
+      }
+
+      final url = Uri.parse(
+        'https://api.spotify.com/v1/search?q=$encodedWord&type=playlist&limit=10',
+      );
+
       final response = await http.get(
         url,
         headers: {'Authorization': 'Bearer $token'},
@@ -444,28 +550,57 @@ class Searching {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        var playlistData = data['playlists']['items'];
+        if (data['playlists'] == null ||
+            data['playlists']['items'] == null ||
+            data['playlists']['items'] is! List) {
+          return [];
+        }
 
+        var playlistData = data['playlists']['items'] as List;
         List<PlaylistSearchResult> playlists = [];
+
         for (var playlist in playlistData) {
-          if (playlist == null) {
+          if (playlist == null) continue;
+
+          try {
+            // Safely get image URL
+            String imageUrl = '';
+            if (playlist['images'] != null &&
+                playlist['images'] is List &&
+                (playlist['images'] as List).isNotEmpty &&
+                playlist['images'][0] != null &&
+                playlist['images'][0]['url'] != null) {
+              imageUrl = playlist['images'][0]['url'].toString();
+            }
+
+            // Safely get owner name
+            String ownerName = '';
+            if (playlist['owner'] != null &&
+                playlist['owner']['display_name'] != null) {
+              ownerName = playlist['owner']['display_name'].toString();
+            }
+
+            playlists.add(
+              PlaylistSearchResult(
+                id: playlist['id'] ?? '',
+                name: playlist['name']?.toString() ?? 'Unknown Playlist',
+                image: imageUrl,
+                artist: ownerName.isNotEmpty ? ownerName : 'Unknown Owner',
+              ),
+            );
+          } catch (e) {
+            print('Error processing playlist: $e');
             continue;
           }
-
-          playlists.add(
-            PlaylistSearchResult(
-              id: playlist['id'],
-              name: playlist['name'],
-              image: playlist['images'][0]['url'],
-              artist: playlist['owner']['display_name'],
-            ),
-          );
         }
         return playlists;
       } else {
-        throw Exception('Failed to load playlists');
+        print('Failed to load playlists: ${response.statusCode}');
+        print('Response: ${response.body}');
+        return [];
       }
     } catch (e) {
+      print('Error in getPlaylistSearchResults: $e');
       return [];
     }
   }

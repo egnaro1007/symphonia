@@ -17,7 +17,7 @@ enum ScreenIndex {
   downloaded(11),
   playlistCreation(12),
   album(13),
-  artist(15);
+  artist(14);
 
   const ScreenIndex(this.value);
   final int value;
