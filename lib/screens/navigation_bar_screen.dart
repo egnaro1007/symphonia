@@ -20,6 +20,8 @@ import 'package:symphonia/screens/playlist/playlist_creation_screen.dart';
 
 import 'package:symphonia/services/like.dart';
 import 'package:symphonia/constants/screen_index.dart';
+import 'package:symphonia/services/navigation_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NavigationBarScreen extends StatefulWidget {
   final int selectedBottom;
@@ -361,16 +363,13 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
                   showUnselectedLabels: true,
                   type: BottomNavigationBarType.fixed,
                   selectedIconTheme: const IconThemeData(size: 35),
-                  items:
-                      _screens
-                          .take(5)
-                          .map(
-                            (screen) => BottomNavigationBarItem(
-                              icon: screen.icon,
-                              label: screen.title,
-                            ),
-                          )
-                          .toList(),
+                  items: [
+                    for (int i = 0; i < 5; i++)
+                      BottomNavigationBarItem(
+                        icon: _screens[i].icon,
+                        label: NavigationLocalizations.getLabel(context, i),
+                      ),
+                  ],
                 )
                 : null,
       ),

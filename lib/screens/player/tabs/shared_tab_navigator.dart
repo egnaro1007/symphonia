@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SharedTabNavigator extends StatefulWidget {
   final int selectedIndex;
@@ -19,15 +20,17 @@ class _SharedTabNavigatorState extends State<SharedTabNavigator> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Container(
       color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.only(top: 20, bottom: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildTabItem("TIẾP THEO", 0),
-          _buildTabItem("LỜI NHẠC", 1),
-          _buildTabItem("THÔNG TIN", 2),
+          _buildTabItem(localizations.upNext, 0),
+          _buildTabItem(localizations.lyrics, 1),
+          _buildTabItem(localizations.info, 2),
         ],
       ),
     );

@@ -9,6 +9,7 @@ import 'screens/profile/login_screen.dart';
 import 'package:symphonia/controller/download_controller.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:symphonia/services/preferences_service.dart';
 
 // Global audio handler instance
 late AudioHandler audioHandler;
@@ -64,12 +65,37 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
-  final Locale _currentLocale = Locale('vi');
+  Locale _currentLocale = const Locale('vi');
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final languageCode = await PreferencesService.getLanguage();
+      final theme = await PreferencesService.getTheme();
+
+      setState(() {
+        _currentLocale = Locale(languageCode);
+        switch (theme) {
+          case 'light':
+            _themeMode = ThemeMode.light;
+            break;
+          case 'dark':
+            _themeMode = ThemeMode.dark;
+            break;
+          default:
+            _themeMode = ThemeMode.system;
+        }
+      });
+    } catch (e) {
+      print('Error loading preferences: $e');
+      // Keep default values if preferences fail to load
+    }
   }
 
   @override
@@ -117,6 +143,27 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     setState(() {
       _themeMode = themeMode;
     });
+    // Save theme preference
+    String themeString = 'system';
+    switch (themeMode) {
+      case ThemeMode.light:
+        themeString = 'light';
+        break;
+      case ThemeMode.dark:
+        themeString = 'dark';
+        break;
+      default:
+        themeString = 'system';
+    }
+    PreferencesService.setTheme(themeString);
+  }
+
+  void setLocale(Locale locale) {
+    setState(() {
+      _currentLocale = locale;
+    });
+    // Save language preference
+    PreferencesService.setLanguage(locale.languageCode);
   }
 
   @override
@@ -134,16 +181,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
       ),
       themeMode: _themeMode,
-      localizationsDelegates: const[
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const[
-        Locale('en'),
-        Locale('vi'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('vi')],
       locale: _currentLocale,
       home:
           widget.isAuthenticated

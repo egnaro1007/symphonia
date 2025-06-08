@@ -86,7 +86,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
       child: Text(
-        "Playlist của bạn",
+        AppLocalizations.of(context)!.yourPlaylists,
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );

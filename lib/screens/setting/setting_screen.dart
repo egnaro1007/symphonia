@@ -8,6 +8,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/token_manager.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:symphonia/services/preferences_service.dart';
 
 class SettingScreen extends AbstractScreen {
   @override
@@ -36,19 +38,49 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _isChangePasswordLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final languageCode = await PreferencesService.getLanguage();
+    final theme = await PreferencesService.getTheme();
+
+    setState(() {
+      // Set language display text
+      _selectedLanguage = languageCode == 'en' ? 'English' : 'Tiếng Việt';
+
+      // Set theme display text based on current locale
+      switch (theme) {
+        case 'light':
+          _themeMode = languageCode == 'en' ? 'Light' : 'Sáng';
+          break;
+        case 'dark':
+          _themeMode = languageCode == 'en' ? 'Dark' : 'Tối';
+          break;
+        default:
+          _themeMode = languageCode == 'en' ? 'System' : 'Hệ thống';
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Cài đặt')),
+      appBar: AppBar(title: Text(localizations.settings)),
       body: ListView(
         children: [
           // Account Settings Section
-          _buildSectionHeader('Cài đặt tài khoản'),
+          _buildSectionHeader(localizations.accountSettings),
           _buildAccountSettings(),
 
           const Divider(thickness: 1),
 
           // Display & Interface Settings
-          _buildSectionHeader('Hiển thị & giao diện'),
+          _buildSectionHeader(localizations.displayInterface),
           _buildDisplaySettings(),
         ],
       ),
@@ -70,13 +102,15 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Widget _buildAccountSettings() {
+    final localizations = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Personal Information
         ListTile(
-          title: const Text('Thông tin cá nhân'),
-          subtitle: const Text('Thay đổi thông tin cá nhân của bạn'),
+          title: Text(localizations.personalInfo),
+          subtitle: Text(localizations.changePersonalInfo),
           leading: const Icon(Icons.person),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
@@ -86,8 +120,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // Change Password
         ListTile(
-          title: const Text('Đổi mật khẩu'),
-          subtitle: const Text('Thay đổi mật khẩu hiện tại của bạn'),
+          title: Text(localizations.changePassword),
+          subtitle: Text(localizations.changeCurrentPassword),
           leading: const Icon(Icons.lock),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
@@ -97,8 +131,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // Delete Account
         ListTile(
-          title: const Text('Xóa tài khoản'),
-          subtitle: const Text('Xóa tài khoản và dữ liệu cá nhân của bạn'),
+          title: Text(localizations.deleteAccount),
+          subtitle: Text(localizations.deleteAccountWarning),
           leading: Icon(
             Icons.delete_forever,
             color: Theme.of(context).colorScheme.error,
@@ -113,12 +147,14 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Widget _buildDisplaySettings() {
+    final localizations = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Theme mode
         ListTile(
-          title: const Text('Chế độ giao diện'),
+          title: Text(localizations.interfaceMode),
           subtitle: Text(_themeMode),
           leading: const Icon(Icons.dark_mode),
           trailing: const Icon(Icons.chevron_right),
@@ -129,7 +165,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // Language
         ListTile(
-          title: const Text('Ngôn ngữ ứng dụng'),
+          title: Text(localizations.appLanguage),
           subtitle: Text(_selectedLanguage),
           leading: const Icon(Icons.language),
           trailing: const Icon(Icons.chevron_right),
@@ -418,48 +454,60 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  void _showThemeModeDialog() {
+  void _showThemeModeDialog() async {
+    final localizations = AppLocalizations.of(context)!;
+    final currentLanguage = await PreferencesService.getLanguage();
+
+    // Create theme option texts based on current language
+    final lightText = currentLanguage == 'en' ? 'Light' : 'Sáng';
+    final darkText = currentLanguage == 'en' ? 'Dark' : 'Tối';
+    final systemText = currentLanguage == 'en' ? 'System' : 'Hệ thống';
+    final systemSubtitle =
+        currentLanguage == 'en'
+            ? 'Follow system setting'
+            : 'Theo cài đặt hệ thống';
+
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Chế độ giao diện'),
+            title: Text(localizations.interfaceMode),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 RadioListTile<String>(
-                  title: const Text('Sáng'),
-                  value: 'Sáng',
+                  title: Text(lightText),
+                  value: lightText,
                   groupValue: _themeMode,
                   onChanged: (value) {
                     setState(() {
                       _themeMode = value!;
-                      _applyThemeMode(value);
+                      _applyThemeMode('light');
                       Navigator.of(context).pop();
                     });
                   },
                 ),
                 RadioListTile<String>(
-                  title: const Text('Tối'),
-                  value: 'Tối',
+                  title: Text(darkText),
+                  value: darkText,
                   groupValue: _themeMode,
                   onChanged: (value) {
                     setState(() {
                       _themeMode = value!;
-                      _applyThemeMode(value);
+                      _applyThemeMode('dark');
                       Navigator.of(context).pop();
                     });
                   },
                 ),
                 RadioListTile<String>(
-                  title: const Text('Hệ thống'),
-                  subtitle: const Text('Theo cài đặt hệ thống'),
-                  value: 'Hệ thống',
+                  title: Text(systemText),
+                  subtitle: Text(systemSubtitle),
+                  value: systemText,
                   groupValue: _themeMode,
                   onChanged: (value) {
                     setState(() {
                       _themeMode = value!;
-                      _applyThemeMode(value);
+                      _applyThemeMode('system');
                       Navigator.of(context).pop();
                     });
                   },
@@ -473,10 +521,10 @@ class _SettingScreenState extends State<SettingScreen> {
   void _applyThemeMode(String mode) {
     ThemeMode themeMode;
     switch (mode) {
-      case 'Sáng':
+      case 'light':
         themeMode = ThemeMode.light;
         break;
-      case 'Tối':
+      case 'dark':
         themeMode = ThemeMode.dark;
         break;
       default:
@@ -487,40 +535,66 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   void _showLanguageDialog() {
+    final localizations = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Ngôn ngữ ứng dụng'),
+            title: Text(localizations.appLanguage),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 RadioListTile<String>(
-                  title: const Text('Tiếng Việt'),
+                  title: Text(localizations.vietnamese),
                   value: 'Tiếng Việt',
                   groupValue: _selectedLanguage,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _selectedLanguage = value!;
-                      Navigator.of(context).pop();
                     });
+                    // Change app locale
+                    MyApp.of(context).setLocale(const Locale('vi'));
+                    // Update theme mode text based on new language
+                    await _updateThemeModeText('vi');
+                    Navigator.of(context).pop();
                   },
                 ),
                 RadioListTile<String>(
-                  title: const Text('English'),
+                  title: Text(localizations.english),
                   value: 'English',
                   groupValue: _selectedLanguage,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _selectedLanguage = value!;
-                      Navigator.of(context).pop();
                     });
+                    // Change app locale
+                    MyApp.of(context).setLocale(const Locale('en'));
+                    // Update theme mode text based on new language
+                    await _updateThemeModeText('en');
+                    Navigator.of(context).pop();
                   },
                 ),
               ],
             ),
           ),
     );
+  }
+
+  Future<void> _updateThemeModeText(String languageCode) async {
+    final theme = await PreferencesService.getTheme();
+    setState(() {
+      switch (theme) {
+        case 'light':
+          _themeMode = languageCode == 'en' ? 'Light' : 'Sáng';
+          break;
+        case 'dark':
+          _themeMode = languageCode == 'en' ? 'Dark' : 'Tối';
+          break;
+        default:
+          _themeMode = languageCode == 'en' ? 'System' : 'Hệ thống';
+      }
+    });
   }
 
   void _showEditPersonalInfoDialog() {

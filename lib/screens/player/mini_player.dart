@@ -3,6 +3,7 @@ import 'adaptive_player_screen.dart';
 import '/controller/player_controller.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MiniPlayer extends StatefulWidget {
   final Function(bool) expandPlayerCallback;
@@ -243,7 +244,7 @@ class MiniPlayerState extends State<MiniPlayer>
                       Text(
                         _hasSong
                             ? _playerController.playingSong.title
-                            : "Không có gì đang phát",
+                            : AppLocalizations.of(context)!.nothingPlaying,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onInverseSurface,
                           fontSize: 18,

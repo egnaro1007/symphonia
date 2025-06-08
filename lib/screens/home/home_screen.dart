@@ -442,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Danh sách phát mọi người tạo',
+                        AppLocalizations.of(context)!.publicPlaylists,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -469,7 +469,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 CircularProgressIndicator(),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Đang tải danh sách công khai...',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.loadingPublicPlaylists,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 14,
@@ -490,7 +492,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Chưa có danh sách công khai nào',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.noPublicPlaylists,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 16,
@@ -541,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Danh sách phát của bạn bè',
+                        AppLocalizations.of(context)!.friendsPlaylists,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -568,7 +572,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 CircularProgressIndicator(),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Đang tải danh sách của bạn bè...',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.loadingFriendsPlaylists,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 14,
@@ -589,7 +595,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Chưa có danh sách nào từ bạn bè',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.noFriendsPlaylists,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 16,
@@ -640,7 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Tất cả Album',
+                        AppLocalizations.of(context)!.allAlbums,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -667,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 CircularProgressIndicator(),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Đang tải danh sách album...',
+                                  AppLocalizations.of(context)!.loadingAlbums,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 14,
@@ -688,7 +696,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Chưa có album nào',
+                                  AppLocalizations.of(context)!.noAlbums,
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 16,
