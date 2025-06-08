@@ -118,7 +118,7 @@ class AlbumOperations {
       String serverUrl = dotenv.env['SERVER_URL'] ?? '';
 
       for (Song song in album.songs) {
-        if (song.artist.isEmpty || song.audioUrl.isEmpty) {
+        if (song.artist.isEmpty || song.getAudioUrl().isEmpty) {
           // Load complete song details
           try {
             final url = Uri.parse('$serverUrl/api/library/songs/${song.id}/');

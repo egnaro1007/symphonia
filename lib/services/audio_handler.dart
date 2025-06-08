@@ -123,9 +123,7 @@ class SymphoniaAudioHandler extends BaseAudioHandler
 
       // Call parent stop to properly cleanup the service
       await super.stop();
-
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   @override
@@ -141,9 +139,8 @@ class SymphoniaAudioHandler extends BaseAudioHandler
     onSkipToPrevious?.call();
   }
 
-  // Phương thức để load và play một bài hát
-  Future<void> playSong(Song song) async {
-
+  // Phương thức để load song mà không tự động play
+  Future<void> loadSong(Song song) async {
     // Check if audioUrl is empty
     if (song.audioUrl.isEmpty) {
       print('ERROR: Audio URL is empty for song: ${song.title}');
@@ -197,9 +194,8 @@ class SymphoniaAudioHandler extends BaseAudioHandler
         }
       });
 
-      await play();
+      // Không tự động play ở đây
     } catch (e) {
-
       // Update playback state to show error
       playbackState.add(
         playbackState.value.copyWith(
@@ -208,6 +204,16 @@ class SymphoniaAudioHandler extends BaseAudioHandler
           controls: [MediaControl.stop],
         ),
       );
+    }
+  }
+
+  // Phương thức để load và play một bài hát
+  Future<void> playSong(Song song) async {
+    await loadSong(song);
+
+    // Chỉ play nếu không có lỗi
+    if (song.audioUrl.isNotEmpty) {
+      await play();
     }
   }
 
@@ -242,13 +248,11 @@ class SymphoniaAudioHandler extends BaseAudioHandler
 
       // Stop service
       await super.stop();
-
     } catch (e) {
       // Fallback - force stop
       try {
         await super.stop();
-      } catch (e2) {
-      }
+      } catch (e2) {}
     }
   }
 
@@ -266,9 +270,7 @@ class SymphoniaAudioHandler extends BaseAudioHandler
 
       // Stop service
       await super.stop();
-
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // Thêm phương thức dispose để cleanup khi cần
@@ -276,7 +278,6 @@ class SymphoniaAudioHandler extends BaseAudioHandler
     try {
       await forceStopAndClearNotification();
       await _player.dispose();
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }

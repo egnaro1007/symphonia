@@ -40,7 +40,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   // New state variables for top control row
   bool _isLiked = false; // Track if song is liked
   String _selectedQuality = '320kbps'; // Track selected quality
-  List<String> _qualityOptions = ['144kbps', '320kbps', 'Lossless'];
+  List<String> _availableQualities = []; // Dynamic list based on current song
 
   // Tab controller to notify all tabs
   late TabController _tabController;
@@ -64,6 +64,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     _isPlaying = _playerController.isPlaying();
     _isShuffleOn = _playerController.shuffleMode == ShuffleMode.on;
     _tempSliderPosition = _currentPosition; // Initialize temp position
+
+    // Initialize selected quality from player controller
+    _selectedQuality = _playerController.currentQuality;
 
     _playerController.getDuration().then((duration) {
       if (mounted) {
@@ -126,6 +129,9 @@ class _PlayerScreenState extends State<PlayerScreen>
           playingSong = song;
           _justReleasedSlider = false;
 
+          // Update available qualities and current quality
+          _updateQualityInfo();
+
           // Check if the new song is liked
           _checkLikeStatus();
 
@@ -148,6 +154,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeTabs();
       _checkLikeStatus(); // Check initial like status
+      _updateQualityInfo(); // Update quality info
     });
 
     // Setup DataEventManager listener for like status changes
@@ -652,13 +659,20 @@ class _PlayerScreenState extends State<PlayerScreen>
           border: Border.all(color: Colors.white30),
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Text(
-          _selectedQuality,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              Song.getQualityDisplayName(_selectedQuality),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 16),
+          ],
         ),
       ),
     );
@@ -676,6 +690,17 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   // Show quality selector dialog
   void _showQualitySelector() {
+    if (_availableQualities.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Không có chất lượng âm thanh khác cho bài hát này'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Color(0xFF2A1219),
@@ -697,26 +722,32 @@ class _PlayerScreenState extends State<PlayerScreen>
                 ),
               ),
               SizedBox(height: 20),
-              ..._qualityOptions.map((quality) {
+              ..._availableQualities.map((quality) {
+                int fileSize = _playerController.getFileSizeForQuality(quality);
+                String fileSizeText =
+                    fileSize > 0 ? ' (${_formatFileSize(fileSize)})' : '';
+
                 return ListTile(
-                  title: Text(quality, style: TextStyle(color: Colors.white)),
+                  title: Row(
+                    children: [
+                      Text(
+                        Song.getQualityDisplayName(quality),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      if (fileSizeText.isNotEmpty)
+                        Text(
+                          fileSizeText,
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                    ],
+                  ),
                   trailing:
                       _selectedQuality == quality
                           ? Icon(Icons.check, color: Colors.white)
                           : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedQuality = quality;
-                    });
+                  onTap: () async {
                     Navigator.pop(context);
-
-                    // Show feedback
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Đã chuyển sang chất lượng $quality'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    await _changeQuality(quality);
                   },
                 );
               }).toList(),
@@ -725,6 +756,98 @@ class _PlayerScreenState extends State<PlayerScreen>
         );
       },
     );
+  }
+
+  // Change audio quality
+  Future<void> _changeQuality(String quality) async {
+    if (quality == _selectedQuality) return;
+
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text(
+              'Đang chuyển sang chất lượng ${Song.getQualityDisplayName(quality)}...',
+            ),
+          ],
+        ),
+        duration: Duration(seconds: 3),
+      ),
+    );
+
+    try {
+      bool success = await _playerController.changeAudioQuality(quality);
+
+      // Clear the loading snackbar
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      if (success) {
+        setState(() {
+          _selectedQuality = quality;
+        });
+
+        // Show success feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Đã chuyển sang chất lượng ${Song.getQualityDisplayName(quality)}',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Show error feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Không thể chuyển sang chất lượng ${Song.getQualityDisplayName(quality)}',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error changing quality: $e');
+
+      // Clear the loading snackbar
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Có lỗi xảy ra khi chuyển chất lượng'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Format file size in human readable format
+  String _formatFileSize(int bytes) {
+    if (bytes <= 0) return '';
+
+    const suffixes = ['B', 'KB', 'MB', 'GB'];
+    int suffixIndex = 0;
+    double size = bytes.toDouble();
+
+    while (size > 1024 && suffixIndex < suffixes.length - 1) {
+      size /= 1024;
+      suffixIndex++;
+    }
+
+    return '${size.toStringAsFixed(1)}${suffixes[suffixIndex]}';
   }
 
   // Show add to playlist dialog
@@ -901,5 +1024,20 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
       }
     });
+  }
+
+  // Update quality information when song changes
+  void _updateQualityInfo() {
+    _availableQualities = _playerController.getAvailableQualities();
+    _selectedQuality = _playerController.currentQuality;
+
+    // If current quality is not available for this song, update to first available
+    if (_availableQualities.isNotEmpty &&
+        !_availableQualities.contains(_selectedQuality)) {
+      _selectedQuality =
+          _availableQualities.contains('320kbps')
+              ? '320kbps'
+              : _availableQualities.first;
+    }
   }
 }

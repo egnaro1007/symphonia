@@ -53,7 +53,7 @@ class SongItem extends StatelessWidget {
       onTap:
           onTap ??
           () {
-            if (song.audioUrl.isNotEmpty) {
+            if (song.getAudioUrl().isNotEmpty) {
               PlayerController.getInstance().loadSong(song);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +97,9 @@ class SongItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(
@@ -191,7 +193,7 @@ class SongItem extends StatelessWidget {
       onTap:
           onTap ??
           () {
-            if (song.audioUrl.isNotEmpty) {
+            if (song.getAudioUrl().isNotEmpty) {
               PlayerController.getInstance().loadSong(song);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -256,17 +258,17 @@ class SongItem extends StatelessWidget {
                           // Normal mode - show play and options icons
                           IconButton(
                             icon: Icon(
-                              song.audioUrl.isNotEmpty
+                              song.getAudioUrl().isNotEmpty
                                   ? Icons.play_circle_outline
                                   : Icons.error_outline,
                               size: 28,
                               color:
-                                  song.audioUrl.isNotEmpty
+                                  song.getAudioUrl().isNotEmpty
                                       ? null
                                       : Colors.red.shade400,
                             ),
                             onPressed:
-                                song.audioUrl.isNotEmpty
+                                song.getAudioUrl().isNotEmpty
                                     ? () {
                                       if (onTap != null) {
                                         onTap!();
@@ -354,7 +356,7 @@ class SongItem extends StatelessWidget {
     }
 
     // Normal mode - show play and options icons
-    bool canPlay = song.audioUrl.isNotEmpty;
+    bool canPlay = song.getAudioUrl().isNotEmpty;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -561,7 +563,9 @@ class SongItem extends StatelessWidget {
                 showModalBottomSheet(
                   context: context,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
                   builder: (_) {
                     return Column(

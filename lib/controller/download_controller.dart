@@ -29,7 +29,6 @@ class DownloadController {
       await metadataFile.create(recursive: true);
       await metadataFile.writeAsString('{}');
     }
-
   }
 
   static Future<void> downloadSong(Song song) async {
@@ -37,7 +36,7 @@ class DownloadController {
 
     // Download audio file
     final audioPath = '${_downloadAudioPath!}${song.id}.mp3';
-    final audioResponse = await http.get(Uri.parse(song.audioUrl));
+    final audioResponse = await http.get(Uri.parse(song.getAudioUrl()));
     if (audioResponse.statusCode == 200) {
       final audioFile = File(audioPath);
       await audioFile.writeAsBytes(audioResponse.bodyBytes);

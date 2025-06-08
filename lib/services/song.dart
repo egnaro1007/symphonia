@@ -26,58 +26,48 @@ class SongOperations {
         var jsonData = jsonDecode(data);
 
         List<Song> songs = [];
-        for (var song in jsonData) {
-          // Parse artist information
-          String artist = '';
-          if (song['artist'] != null && song['artist'] is List) {
-            List<dynamic> artists = song['artist'];
-            if (artists.isNotEmpty) {
-              // Join multiple artists with comma
-              artist = artists
-                  .map((a) => a['name'] ?? '')
-                  .where((name) => name.isNotEmpty)
-                  .join(', ');
-            }
+        for (var songJson in jsonData) {
+          // Process relative URLs to full URLs
+          String serverBase = serverUrl ?? '';
+          if (!serverBase.startsWith('http://') &&
+              !serverBase.startsWith('https://')) {
+            serverBase = 'http://$serverBase';
           }
 
-          String audioUrl = song['audio'] ?? '';
-          if (audioUrl.isEmpty) {
-            // Fallback: try to build URL if audio field is empty
-            // Ensure proper protocol
-            String baseUrl = serverUrl ?? '';
-            if (!baseUrl.startsWith('http://') &&
-                !baseUrl.startsWith('https://')) {
-              baseUrl = 'http://$baseUrl';
-            }
-            audioUrl = '$baseUrl/api/library/songs/${song['id']}/';
-          } else {}
-
-          // Handle cover art similar to audio URL
-          String imagePath = song['cover_art'] ?? '';
-          if (imagePath.isEmpty) {
-            // Use default placeholder
-            imagePath = '';
-          } else if (!imagePath.startsWith('http://') &&
-              !imagePath.startsWith('https://')) {
-            // If cover_art is a relative path, build full URL
-            String baseUrl = serverUrl ?? '';
-            if (!baseUrl.startsWith('http://') &&
-                !baseUrl.startsWith('https://')) {
-              baseUrl = 'http://$baseUrl';
-            }
-            imagePath = '$baseUrl$imagePath';
+          // Process cover_art URL
+          if (songJson['cover_art'] != null &&
+              songJson['cover_art'].toString().isNotEmpty &&
+              !songJson['cover_art'].toString().startsWith('http://') &&
+              !songJson['cover_art'].toString().startsWith('https://')) {
+            songJson['cover_art'] = '$serverBase${songJson['cover_art']}';
           }
 
-          songs.add(
-            Song(
-              id: song['id'],
-              title: song['title'],
-              artist: artist,
-              imagePath: imagePath,
-              audioUrl: audioUrl,
-              durationSeconds: song['duration_seconds'] ?? 0, // Parse duration
-            ),
-          );
+          // Process audio URLs in audio_urls map
+          if (songJson['audio_urls'] != null) {
+            Map<String, dynamic> audioUrls = Map<String, dynamic>.from(
+              songJson['audio_urls'],
+            );
+            audioUrls.forEach((key, value) {
+              if (value != null &&
+                  value.toString().isNotEmpty &&
+                  !value.toString().startsWith('http://') &&
+                  !value.toString().startsWith('https://')) {
+                audioUrls[key] = '$serverBase$value';
+              }
+            });
+            songJson['audio_urls'] = audioUrls;
+          }
+
+          // Process legacy audio URL
+          if (songJson['audio'] != null &&
+              songJson['audio'].toString().isNotEmpty &&
+              !songJson['audio'].toString().startsWith('http://') &&
+              !songJson['audio'].toString().startsWith('https://')) {
+            songJson['audio'] = '$serverBase${songJson['audio']}';
+          }
+
+          // Use Song.fromJson to create Song objects with quality support
+          songs.add(Song.fromJson(songJson));
         }
 
         return songs;

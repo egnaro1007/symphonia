@@ -219,7 +219,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
 
   Widget _buildPlayableSongsIndicator(PlayList playlist) {
     int playableSongs =
-        playlist.songs.where((song) => song.audioUrl.isNotEmpty).length;
+        playlist.songs.where((song) => song.getAudioUrl().isNotEmpty).length;
 
     if (playableSongs < playlist.songsCount) {
       return Padding(
@@ -409,7 +409,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     if (playlist.songs.isEmpty) return;
 
     int firstPlayableIndex = playlist.songs.indexWhere(
-      (song) => song.audioUrl.isNotEmpty,
+      (song) => song.getAudioUrl().isNotEmpty,
     );
 
     if (firstPlayableIndex != -1) {

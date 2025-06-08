@@ -201,8 +201,36 @@ class PlayerController {
     _playingSong = song;
     _hasSong = true;
 
+    // Use default quality (320kbps) for new songs, or keep current quality if changing quality
+    String qualityToUse =
+        song.hasQuality(_currentQuality) ? _currentQuality : '320kbps';
+
+    // If 320kbps is not available, use the first available quality
+    if (!song.hasQuality(qualityToUse) && song.availableQualities.isNotEmpty) {
+      qualityToUse = song.availableQualities.first;
+    }
+
+    // Update current quality
+    _currentQuality = qualityToUse;
+
+    // Create updated song with quality-specific audio URL
+    Song updatedSong = Song(
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      imagePath: song.imagePath,
+      audioUrl: song.getAudioUrl(qualityToUse),
+      lyrics: song.lyrics,
+      durationSeconds: song.durationSeconds,
+      availableQualities: song.availableQualities,
+      audioUrls: song.audioUrls,
+      audioFileSizes: song.audioFileSizes,
+    );
+
+    _playingSong = updatedSong;
+
     // Check if song has valid audio URL
-    if (song.audioUrl.isEmpty) {
+    if (updatedSong.audioUrl.isEmpty) {
       // Still notify listeners about song change for UI updates
       _songChangeController.add(_playingSong);
       return;
@@ -210,7 +238,7 @@ class PlayerController {
 
     // Play through audio handler (this will show notification)
     try {
-      await _audioHandler.playSong(song);
+      await _audioHandler.playSong(updatedSong);
     } catch (e) {}
 
     // Notify listeners about song change after audio handler is set up
@@ -540,6 +568,93 @@ class PlayerController {
     }
   }
 
+  // Current audio quality
+  String _currentQuality = '320kbps';
+  String get currentQuality => _currentQuality;
+
+  // Change audio quality for current song
+  Future<bool> changeAudioQuality(String quality) async {
+    if (!_hasSong || _playingSong.id == 0) {
+      return false;
+    }
+
+    // Check if the quality is available for current song
+    if (!_playingSong.hasQuality(quality)) {
+      return false;
+    }
+
+    // Get current position to resume at same time
+    Duration currentPosition = await getCurrentPosition();
+    bool wasPlaying = isPlaying();
+
+    // Create a new song object with the same data but different audioUrl
+    Song updatedSong = Song(
+      id: _playingSong.id,
+      title: _playingSong.title,
+      artist: _playingSong.artist,
+      imagePath: _playingSong.imagePath,
+      audioUrl: _playingSong.getAudioUrl(
+        quality,
+      ), // Use the quality-specific URL
+      lyrics: _playingSong.lyrics,
+      durationSeconds: _playingSong.durationSeconds,
+      availableQualities: _playingSong.availableQualities,
+      audioUrls: _playingSong.audioUrls,
+      audioFileSizes: _playingSong.audioFileSizes,
+    );
+
+    try {
+      // Update the playing song
+      _playingSong = updatedSong;
+      _currentQuality = quality;
+
+      // Update the song in the current playlist as well
+      if (_currentSongIndex < _currentPlaylist.songs.length) {
+        _currentPlaylist.songs[_currentSongIndex] = updatedSong;
+      }
+
+      // Load the song with new quality (without auto-playing)
+      await _audioHandler.loadSong(updatedSong);
+
+      // Seek to the previous position first
+      if (currentPosition.inMilliseconds > 0) {
+        await Future.delayed(
+          Duration(milliseconds: 100),
+        ); // Small delay to ensure audio is ready
+        await seek(currentPosition);
+      }
+
+      // Only start playing if it was playing before
+      if (wasPlaying) {
+        await play();
+      }
+
+      // Notify listeners about the song change
+      _songChangeController.add(_playingSong);
+
+      return true;
+    } catch (e) {
+      print('Error changing audio quality: $e');
+      return false;
+    }
+  }
+
+  // Get available qualities for current song
+  List<String> getAvailableQualities() {
+    if (!_hasSong || _playingSong.id == 0) {
+      return [];
+    }
+    return _playingSong.availableQualities;
+  }
+
+  // Get file size for current song at specific quality
+  int getFileSizeForQuality(String quality) {
+    if (!_hasSong || _playingSong.id == 0) {
+      return 0;
+    }
+    return _playingSong.getFileSize(quality);
+  }
+
   Future<void> reset() async {
     await _audioHandler.stop();
     _hasSong = false;
@@ -548,6 +663,7 @@ class PlayerController {
     _shuffleMode = ShuffleMode.off;
     _shuffledIndices.clear();
     _shufflePosition = 0;
+    _currentQuality = '320kbps'; // Reset to default quality
     _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
     _currentPlaylist = PlayList(
       id: "",
