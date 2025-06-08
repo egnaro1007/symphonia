@@ -11,6 +11,7 @@ import 'package:symphonia/widgets/song_item.dart';
 import 'package:symphonia/widgets/album_item.dart';
 import 'package:symphonia/widgets/artist_item.dart';
 import 'package:symphonia/constants/screen_index.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SearchScreen extends AbstractScreen {
   const SearchScreen({super.key, required super.onTabSelected});
@@ -32,6 +33,7 @@ class _SearchPageState extends State<SearchScreen>
   );
   List<String> _searchSuggestions = [];
   List<SearchResult> _searchResults = [];
+  Map<String, dynamic>? _rawSearchData;
   bool _isSearchSubmitted = false;
   late TabController _tabController;
 
@@ -55,6 +57,7 @@ class _SearchPageState extends State<SearchScreen>
     if (query.isEmpty) {
       setState(() {
         _searchSuggestions = [];
+        _rawSearchData = null;
         _isSearchSubmitted = false;
       });
       return;
@@ -68,15 +71,25 @@ class _SearchPageState extends State<SearchScreen>
   }
 
   void _updateSearchResults(String query) async {
+    print('Starting search for: $query'); // Debug log
     var results = await Searching.searchResults(query);
+    var rawData = await Searching.getRawSearchData(query);
+    print(
+      'Search completed. Results: ${results.length}, Raw data: ${rawData != null}',
+    ); // Debug log
     setState(() {
       _searchResults = results;
+      _rawSearchData = rawData;
       _isSearchSubmitted = true;
     });
 
     final songsCount = _searchResults.whereType<SongSearchResult>().length;
     final artistsCount = _searchResults.whereType<ArtistSearchResult>().length;
     final albumsCount = _searchResults.whereType<AlbumSearchResult>().length;
+
+    print(
+      'Search results breakdown - Songs: $songsCount, Artists: $artistsCount, Albums: $albumsCount',
+    ); // Debug log
 
     int targetTabIndex = 0;
     if (songsCount > 0) {
@@ -114,6 +127,7 @@ class _SearchPageState extends State<SearchScreen>
                     setState(() {
                       _searchSuggestions = [];
                       _searchResults = [];
+                      _rawSearchData = null;
                       _isSearchSubmitted = false;
                     });
                     // Navigate back
@@ -160,6 +174,7 @@ class _SearchPageState extends State<SearchScreen>
                             setState(() {
                               _isSearchSubmitted = false;
                               _searchResults = [];
+                              _rawSearchData = null;
                             });
                           },
                         ),
@@ -246,6 +261,72 @@ class _SearchPageState extends State<SearchScreen>
   }
 
   Widget _buildSongResult(SongSearchResult result) {
+    print(
+      'Building song result for: ${result.name} by ${result.artist}',
+    ); // Debug log
+
+    // Find the raw song data that matches this result
+    if (_rawSearchData != null && _rawSearchData!['songs'] != null) {
+      print('Searching for raw data for song ID: ${result.id}'); // Debug log
+      for (var songData in _rawSearchData!['songs']) {
+        if (songData['id'] == result.id) {
+          print('Found raw data for song: ${songData['title']}'); // Debug log
+
+          // Process relative URLs to full URLs (similar to SongOperations)
+          String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+          String serverBase = serverUrl;
+          if (!serverBase.startsWith('http://') &&
+              !serverBase.startsWith('https://')) {
+            serverBase = 'http://$serverBase';
+          }
+
+          // Process cover_art URL
+          if (songData['cover_art'] != null &&
+              songData['cover_art'].toString().isNotEmpty &&
+              !songData['cover_art'].toString().startsWith('http://') &&
+              !songData['cover_art'].toString().startsWith('https://')) {
+            songData['cover_art'] = '$serverBase${songData['cover_art']}';
+          }
+
+          // Process audio URLs in audio_urls map
+          if (songData['audio_urls'] != null) {
+            Map<String, dynamic> audioUrls = Map<String, dynamic>.from(
+              songData['audio_urls'],
+            );
+            audioUrls.forEach((key, value) {
+              if (value != null &&
+                  value.toString().isNotEmpty &&
+                  !value.toString().startsWith('http://') &&
+                  !value.toString().startsWith('https://')) {
+                audioUrls[key] = '$serverBase$value';
+              }
+            });
+            songData['audio_urls'] = audioUrls;
+          }
+
+          // Process legacy audio URL
+          if (songData['audio'] != null &&
+              songData['audio'].toString().isNotEmpty &&
+              !songData['audio'].toString().startsWith('http://') &&
+              !songData['audio'].toString().startsWith('https://')) {
+            songData['audio'] = '$serverBase${songData['audio']}';
+          }
+
+          // Create Song object using Song.fromJson for proper quality support
+          Song song = Song.fromJson(songData);
+          print(
+            'Created Song object with audio URL: ${song.getAudioUrl()}',
+          ); // Debug log
+          return SongItem(song: song);
+        }
+      }
+      print('No raw data found for song ID: ${result.id}'); // Debug log
+    } else {
+      print('No raw search data available'); // Debug log
+    }
+
+    // Fallback: create Song from SearchResult if raw data not found
+    print('Using fallback Song creation for: ${result.name}'); // Debug log
     Song song = Song(
       id: result.id,
       title: result.name,
@@ -254,6 +335,9 @@ class _SearchPageState extends State<SearchScreen>
       audioUrl: result.audio_url,
     );
 
+    print(
+      'Fallback Song created with audio URL: ${song.getAudioUrl()}',
+    ); // Debug log
     return SongItem(song: song);
   }
 

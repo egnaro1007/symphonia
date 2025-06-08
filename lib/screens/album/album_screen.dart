@@ -427,8 +427,27 @@ class _AlbumScreenState extends State<AlbumScreen> {
         return;
       }
 
-      // Use PlayerController instead of direct AudioHandler
-      PlayerController.getInstance().loadSongs(songs);
+      // Check if any song has a valid audio URL
+      final playableSongs =
+          songs.where((song) => song.getAudioUrl().isNotEmpty).toList();
+
+      if (playableSongs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Album này không có bài hát nào có thể phát'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Find the index of the first playable song in the original list
+      int firstPlayableIndex = songs.indexWhere(
+        (song) => song.getAudioUrl().isNotEmpty,
+      );
+
+      // Use PlayerController to load songs and start from first playable song
+      PlayerController.getInstance().loadSongs(songs, firstPlayableIndex);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -448,6 +467,22 @@ class _AlbumScreenState extends State<AlbumScreen> {
 
   void _handleSongTap(List<Song> songs, int index) async {
     try {
+      final selectedSong = songs[index];
+
+      // Check if the selected song has a valid audio URL
+      if (selectedSong.getAudioUrl().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Bài hát "${selectedSong.title}" không có file âm thanh để phát',
+            ),
+            backgroundColor: Colors.red.shade400,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
       // Use PlayerController to load the entire album playlist and start at selected index
       PlayerController.getInstance().loadSongs(songs, index);
 

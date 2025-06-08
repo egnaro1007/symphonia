@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/screens/trending/song_options_bottom_sheet.dart';
 import 'package:symphonia/screens/trending/song_player_screen.dart';
+import 'package:symphonia/controller/player_controller.dart';
 
 import '../../models/song.dart';
 
@@ -40,10 +41,27 @@ class SongList extends StatelessWidget {
   }) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SongPlayerScreen(song: song)),
-        );
+        // Check if song has valid audio URL before playing
+        if (song.getAudioUrl().isNotEmpty) {
+          PlayerController.getInstance().loadSong(song);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đang phát "${song.title}"'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Bài hát "${song.title}" không có file âm thanh để phát',
+              ),
+              backgroundColor: Colors.red.shade400,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       },
       child: Container(
         color: isSelected ? Colors.purple : Colors.deepPurple.shade500,

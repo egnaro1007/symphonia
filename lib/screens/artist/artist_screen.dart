@@ -309,8 +309,50 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   ),
                                   TextButton(
                                     onPressed: () {
+                                      // Check if any song has a valid audio URL
+                                      final playableSongs =
+                                          songs
+                                              .where(
+                                                (song) =>
+                                                    song
+                                                        .getAudioUrl()
+                                                        .isNotEmpty,
+                                              )
+                                              .toList();
+
+                                      if (playableSongs.isEmpty) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Nghệ sĩ này không có bài hát nào có thể phát',
+                                            ),
+                                            backgroundColor: Colors.orange,
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      // Find the index of the first playable song in the original list
+                                      int firstPlayableIndex = songs.indexWhere(
+                                        (song) => song.getAudioUrl().isNotEmpty,
+                                      );
+
                                       PlayerController.getInstance().loadSongs(
                                         songs,
+                                        firstPlayableIndex,
+                                      );
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Đang phát tất cả bài hát của nghệ sĩ',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
                                       );
                                     },
                                     style: TextButton.styleFrom(

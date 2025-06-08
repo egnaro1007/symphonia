@@ -32,41 +32,48 @@ class HistoryOperations {
 
         for (dynamic historyData in data) {
           var songData = historyData['song'];
-          int id = songData['id'];
-          String title = songData['title'];
-          String imagePath = songData['cover_art'] ?? '';
-          String audio = songData['audio'] ?? '';
-          int durationSeconds = songData['duration_seconds'] ?? 0;
 
-          // Parse artist information
-          String artist = '';
-          if (songData['artist'] != null && songData['artist'] is List) {
-            List<dynamic> artists = songData['artist'];
-            if (artists.isNotEmpty) {
-              artist = artists
-                  .map((a) => a['name'] ?? '')
-                  .where((name) => name.isNotEmpty)
-                  .join(', ');
-            }
+          // Process relative URLs to full URLs (similar to SongOperations)
+          String serverBase = serverUrl;
+          if (!serverBase.startsWith('http://') &&
+              !serverBase.startsWith('https://')) {
+            serverBase = 'http://$serverBase';
           }
 
-          if (imagePath.isNotEmpty) {
-            imagePath = '$serverUrl$imagePath';
-          }
-          if (audio.isNotEmpty) {
-            audio = '$serverUrl$audio';
+          // Process cover_art URL
+          if (songData['cover_art'] != null &&
+              songData['cover_art'].toString().isNotEmpty &&
+              !songData['cover_art'].toString().startsWith('http://') &&
+              !songData['cover_art'].toString().startsWith('https://')) {
+            songData['cover_art'] = '$serverBase${songData['cover_art']}';
           }
 
-          songs.add(
-            Song(
-              id: id,
-              title: title,
-              artist: artist,
-              imagePath: imagePath,
-              audioUrl: audio,
-              durationSeconds: durationSeconds,
-            ),
-          );
+          // Process audio URLs in audio_urls map
+          if (songData['audio_urls'] != null) {
+            Map<String, dynamic> audioUrls = Map<String, dynamic>.from(
+              songData['audio_urls'],
+            );
+            audioUrls.forEach((key, value) {
+              if (value != null &&
+                  value.toString().isNotEmpty &&
+                  !value.toString().startsWith('http://') &&
+                  !value.toString().startsWith('https://')) {
+                audioUrls[key] = '$serverBase$value';
+              }
+            });
+            songData['audio_urls'] = audioUrls;
+          }
+
+          // Process legacy audio URL
+          if (songData['audio'] != null &&
+              songData['audio'].toString().isNotEmpty &&
+              !songData['audio'].toString().startsWith('http://') &&
+              !songData['audio'].toString().startsWith('https://')) {
+            songData['audio'] = '$serverBase${songData['audio']}';
+          }
+
+          // Use Song.fromJson to create Song objects with quality support
+          songs.add(Song.fromJson(songData));
         }
       } else {
         print('Error: ${response.statusCode}');

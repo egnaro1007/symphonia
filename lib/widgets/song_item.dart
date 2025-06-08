@@ -23,6 +23,7 @@ class SongItem extends StatelessWidget {
   final bool isDragMode; // New parameter for drag mode
   final bool showDeleteIcon; // New parameter to show delete icon
   final VoidCallback? onDeletePressed; // New callback for delete action
+  final bool isDownloadedSong; // New parameter for downloaded songs
 
   const SongItem({
     super.key,
@@ -39,6 +40,7 @@ class SongItem extends StatelessWidget {
     this.isDragMode = false, // Default to false
     this.showDeleteIcon = false, // Default to false
     this.onDeletePressed, // Can be null when not needed
+    this.isDownloadedSong = false, // Default to false
   });
 
   @override
@@ -353,6 +355,52 @@ class SongItem extends StatelessWidget {
           ),
         );
       }
+    }
+
+    // For downloaded songs, show play and delete icons
+    if (isDownloadedSong) {
+      bool canPlay = song.getAudioUrl().isNotEmpty;
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Show different icon based on playability
+          IconButton(
+            icon: Icon(
+              canPlay ? Icons.play_circle_outline : Icons.error_outline,
+              color: canPlay ? null : Colors.red.shade400,
+            ),
+            onPressed:
+                canPlay
+                    ? () {
+                      if (onTap != null) {
+                        onTap!();
+                      } else {
+                        PlayerController.getInstance().loadSong(song);
+                      }
+                    }
+                    : () {
+                      // Show message when song cannot be played
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Bài hát "${song.title}" không có file âm thanh để phát',
+                          ),
+                          backgroundColor: Colors.red.shade400,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              _showDeleteDownloadConfirmation(context);
+            },
+          ),
+        ],
+      );
     }
 
     // Normal mode - show play and options icons
@@ -966,6 +1014,87 @@ class SongItem extends StatelessWidget {
             content: Text('Lỗi khi tải xuống: ${e.toString()}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Show confirmation dialog for deleting downloaded song
+  Future<void> _showDeleteDownloadConfirmation(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Xác nhận xóa'),
+          content: Text(
+            'Bạn có chắc chắn muốn xóa bài hát "${song.title}" khỏi danh sách tải xuống không?\n\nThao tác này không thể hoàn tác.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close dialog
+                await _handleDeleteDownloadedSong(context);
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Xóa'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Handle deleting downloaded song
+  Future<void> _handleDeleteDownloadedSong(BuildContext context) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await DownloadController.deleteSong(song.id);
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã xóa "${song.title}" khỏi danh sách tải xuống'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Trigger callbacks if available
+        if (onSongDeleted != null) {
+          onSongDeleted!();
+        }
+        if (onPlaylistUpdate != null) {
+          onPlaylistUpdate!();
+        }
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Có lỗi xảy ra khi xóa bài hát: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
           ),
         );
       }

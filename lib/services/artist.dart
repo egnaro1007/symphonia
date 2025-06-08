@@ -173,57 +173,47 @@ class ArtistOperations {
             );
 
             if (hasArtist) {
-              // Parse artist information
-              String artist = '';
-              if (artists.isNotEmpty) {
-                artist = artists
-                    .map((a) => a['name'] ?? '')
-                    .where((name) => name.isNotEmpty)
-                    .join(', ');
+              // Process relative URLs to full URLs (similar to SongOperations)
+              String serverBase = serverUrl;
+              if (!serverBase.startsWith('http://') &&
+                  !serverBase.startsWith('https://')) {
+                serverBase = 'http://$serverBase';
               }
 
-              // Handle audio URL
-              String audioUrl = songData['audio'] ?? '';
-              if (audioUrl.isNotEmpty &&
-                  !audioUrl.startsWith('http://') &&
-                  !audioUrl.startsWith('https://')) {
-                String baseUrl = serverUrl;
-                if (!baseUrl.startsWith('http://') &&
-                    !baseUrl.startsWith('https://')) {
-                  baseUrl = 'http://$baseUrl';
-                }
-                audioUrl = '$baseUrl$audioUrl';
+              // Process cover_art URL
+              if (songData['cover_art'] != null &&
+                  songData['cover_art'].toString().isNotEmpty &&
+                  !songData['cover_art'].toString().startsWith('http://') &&
+                  !songData['cover_art'].toString().startsWith('https://')) {
+                songData['cover_art'] = '$serverBase${songData['cover_art']}';
               }
 
-              // Handle cover art
-              String imagePath = songData['cover_art'] ?? '';
-              if (imagePath.isNotEmpty &&
-                  !imagePath.startsWith('http://') &&
-                  !imagePath.startsWith('https://')) {
-                String baseUrl = serverUrl;
-                if (!baseUrl.startsWith('http://') &&
-                    !baseUrl.startsWith('https://')) {
-                  baseUrl = 'http://$baseUrl';
-                }
-                imagePath = '$baseUrl$imagePath';
+              // Process audio URLs in audio_urls map
+              if (songData['audio_urls'] != null) {
+                Map<String, dynamic> audioUrls = Map<String, dynamic>.from(
+                  songData['audio_urls'],
+                );
+                audioUrls.forEach((key, value) {
+                  if (value != null &&
+                      value.toString().isNotEmpty &&
+                      !value.toString().startsWith('http://') &&
+                      !value.toString().startsWith('https://')) {
+                    audioUrls[key] = '$serverBase$value';
+                  }
+                });
+                songData['audio_urls'] = audioUrls;
               }
 
-              // Handle duration
-              int durationSeconds = 0;
-              if (songData['duration_seconds'] != null) {
-                durationSeconds = songData['duration_seconds'] as int;
+              // Process legacy audio URL
+              if (songData['audio'] != null &&
+                  songData['audio'].toString().isNotEmpty &&
+                  !songData['audio'].toString().startsWith('http://') &&
+                  !songData['audio'].toString().startsWith('https://')) {
+                songData['audio'] = '$serverBase${songData['audio']}';
               }
 
-              artistSongs.add(
-                Song(
-                  id: songData['id'] ?? 0,
-                  title: songData['title'] ?? '',
-                  artist: artist,
-                  imagePath: imagePath,
-                  audioUrl: audioUrl,
-                  durationSeconds: durationSeconds,
-                ),
-              );
+              // Use Song.fromJson to create Song objects with quality support
+              artistSongs.add(Song.fromJson(songData));
             }
           }
         }

@@ -420,6 +420,22 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   void _handleSongTap(PlayList playlist, int index) {
+    final selectedSong = playlist.songs[index];
+
+    // Check if the selected song has a valid audio URL
+    if (selectedSong.getAudioUrl().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Bài hát "${selectedSong.title}" không có file âm thanh để phát',
+          ),
+          backgroundColor: Colors.red.shade400,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     PlayerController.getInstance().loadPlaylist(playlist, index);
   }
 

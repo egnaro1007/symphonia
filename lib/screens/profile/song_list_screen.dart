@@ -205,24 +205,56 @@ class _SongListScreenState extends State<SongListScreen> {
                             try {
                               // Reload songs to ensure fresh data before playing
                               final freshSongs = await widget.songsLoader();
-                              if (freshSongs.isNotEmpty) {
-                                PlayerController.getInstance().loadSongs(
-                                  freshSongs,
-                                );
-                              } else {
+                              final songsToPlay =
+                                  freshSongs.isNotEmpty ? freshSongs : songs;
+
+                              // Check if any song has a valid audio URL
+                              final playableSongs =
+                                  songsToPlay
+                                      .where(
+                                        (song) => song.getAudioUrl().isNotEmpty,
+                                      )
+                                      .toList();
+
+                              if (playableSongs.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Không có bài hát nào để phát',
+                                      'Danh sách này không có bài hát nào có thể phát',
                                     ),
                                     backgroundColor: Colors.orange,
                                   ),
                                 );
+                                return;
                               }
-                            } catch (e) {
+
+                              // Find the index of the first playable song in the original list
+                              int firstPlayableIndex = songsToPlay.indexWhere(
+                                (song) => song.getAudioUrl().isNotEmpty,
+                              );
+
                               PlayerController.getInstance().loadSongs(
-                                songs,
-                              ); // Fallback
+                                songsToPlay,
+                                firstPlayableIndex,
+                              );
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Đang phát ${widget.screenTitle}',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Không thể phát nhạc: ${e.toString()}',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             }
                           }
                         },
@@ -263,6 +295,8 @@ class _SongListScreenState extends State<SongListScreen> {
                           isHorizontal: true,
                           index: index,
                           showIndex: false,
+                          isDownloadedSong: widget.screenTitle == 'Đã tải',
+                          onSongDeleted: _refreshData,
                         );
                       },
                     ),

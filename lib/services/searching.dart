@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:symphonia/services/spotify_token.dart';
+import 'package:symphonia/services/token_manager.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/search_result.dart';
@@ -77,68 +78,271 @@ class Searching {
       '$serverUrl/api/library/search/?query=$encodedWord&max_results=$maxResults',
     );
 
+    print('Search URI: $uri'); // Debug log
+
     try {
-      final response = await http.get(uri);
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Search response status: ${response.statusCode}'); // Debug log
+      print('Search response body: ${response.body}'); // Debug log
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        for (var song in data['songs']) {
-          results.add(
-            SongSearchResult(
-              id: song['id'],
-              name: song['title'],
-              artist: song['artist'].map((artist) => artist['name']).join(', '),
-              image:
-                  song['cover_art'] != null && song['cover_art'].isNotEmpty
-                      ? serverUrl + song['cover_art']
-                      : '',
-              audio_url: serverUrl + song['audio'],
-            ),
-          );
-        }
+        print('Parsed search data: $data'); // Debug log
 
-        for (var artist in data['artists']) {
-          String artistImage = artist['artist_picture'] ?? '';
-          // Process artist picture URL to make it full URL
-          if (artistImage.isNotEmpty &&
-              !artistImage.startsWith('http://') &&
-              !artistImage.startsWith('https://')) {
-            artistImage = serverUrl + artistImage;
+        // Check if songs exist in response
+        if (data['songs'] != null) {
+          print('Songs found: ${data['songs'].length}'); // Debug log
+          for (var song in data['songs']) {
+            print(
+              'Processing song: ID=${song['id']}, Title=${song['title']}',
+            ); // Debug log
+
+            try {
+              // Handle artist parsing more carefully - only get name, ignore bio
+              String artistName = '';
+              if (song['artist'] != null) {
+                print(
+                  'Artist data exists, type: ${song['artist'].runtimeType}',
+                ); // Debug log
+                if (song['artist'] is List) {
+                  try {
+                    print(
+                      'Processing artist list with ${song['artist'].length} items',
+                    ); // Debug log
+                    List<String> artistNames = [];
+                    for (var artist in song['artist']) {
+                      print(
+                        'Processing artist item: ${artist.runtimeType}',
+                      ); // Debug log
+                      if (artist is Map && artist['name'] != null) {
+                        String name = artist['name'].toString().trim();
+                        print('Found artist name: "$name"'); // Debug log
+                        if (name.isNotEmpty) {
+                          artistNames.add(name);
+                        }
+                      } else {
+                        print('Artist item invalid: $artist'); // Debug log
+                      }
+                    }
+                    artistName = artistNames.join(', ');
+                    print('Final artist name: "$artistName"'); // Debug log
+                    if (artistName.isEmpty) {
+                      artistName = 'Unknown Artist';
+                    }
+                  } catch (e) {
+                    print('Error parsing artist list: $e');
+                    artistName = 'Unknown Artist';
+                  }
+                } else if (song['artist'] is String) {
+                  artistName = song['artist'].toString().trim();
+                  print('Artist is string: "$artistName"'); // Debug log
+                } else {
+                  print('Unknown artist format: ${song['artist']}');
+                  artistName = 'Unknown Artist';
+                }
+              } else {
+                print('No artist data found'); // Debug log
+                artistName = 'Unknown Artist';
+              }
+
+              print(
+                'About to create SongSearchResult with artist: "$artistName"',
+              ); // Debug log
+
+              // Handle audio URL safely
+              String audioUrl = '';
+              if (song['audio'] != null &&
+                  song['audio'].toString().isNotEmpty) {
+                audioUrl = serverUrl + song['audio'];
+              } else {
+                // Try to get from audio_urls if available
+                if (song['audio_urls'] != null && song['audio_urls'] is Map) {
+                  Map<String, dynamic> audioUrls = song['audio_urls'];
+                  // Prefer higher quality first
+                  if (audioUrls['320kbps'] != null) {
+                    audioUrl = serverUrl + audioUrls['320kbps'];
+                  } else if (audioUrls['128kbps'] != null) {
+                    audioUrl = serverUrl + audioUrls['128kbps'];
+                  } else if (audioUrls['lossless'] != null) {
+                    audioUrl = serverUrl + audioUrls['lossless'];
+                  } else if (audioUrls['legacy'] != null) {
+                    audioUrl = serverUrl + audioUrls['legacy'];
+                  }
+                }
+              }
+
+              print('Audio URL: "$audioUrl"'); // Debug log
+
+              results.add(
+                SongSearchResult(
+                  id: song['id'],
+                  name: song['title'],
+                  artist: artistName,
+                  image:
+                      song['cover_art'] != null && song['cover_art'].isNotEmpty
+                          ? serverUrl + song['cover_art']
+                          : '',
+                  audio_url: audioUrl,
+                ),
+              );
+              print(
+                'Successfully created SongSearchResult for: ${song['title']} by $artistName',
+              );
+            } catch (e) {
+              print('ERROR parsing song: ${e.toString()}');
+              print('Song data that caused error: $song');
+            }
           }
-
-          results.add(
-            ArtistSearchResult(
-              id: artist['id'],
-              name: artist['name'],
-              image: artistImage,
-            ),
-          );
+        } else {
+          print('No songs found in response'); // Debug log
         }
 
-        for (var song in data['albums']) {
-          DateTime? releaseDate;
-          if (song['release_date'] != null) {
-            releaseDate = DateTime.parse(song['release_date']);
+        // Check if artists exist in response
+        if (data['artists'] != null) {
+          print('Artists found: ${data['artists'].length}'); // Debug log
+          for (var artist in data['artists']) {
+            String artistImage = artist['artist_picture'] ?? '';
+            // Process artist picture URL to make it full URL
+            if (artistImage.isNotEmpty &&
+                !artistImage.startsWith('http://') &&
+                !artistImage.startsWith('https://')) {
+              artistImage = serverUrl + artistImage;
+            }
+
+            results.add(
+              ArtistSearchResult(
+                id: artist['id'],
+                name: artist['name'],
+                image: artistImage,
+              ),
+            );
           }
-
-          results.add(
-            AlbumSearchResult(
-              id: song['id'],
-              name: song['title'],
-              artist: song['artist'].map((artist) => artist['name']).join(', '),
-              image:
-                  song['cover_art'] != null && song['cover_art'].isNotEmpty
-                      ? serverUrl + song['cover_art']
-                      : '',
-              releaseDate: releaseDate,
-            ),
-          );
+        } else {
+          print('No artists found in response'); // Debug log
         }
+
+        // Check if albums exist in response
+        if (data['albums'] != null) {
+          print('Albums found: ${data['albums'].length}'); // Debug log
+          for (var song in data['albums']) {
+            try {
+              DateTime? releaseDate;
+              if (song['release_date'] != null) {
+                releaseDate = DateTime.parse(song['release_date']);
+              }
+
+              // Handle artist parsing more carefully - only get name, ignore bio
+              String artistName = '';
+              if (song['artist'] != null) {
+                if (song['artist'] is List) {
+                  try {
+                    List<String> artistNames = [];
+                    for (var artist in song['artist']) {
+                      if (artist is Map && artist['name'] != null) {
+                        String name = artist['name'].toString().trim();
+                        if (name.isNotEmpty) {
+                          artistNames.add(name);
+                        }
+                      }
+                    }
+                    artistName = artistNames.join(', ');
+                    if (artistName.isEmpty) {
+                      artistName = 'Unknown Artist';
+                    }
+                  } catch (e) {
+                    print('Error parsing artist list: $e');
+                    artistName = 'Unknown Artist';
+                  }
+                } else if (song['artist'] is String) {
+                  artistName = song['artist'].toString().trim();
+                } else {
+                  print('Unknown album artist format: ${song['artist']}');
+                  artistName = 'Unknown Artist';
+                }
+              } else {
+                artistName = 'Unknown Artist';
+              }
+
+              results.add(
+                AlbumSearchResult(
+                  id: song['id'],
+                  name: song['title'],
+                  artist: artistName,
+                  image:
+                      song['cover_art'] != null && song['cover_art'].isNotEmpty
+                          ? serverUrl + song['cover_art']
+                          : '',
+                  releaseDate: releaseDate,
+                ),
+              );
+              print(
+                'Successfully created AlbumSearchResult for: ${song['title']}',
+              );
+            } catch (e) {
+              print('Error parsing album: $song, error: $e');
+            }
+          }
+        } else {
+          print('No albums found in response'); // Debug log
+        }
+      } else {
+        print('Search failed with status: ${response.statusCode}'); // Debug log
+        print('Error response: ${response.body}'); // Debug log
       }
+
+      print('Total search results: ${results.length}'); // Debug log
       return results;
     } catch (e) {
+      print('Search error: $e'); // Debug log
       return [];
+    }
+  }
+
+  // New method to get raw song data for proper Song object creation
+  static Future<Map<String, dynamic>?> getRawSearchData(String word) async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    final String encodedWord = Uri.encodeComponent(word);
+    final int maxResults = 5;
+
+    final uri = Uri.parse(
+      '$serverUrl/api/library/search/?query=$encodedWord&max_results=$maxResults',
+    );
+
+    print('Raw search URI: $uri'); // Debug log
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer ${TokenManager.accessToken}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('Raw search response status: ${response.statusCode}'); // Debug log
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Raw search data: $data'); // Debug log
+        return data;
+      } else {
+        print(
+          'Raw search failed with status: ${response.statusCode}',
+        ); // Debug log
+        print('Raw search error response: ${response.body}'); // Debug log
+      }
+      return null;
+    } catch (e) {
+      print('Raw search error: $e'); // Debug log
+      return null;
     }
   }
 

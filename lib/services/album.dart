@@ -127,64 +127,47 @@ class AlbumOperations {
             if (response.statusCode == 200) {
               final songData = jsonDecode(response.body);
 
-              // Parse artist information
-              String artist = '';
-              if (songData['artist'] != null && songData['artist'] is List) {
-                List<dynamic> artists = songData['artist'];
-                if (artists.isNotEmpty) {
-                  artist = artists
-                      .map((a) => a['name'] ?? '')
-                      .where((name) => name.isNotEmpty)
-                      .join(', ');
-                }
+              // Process relative URLs to full URLs (similar to SongOperations)
+              String serverBase = serverUrl;
+              if (!serverBase.startsWith('http://') &&
+                  !serverBase.startsWith('https://')) {
+                serverBase = 'http://$serverBase';
               }
 
-              // Handle audio URL
-              String audioUrl = songData['audio'] ?? '';
-              if (audioUrl.isNotEmpty &&
-                  !audioUrl.startsWith('http://') &&
-                  !audioUrl.startsWith('https://')) {
-                String baseUrl = serverUrl;
-                if (!baseUrl.startsWith('http://') &&
-                    !baseUrl.startsWith('https://')) {
-                  baseUrl = 'http://$baseUrl';
-                }
-                audioUrl = '$baseUrl$audioUrl';
+              // Process cover_art URL
+              if (songData['cover_art'] != null &&
+                  songData['cover_art'].toString().isNotEmpty &&
+                  !songData['cover_art'].toString().startsWith('http://') &&
+                  !songData['cover_art'].toString().startsWith('https://')) {
+                songData['cover_art'] = '$serverBase${songData['cover_art']}';
               }
 
-              // Handle duration
-              int durationSeconds = 0;
-              if (songData['duration'] != null) {
-                try {
-                  // Duration might be in HH:MM:SS format or seconds
-                  String durationStr = songData['duration'].toString();
-                  if (durationStr.contains(':')) {
-                    List<String> parts = durationStr.split(':');
-                    if (parts.length == 3) {
-                      int hours = int.parse(parts[0]);
-                      int minutes = int.parse(parts[1]);
-                      double seconds = double.parse(parts[2]);
-                      durationSeconds =
-                          (hours * 3600 + minutes * 60 + seconds).round();
-                    }
-                  } else {
-                    durationSeconds = int.parse(durationStr);
+              // Process audio URLs in audio_urls map
+              if (songData['audio_urls'] != null) {
+                Map<String, dynamic> audioUrls = Map<String, dynamic>.from(
+                  songData['audio_urls'],
+                );
+                audioUrls.forEach((key, value) {
+                  if (value != null &&
+                      value.toString().isNotEmpty &&
+                      !value.toString().startsWith('http://') &&
+                      !value.toString().startsWith('https://')) {
+                    audioUrls[key] = '$serverBase$value';
                   }
-                } catch (e) {
-                  print('Error parsing duration: $e');
-                }
+                });
+                songData['audio_urls'] = audioUrls;
               }
 
-              completeSongs.add(
-                Song(
-                  id: song.id,
-                  title: song.title,
-                  artist: artist,
-                  imagePath: song.imagePath,
-                  audioUrl: audioUrl,
-                  durationSeconds: durationSeconds,
-                ),
-              );
+              // Process legacy audio URL
+              if (songData['audio'] != null &&
+                  songData['audio'].toString().isNotEmpty &&
+                  !songData['audio'].toString().startsWith('http://') &&
+                  !songData['audio'].toString().startsWith('https://')) {
+                songData['audio'] = '$serverBase${songData['audio']}';
+              }
+
+              // Use Song.fromJson to create Song objects with quality support
+              completeSongs.add(Song.fromJson(songData));
             } else {
               // If can't load full details, keep the basic song info
               completeSongs.add(song);

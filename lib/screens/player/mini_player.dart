@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'player_screen.dart';
+import 'adaptive_player_screen.dart';
 import '/controller/player_controller.dart';
 import 'dart:async';
 import 'dart:io';
@@ -181,7 +181,7 @@ class MiniPlayerState extends State<MiniPlayer>
           _isExpanded
               ? SizedBox(
                 height: screenHeight,
-                child: PlayerScreen(closePlayer: _togglePlayer),
+                child: AdaptivePlayerScreen(closePlayer: _togglePlayer),
               )
               : GestureDetector(
                 onTap: _hasSong ? _togglePlayer : null,
