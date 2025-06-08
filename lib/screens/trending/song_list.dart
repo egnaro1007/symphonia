@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/screens/trending/song_options_bottom_sheet.dart';
-import 'package:symphonia/screens/trending/song_player_screen.dart';
-import 'package:symphonia/controller/player_controller.dart';
+import 'package:symphonia/widgets/song_item.dart';
 
 import '../../models/song.dart';
 
@@ -39,100 +38,62 @@ class SongList extends StatelessWidget {
     required int rank,
     bool isSelected = false,
   }) {
-    return InkWell(
-      onTap: () {
-        // Check if song has valid audio URL before playing
-        if (song.getAudioUrl().isNotEmpty) {
-          PlayerController.getInstance().loadSong(song);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Đang phát "${song.title}"'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Bài hát "${song.title}" không có file âm thanh để phát',
+    return Container(
+      color: Colors.deepPurple.shade500,
+      child: Row(
+        children: [
+          // Rank number container
+          Container(
+            width: 40,
+            height: 72, // Match typical ListTile height
+            decoration: BoxDecoration(color: Colors.deepPurple.shade600),
+            child: Center(
+              child: Text(
+                rank.toString(),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              backgroundColor: Colors.red.shade400,
-              duration: const Duration(seconds: 2),
             ),
-          );
-        }
-      },
-      child: Container(
-        color: isSelected ? Colors.purple : Colors.deepPurple.shade500,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: Text(
-                  rank.toString(),
-                  style: TextStyle(
-                    fontSize: 18,
+          ),
+          // Song item with custom theme
+          Expanded(
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                listTileTheme: ListTileTheme.of(context).copyWith(
+                  textColor: Colors.white,
+                  iconColor: Colors.white60,
+                  tileColor: Colors.transparent,
+                ),
+                textTheme: Theme.of(context).textTheme.copyWith(
+                  titleMedium: const TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: Colors.white,
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: Image.network(
-                    song.imagePath,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey.shade800,
-                        child: const Icon(
-                          Icons.music_note,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
+                  bodyMedium: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade400,
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      song.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      song.artist,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ],
+                iconTheme: IconTheme.of(
+                  context,
+                ).copyWith(color: Colors.white60),
+                colorScheme: Theme.of(context).colorScheme.copyWith(
+                  onSurface: Colors.white,
+                  onSurfaceVariant: Colors.grey.shade400,
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  _showSongDetail(context, song);
-                },
-                icon: const Icon(Icons.more_vert, color: Colors.white60),
+              child: SongItem(
+                song: song,
+                showTrailingControls: true,
+                isHorizontal: true,
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

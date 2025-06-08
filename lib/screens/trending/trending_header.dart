@@ -25,19 +25,6 @@ class TrendingHeader extends StatelessWidget {
               ),
             ),
           ),
-          // const Spacer(),
-          // const Icon(Icons.mic, size: 24),
-          const SizedBox(width: 16),
-
-          // ElevatedButton(
-          //   onPressed: () {
-          //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => const SearchScreen()),
-          //     );
-          //   },
-          //   child: const Icon(Icons.search, size: 24),
-          // ),
         ],
       ),
     );

@@ -38,25 +38,41 @@ class _TrendingScreenState extends State<TrendingScreen> {
             // Top header
             TrendingHeader(),
 
-            // Chart area
-            TrendingChart(),
-
-            const Divider(height: 1, color: Colors.white24),
-
-            // Song list using FutureBuilder
+            // Chart area with song list using FutureBuilder
             FutureBuilder<List<Song>>(
               future: _futureSongs,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No songs found.'));
+                  return Expanded(
+                    child: Column(
+                      children: [
+                        // Empty chart area while loading
+                        SizedBox(
+                          height: 180, // Cập nhật theo chiều cao mới
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        const SizedBox(height: 4),
+                        const Divider(height: 1, color: Colors.white24),
+                        Expanded(
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 final songs = snapshot.data!;
-                return SongList(songs: songs);
+                return Expanded(
+                  child: Column(
+                    children: [
+                      // Chart with song data
+                      TrendingChart(songs: songs),
+                      const Divider(height: 1, color: Colors.white24),
+                      // Song list
+                      SongList(songs: songs),
+                    ],
+                  ),
+                );
               },
             ),
           ],
