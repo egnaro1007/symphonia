@@ -528,9 +528,9 @@ class SongItem extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.download),
               title: Text(AppLocalizations.of(context)!.download),
-              onTap: () {
-                DownloadController.downloadSong(song);
+              onTap: () async {
                 Navigator.pop(context);
+                await _showDownloadDialog(context);
               },
             ),
             ListTile(
@@ -723,5 +723,252 @@ class SongItem extends StatelessWidget {
         );
       },
     );
+  }
+
+  // Show download dialog with quality selection
+  Future<void> _showDownloadDialog(BuildContext context) async {
+    // Check if song is already downloaded
+    String? existingQuality = await DownloadController.getDownloadedQuality(
+      song.id,
+    );
+
+    if (!context.mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Chọn chất lượng tải xuống',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Show current download status if exists
+              if (existingQuality != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Đã tải xuống với chất lượng ${Song.getQualityDisplayName(existingQuality)}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Quality options
+              ...song.availableQualities.map((quality) {
+                int fileSize = song.getFileSize(quality);
+                String fileSizeText =
+                    fileSize > 0
+                        ? ' (${DownloadController.formatFileSize(fileSize)})'
+                        : '';
+                bool isCurrentQuality = existingQuality == quality;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    title: Row(
+                      children: [
+                        Text(
+                          Song.getQualityDisplayName(quality),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight:
+                                isCurrentQuality
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
+                        ),
+                        if (fileSizeText.isNotEmpty)
+                          Text(
+                            fileSizeText,
+                            style: TextStyle(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
+                          ),
+                        if (isCurrentQuality) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 16,
+                          ),
+                        ],
+                      ],
+                    ),
+                    trailing:
+                        isCurrentQuality
+                            ? Text(
+                              'Đã tải',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                            : const Icon(Icons.download),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _downloadSongWithQuality(
+                        context,
+                        quality,
+                        existingQuality,
+                      );
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              }).toList(),
+
+              // If no qualities available, show default download
+              if (song.availableQualities.isEmpty)
+                ListTile(
+                  title: Text(
+                    'Tải xuống (320kbps)',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.download),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await _downloadSongWithQuality(
+                      context,
+                      '320kbps',
+                      existingQuality,
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Handle download with quality
+  Future<void> _downloadSongWithQuality(
+    BuildContext context,
+    String quality,
+    String? existingQuality,
+  ) async {
+    // If same quality already downloaded, show message and return
+    if (existingQuality == quality) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Bài hát đã được tải xuống với chất lượng ${Song.getQualityDisplayName(quality)}',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Show downloading message
+    String actionText =
+        existingQuality != null
+            ? 'Đang thay thế chất lượng ${Song.getQualityDisplayName(existingQuality)} bằng ${Song.getQualityDisplayName(quality)}...'
+            : 'Đang tải xuống với chất lượng ${Song.getQualityDisplayName(quality)}...';
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(actionText)),
+            ],
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+
+    try {
+      await DownloadController.downloadSong(song, quality);
+
+      // Clear loading snackbar and show success message only if context is still mounted
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+
+        // Show success message
+        String successText =
+            existingQuality != null
+                ? 'Đã thay thế thành công với chất lượng ${Song.getQualityDisplayName(quality)}'
+                : 'Đã tải xuống thành công với chất lượng ${Song.getQualityDisplayName(quality)}';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(successText),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Clear loading snackbar and show error message only if context is still mounted
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi tải xuống: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
