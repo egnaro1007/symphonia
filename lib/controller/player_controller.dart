@@ -222,6 +222,8 @@ class PlayerController {
       audioUrl: song.getAudioUrl(qualityToUse),
       lyrics: song.lyrics,
       durationSeconds: song.durationSeconds,
+      albumName: song.albumName,
+      releaseDate: song.releaseDate,
       availableQualities: song.availableQualities,
       audioUrls: song.audioUrls,
       audioFileSizes: song.audioFileSizes,

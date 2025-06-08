@@ -5,9 +5,14 @@ import 'dart:async';
 import 'dart:io';
 
 class MiniPlayer extends StatefulWidget {
-  final void Function(bool) expandPlayerCallback;
+  final Function(bool) expandPlayerCallback;
+  final Function(int, String)? onTabSelected;
 
-  const MiniPlayer({super.key, required this.expandPlayerCallback});
+  const MiniPlayer({
+    super.key,
+    required this.expandPlayerCallback,
+    this.onTabSelected,
+  });
 
   @override
   MiniPlayerState createState() => MiniPlayerState();
@@ -181,7 +186,10 @@ class MiniPlayerState extends State<MiniPlayer>
           _isExpanded
               ? SizedBox(
                 height: screenHeight,
-                child: AdaptivePlayerScreen(closePlayer: _togglePlayer),
+                child: AdaptivePlayerScreen(
+                  closePlayer: _togglePlayer,
+                  onTabSelected: widget.onTabSelected,
+                ),
               )
               : GestureDetector(
                 onTap: _hasSong ? _togglePlayer : null,

@@ -197,9 +197,10 @@ class ArtistItem extends StatelessWidget {
       onTap: onTap ?? _handleDefaultTap,
       child: Container(
         width: 160,
-        margin: const EdgeInsets.only(right: 16.0),
+        margin: const EdgeInsets.only(right: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               height: 160,
@@ -213,22 +214,20 @@ class ArtistItem extends StatelessWidget {
                 child: _buildArtistImage(),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              artist.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Artist',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 12,
+            const SizedBox(height: 8),
+            Container(
+              width: 140,
+              child: Text(
+                artist.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

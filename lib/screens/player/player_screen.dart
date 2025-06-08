@@ -15,8 +15,13 @@ import 'dart:io';
 
 class PlayerScreen extends StatefulWidget {
   final VoidCallback closePlayer;
+  final Function(int, String)? onTabSelected;
 
-  const PlayerScreen({super.key, required this.closePlayer});
+  const PlayerScreen({
+    super.key,
+    required this.closePlayer,
+    this.onTabSelected,
+  });
 
   @override
   State<PlayerScreen> createState() => _PlayerScreenState();
@@ -51,7 +56,12 @@ class _PlayerScreenState extends State<PlayerScreen>
   late final List<Widget> _tabWidgets = [
     NextTrackTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
     LyricsTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
-    RelatedTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
+    RelatedTab(
+      onTopBarTap: _returnToMainPlayer,
+      closePlayer: widget.closePlayer,
+      onTabChange: _switchToTab,
+      onTabSelected: widget.onTabSelected,
+    ),
   ];
 
   @override

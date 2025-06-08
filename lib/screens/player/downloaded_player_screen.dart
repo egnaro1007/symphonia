@@ -10,8 +10,13 @@ import 'dart:io';
 
 class DownloadedPlayerScreen extends StatefulWidget {
   final VoidCallback closePlayer;
+  final Function(int, String)? onTabSelected;
 
-  const DownloadedPlayerScreen({super.key, required this.closePlayer});
+  const DownloadedPlayerScreen({
+    super.key,
+    required this.closePlayer,
+    this.onTabSelected,
+  });
 
   @override
   State<DownloadedPlayerScreen> createState() => _DownloadedPlayerScreenState();
@@ -43,7 +48,12 @@ class _DownloadedPlayerScreenState extends State<DownloadedPlayerScreen>
   late final List<Widget> _tabWidgets = [
     NextTrackTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
     LyricsTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
-    RelatedTab(onTopBarTap: _returnToMainPlayer, onTabChange: _switchToTab),
+    RelatedTab(
+      onTopBarTap: _returnToMainPlayer,
+      closePlayer: widget.closePlayer,
+      onTabChange: _switchToTab,
+      onTabSelected: widget.onTabSelected,
+    ),
   ];
 
   @override

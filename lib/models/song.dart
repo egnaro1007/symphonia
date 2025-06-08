@@ -7,6 +7,10 @@ class Song {
   List<dynamic>? lyrics;
   int durationSeconds; // Duration in seconds
 
+  // New fields for album and release date
+  String albumName;
+  DateTime? releaseDate;
+
   // New fields for multiple audio qualities
   List<String> availableQualities;
   Map<String, String> audioUrls; // Maps quality to URL
@@ -20,6 +24,8 @@ class Song {
     this.audioUrl = "",
     this.lyrics,
     this.durationSeconds = 0,
+    this.albumName = "",
+    this.releaseDate,
     this.availableQualities = const [],
     this.audioUrls = const {},
     this.audioFileSizes = const {},
@@ -111,6 +117,62 @@ class Song {
       availableQualities = List<String>.from(json['available_qualities']);
     }
 
+    // Parse album name from album array
+    String albumName = "";
+    if (json['album'] != null) {
+      if (json['album'] is List) {
+        List<dynamic> albums = json['album'];
+        if (albums.isNotEmpty) {
+          var firstAlbum = albums.first;
+          if (firstAlbum is Map) {
+            albumName = firstAlbum['title'] ?? "";
+          }
+        }
+      } else if (json['album'] is Map) {
+        Map<String, dynamic> albumMap = json['album'];
+        albumName = albumMap['title'] ?? "";
+      }
+    }
+
+    // Parse release date
+    DateTime? releaseDate;
+    if (json['release_date'] != null &&
+        json['release_date'].toString().isNotEmpty) {
+      try {
+        releaseDate = DateTime.parse(json['release_date']);
+      } catch (e) {
+        releaseDate = null;
+      }
+    }
+
+    // Parse duration - check both duration and duration_seconds
+    int durationSeconds = 0;
+    if (json['duration_seconds'] != null) {
+      durationSeconds = json['duration_seconds'] ?? 0;
+    } else if (json['duration'] != null) {
+      // Backend might send duration as seconds directly or as a time string
+      if (json['duration'] is int) {
+        durationSeconds = json['duration'];
+      } else if (json['duration'] is String) {
+        // Try to parse duration string like "00:03:45"
+        try {
+          List<String> parts = json['duration'].split(':');
+          if (parts.length == 3) {
+            int hours = int.parse(parts[0]);
+            int minutes = int.parse(parts[1]);
+            int seconds = int.parse(parts[2]);
+            durationSeconds = hours * 3600 + minutes * 60 + seconds;
+          } else if (parts.length == 2) {
+            int minutes = int.parse(parts[0]);
+            int seconds = int.parse(parts[1]);
+            durationSeconds = minutes * 60 + seconds;
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+      }
+    }
+
     return Song(
       id: json['id'] ?? 0,
       title: json['title'] ?? "",
@@ -118,7 +180,9 @@ class Song {
       imagePath: json['cover_art'] ?? "",
       audioUrl: json['audio'] ?? "", // Legacy field
       lyrics: json['lyric'],
-      durationSeconds: json['duration_seconds'] ?? 0,
+      durationSeconds: durationSeconds,
+      albumName: albumName,
+      releaseDate: releaseDate,
       availableQualities: availableQualities,
       audioUrls: audioUrls,
       audioFileSizes: audioFileSizes,
@@ -165,5 +229,12 @@ class Song {
     } else {
       return "${minutes}m";
     }
+  }
+
+  // Helper method to format release date
+  String get formattedReleaseDate {
+    if (releaseDate == null) return "";
+
+    return "${releaseDate!.day.toString().padLeft(2, '0')}/${releaseDate!.month.toString().padLeft(2, '0')}/${releaseDate!.year}";
   }
 }

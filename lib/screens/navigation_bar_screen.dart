@@ -353,7 +353,10 @@ class _NavigationBarScreenState extends State<NavigationBarScreen> {
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: MiniPlayer(expandPlayerCallback: toggleNavigationBar),
+              child: MiniPlayer(
+                expandPlayerCallback: toggleNavigationBar,
+                onTabSelected: _onPlaylistSelected,
+              ),
             ),
           ],
         ),

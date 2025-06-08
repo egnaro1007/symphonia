@@ -6,8 +6,13 @@ import '/controller/download_controller.dart';
 
 class AdaptivePlayerScreen extends StatefulWidget {
   final VoidCallback closePlayer;
+  final Function(int, String)? onTabSelected;
 
-  const AdaptivePlayerScreen({super.key, required this.closePlayer});
+  const AdaptivePlayerScreen({
+    super.key,
+    required this.closePlayer,
+    this.onTabSelected,
+  });
 
   @override
   State<AdaptivePlayerScreen> createState() => _AdaptivePlayerScreenState();
@@ -68,9 +73,15 @@ class _AdaptivePlayerScreenState extends State<AdaptivePlayerScreen> {
 
     // Choose the appropriate player based on download status
     if (_isDownloaded) {
-      return DownloadedPlayerScreen(closePlayer: widget.closePlayer);
+      return DownloadedPlayerScreen(
+        closePlayer: widget.closePlayer,
+        onTabSelected: widget.onTabSelected,
+      );
     } else {
-      return OnlinePlayerScreen(closePlayer: widget.closePlayer);
+      return OnlinePlayerScreen(
+        closePlayer: widget.closePlayer,
+        onTabSelected: widget.onTabSelected,
+      );
     }
   }
 }
