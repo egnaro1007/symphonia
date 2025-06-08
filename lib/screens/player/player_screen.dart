@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:symphonia/models/song.dart';
+import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/screens/player/tabs/lyrics_tab.dart';
 import 'package:symphonia/screens/player/tabs/playlist_tab.dart';
 import 'package:symphonia/screens/player/tabs/information_tab.dart';
 import 'package:symphonia/screens/player/tabs/shared_tab_navigator.dart';
 import '/controller/player_controller.dart';
+import 'package:symphonia/services/like.dart';
+import 'package:symphonia/services/playlist.dart';
+import 'package:symphonia/services/data_event_manager.dart';
+import 'package:symphonia/services/playlist_notifier.dart';
+import 'dart:async';
 import 'dart:io';
 
 class PlayerScreen extends StatefulWidget {
@@ -31,9 +37,15 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _showTabContent = false; // Whether to show tab content
   bool _isShuffleOn = false; // Track shuffle state
 
+  // New state variables for top control row
+  bool _isLiked = false; // Track if song is liked
+  String _selectedQuality = '320kbps'; // Track selected quality
+  List<String> _qualityOptions = ['144kbps', '320kbps', 'Lossless'];
+
   // Tab controller to notify all tabs
   late TabController _tabController;
   bool _tabsInitialized = false;
+  StreamSubscription<DataEvent>? _eventSubscription;
 
   // Caching tab instances to preserve state
   late final List<Widget> _tabWidgets = [
@@ -114,6 +126,9 @@ class _PlayerScreenState extends State<PlayerScreen>
           playingSong = song;
           _justReleasedSlider = false;
 
+          // Check if the new song is liked
+          _checkLikeStatus();
+
           // Force rebuild all tabs when song changes
           _forceTabsUpdate();
         });
@@ -132,7 +147,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Initialize tabs immediately
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeTabs();
+      _checkLikeStatus(); // Check initial like status
     });
+
+    // Setup DataEventManager listener for like status changes
+    _setupEventListener();
   }
 
   // Initialize all tabs immediately
@@ -235,7 +254,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: [_buildSlider()],
+                                  children: [
+                                    _buildTopControlRow(),
+                                    const SizedBox(height: 20),
+                                    _buildSlider(),
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 30),
@@ -522,6 +545,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _playerController.onPositionChanged.drain();
     _playerController.onPlayerStateChanged.drain();
     _playerController.onDurationChanged.drain();
+    _tabController.dispose();
+    _eventSubscription?.cancel();
     super.dispose();
   }
 
@@ -530,5 +555,351 @@ class _PlayerScreenState extends State<PlayerScreen>
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return "$minutes:$seconds";
+  }
+
+  // Check if current song is liked via API
+  void _checkLikeStatus() async {
+    try {
+      bool isLiked = await LikeOperations.getLikeStatus(
+        _playerController.playingSong,
+      );
+      if (mounted) {
+        setState(() {
+          _isLiked = isLiked;
+        });
+      }
+    } catch (e) {
+      print('Error checking like status: $e');
+    }
+  }
+
+  // Toggle like status
+  void _toggleLike() async {
+    try {
+      bool success;
+      if (_isLiked) {
+        success = await LikeOperations.unlike(_playerController.playingSong);
+      } else {
+        success = await LikeOperations.like(_playerController.playingSong);
+      }
+
+      if (success) {
+        setState(() {
+          _isLiked = !_isLiked;
+        });
+
+        // Show feedback to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isLiked ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích',
+            ),
+            duration: Duration(seconds: 1),
+            backgroundColor: _isLiked ? Colors.red : Colors.grey,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Có lỗi xảy ra khi ${_isLiked ? 'xóa khỏi' : 'thêm vào'} yêu thích',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error toggling like status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  // Build top control row with 3 buttons
+  Widget _buildTopControlRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildLikeButton(),
+        _buildQualitySelector(),
+        _buildAddToPlaylistButton(),
+      ],
+    );
+  }
+
+  // Build like button
+  Widget _buildLikeButton() {
+    return IconButton(
+      onPressed: _toggleLike,
+      icon: Icon(
+        _isLiked ? Icons.favorite : Icons.favorite_border,
+        color: _isLiked ? Colors.red : Colors.white70,
+        size: 28,
+      ),
+    );
+  }
+
+  // Build quality selector
+  Widget _buildQualitySelector() {
+    return GestureDetector(
+      onTap: () {
+        _showQualitySelector();
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white30),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Text(
+          _selectedQuality,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build add to playlist button
+  Widget _buildAddToPlaylistButton() {
+    return IconButton(
+      onPressed: () {
+        _showAddToPlaylistDialog();
+      },
+      icon: Icon(Icons.playlist_add, color: Colors.white70, size: 28),
+    );
+  }
+
+  // Show quality selector dialog
+  void _showQualitySelector() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Color(0xFF2A1219),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Chọn chất lượng âm thanh',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 20),
+              ..._qualityOptions.map((quality) {
+                return ListTile(
+                  title: Text(quality, style: TextStyle(color: Colors.white)),
+                  trailing:
+                      _selectedQuality == quality
+                          ? Icon(Icons.check, color: Colors.white)
+                          : null,
+                  onTap: () {
+                    setState(() {
+                      _selectedQuality = quality;
+                    });
+                    Navigator.pop(context);
+
+                    // Show feedback
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Đã chuyển sang chất lượng $quality'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Show add to playlist dialog
+  void _showAddToPlaylistDialog() async {
+    // Get existing playlists
+    List<PlayList> localPlaylists =
+        await PlayListOperations.getLocalPlaylists();
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Color(0xFF2A1219),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.of(context).size.height *
+                0.5, // Limit to 70% of screen height
+          ),
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Thêm vào danh sách phát',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10),
+              Divider(color: Colors.white30),
+
+              // Scrollable playlist list
+              Flexible(
+                child:
+                    localPlaylists.isEmpty
+                        ? Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            'Chưa có playlist nào',
+                            style: TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                        : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: localPlaylists.length,
+                          itemBuilder: (context, index) {
+                            final playlist = localPlaylists[index];
+                            return ListTile(
+                              leading: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Colors.grey[600],
+                                ),
+                                child:
+                                    playlist.picture.isNotEmpty
+                                        ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          child: Image.network(
+                                            playlist.picture,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) {
+                                              return Icon(
+                                                Icons.queue_music,
+                                                color: Colors.white,
+                                              );
+                                            },
+                                          ),
+                                        )
+                                        : Icon(
+                                          Icons.queue_music,
+                                          color: Colors.white,
+                                        ),
+                              ),
+                              title: Text(
+                                playlist.title,
+                                style: TextStyle(color: Colors.white),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                playlist.creator,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                await _addToPlaylist(
+                                  playlist.id,
+                                  playlist.title,
+                                );
+                              },
+                            );
+                          },
+                        ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Add current song to specific playlist
+  Future<void> _addToPlaylist(String playlistId, String playlistName) async {
+    try {
+      bool success = await PlayListOperations.addSongToPlaylist(
+        playlistId,
+        _playerController.playingSong.id.toString(),
+      );
+
+      if (success) {
+        // Notify playlist updates
+        DataEventManager.instance.notifyPlaylistChanged(playlistId: playlistId);
+        PlaylistUpdateNotifier().notifyPlaylistUpdate();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Đã thêm "${_playerController.playingSong.title}" vào "$playlistName"',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể thêm bài hát vào playlist'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error adding song to playlist: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Có lỗi xảy ra khi thêm bài hát vào playlist'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  // Setup DataEventManager listener for like status changes
+  void _setupEventListener() {
+    _eventSubscription = DataEventManager.instance.events.listen((event) {
+      if (event.type == DataEventType.likeChanged) {
+        int? songId = event.data['songId'];
+        if (songId == _playerController.playingSong.id) {
+          _checkLikeStatus(); // Refresh like status when this song's like status changes
+        }
+      }
+    });
   }
 }

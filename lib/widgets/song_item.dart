@@ -561,7 +561,7 @@ class SongItem extends StatelessWidget {
                 showModalBottomSheet(
                   context: context,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   builder: (_) {
                     return Column(
@@ -571,7 +571,7 @@ class SongItem extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(16),
                           child: Text(
-                            'Chọn playlist',
+                            'Thêm vào danh sách phát',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
