@@ -671,6 +671,178 @@ class PlayListOperations {
     }
   }
 
+  // Get all public playlists
+  static Future<List<PlayList>> getPublicPlaylists() async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    print('Getting public playlists from API...');
+    try {
+      final url = Uri.parse('$serverUrl/api/library/public-playlists/');
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print("Public playlists data: $data");
+
+        List<PlayList> playlists = [];
+        for (var playlist in data) {
+          // Handle cover image URL
+          String pictureUrl = '';
+
+          if (playlist['cover_image_url'] != null &&
+              playlist['cover_image_url'].isNotEmpty) {
+            String coverUrl = playlist['cover_image_url'];
+            if (!coverUrl.startsWith('http://') &&
+                !coverUrl.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$coverUrl';
+            } else {
+              pictureUrl = coverUrl;
+            }
+          } else if (playlist['picture'] != null &&
+              playlist['picture'].isNotEmpty) {
+            String picture = playlist['picture'];
+            if (!picture.startsWith('http://') &&
+                !picture.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$picture';
+            } else {
+              pictureUrl = picture;
+            }
+          } else {
+            // Default placeholder image
+            pictureUrl =
+                'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
+          }
+
+          playlists.add(
+            PlayList(
+              id: playlist['id'].toString(),
+              title: playlist['name'] ?? '',
+              description: playlist['description'] ?? '',
+              duration: playlist['total_duration_seconds'] ?? 0,
+              picture: pictureUrl,
+              creator:
+                  playlist['creator'] ?? playlist['owner_name'] ?? 'Unknown',
+              ownerId: playlist['owner']?.toString(),
+              ownerAvatarUrl: playlist['owner_avatar_url'],
+              songs: [],
+              sharePermission: playlist['share_permission'] ?? 'public',
+            ),
+          );
+        }
+
+        return playlists;
+      } else {
+        print('Failed to load public playlists: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching public playlists: $e');
+      return [];
+    }
+  }
+
+  // Get playlists from friends (friends-only playlists)
+  static Future<List<PlayList>> getFriendsPlaylists() async {
+    String serverUrl = dotenv.env['SERVER_URL'] ?? '';
+    print('Getting friends playlists from API...');
+    try {
+      final url = Uri.parse('$serverUrl/api/library/friends-playlists/');
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer ${TokenManager.accessToken}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        print("Friends playlists data: $data");
+
+        List<PlayList> playlists = [];
+        for (var playlist in data) {
+          // Handle cover image URL
+          String pictureUrl = '';
+
+          if (playlist['cover_image_url'] != null &&
+              playlist['cover_image_url'].isNotEmpty) {
+            String coverUrl = playlist['cover_image_url'];
+            if (!coverUrl.startsWith('http://') &&
+                !coverUrl.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$coverUrl';
+            } else {
+              pictureUrl = coverUrl;
+            }
+          } else if (playlist['picture'] != null &&
+              playlist['picture'].isNotEmpty) {
+            String picture = playlist['picture'];
+            if (!picture.startsWith('http://') &&
+                !picture.startsWith('https://')) {
+              String baseUrl = serverUrl;
+              if (!baseUrl.startsWith('http://') &&
+                  !baseUrl.startsWith('https://')) {
+                baseUrl = 'http://$baseUrl';
+              }
+              pictureUrl = '$baseUrl$picture';
+            } else {
+              pictureUrl = picture;
+            }
+          } else {
+            // Default placeholder image
+            pictureUrl =
+                'https://wallpapers.com/images/featured/picture-en3dnh2zi84sgt3t.jpg';
+          }
+
+          playlists.add(
+            PlayList(
+              id: playlist['id'].toString(),
+              title: playlist['name'] ?? '',
+              description: playlist['description'] ?? '',
+              duration: playlist['total_duration_seconds'] ?? 0,
+              picture: pictureUrl,
+              creator:
+                  playlist['creator'] ?? playlist['owner_name'] ?? 'Unknown',
+              ownerId: playlist['owner']?.toString(),
+              ownerAvatarUrl: playlist['owner_avatar_url'],
+              songs: [],
+              sharePermission: playlist['share_permission'] ?? 'friends',
+            ),
+          );
+        }
+
+        return playlists;
+      } else {
+        print('Failed to load friends playlists: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching friends playlists: $e');
+      return [];
+    }
+  }
+
   // Update playlist with name, permission, and optionally cover image
   static Future<bool> updatePlaylist(
     String playlistId,
