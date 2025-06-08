@@ -13,13 +13,13 @@ class SongListScreen extends AbstractScreen {
   final Color titleColor;
 
   const SongListScreen({
-    Key? key,
+    super.key,
     required this.screenTitle,
     required this.songsLoader,
     required this.titleIcon,
     required this.titleColor,
     required super.onTabSelected,
-  }) : super(key: key);
+  });
 
   @override
   String get title => screenTitle;

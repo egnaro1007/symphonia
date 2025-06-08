@@ -6,7 +6,7 @@ import 'package:symphonia/controller/player_controller.dart';
 import '../../services/token_manager.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();

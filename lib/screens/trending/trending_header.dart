@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TrendingHeader extends StatelessWidget {
-  const TrendingHeader({Key? key}) : super(key: key);
+  const TrendingHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

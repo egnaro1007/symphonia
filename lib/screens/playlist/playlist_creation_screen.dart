@@ -6,8 +6,7 @@ import 'package:symphonia/services/playlist_notifier.dart';
 import '../abstract_navigation_screen.dart';
 
 class PlaylistCreationScreen extends AbstractScreen {
-  const PlaylistCreationScreen({Key? key, required super.onTabSelected})
-    : super(key: key);
+  const PlaylistCreationScreen({super.key, required super.onTabSelected});
 
   @override
   String get title => 'Tạo Playlist';

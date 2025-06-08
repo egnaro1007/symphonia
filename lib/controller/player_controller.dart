@@ -403,11 +403,6 @@ class PlayerController {
         _currentSongIndex++;
       }
 
-      // Debug print to track changes
-      print(
-        'Reorder: oldIndex=$oldIndex, newIndex=$newIndex, oldCurrentIndex=$oldCurrentIndex, newCurrentIndex=$_currentSongIndex',
-      );
-
       // Notify playlist change
       _playlistChangeController.add(_currentPlaylist);
 
@@ -546,26 +541,24 @@ class PlayerController {
   }
 
   Future<void> reset() async {
-    try {
-      await _audioHandler.stop();
-      _hasSong = false;
-      _currentSongIndex = 0;
-      _repeatMode = RepeatMode.noRepeat;
-      _shuffleMode = ShuffleMode.off;
-      _shuffledIndices.clear();
-      _shufflePosition = 0;
-      _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
-      _currentPlaylist = PlayList(
-        id: "",
-        title: "",
-        description: "",
-        duration: 0,
-        picture: "",
-        creator: "",
-        songs: [],
-      );
-      _songChangeController.add(_playingSong);
-    } catch (e) {}
+    await _audioHandler.stop();
+    _hasSong = false;
+    _currentSongIndex = 0;
+    _repeatMode = RepeatMode.noRepeat;
+    _shuffleMode = ShuffleMode.off;
+    _shuffledIndices.clear();
+    _shufflePosition = 0;
+    _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
+    _currentPlaylist = PlayList(
+      id: "",
+      title: "",
+      description: "",
+      duration: 0,
+      picture: "",
+      creator: "",
+      songs: [],
+    );
+    _songChangeController.add(_playingSong);
   }
 
   void dispose() {

@@ -13,7 +13,7 @@ class TrendingScreen extends AbstractScreen {
   @override
   final Icon icon = const Icon(Icons.timeline);
 
-  TrendingScreen({required super.onTabSelected});
+  const TrendingScreen({super.key, required super.onTabSelected});
 
   @override
   State<TrendingScreen> createState() => _TrendingScreenState();

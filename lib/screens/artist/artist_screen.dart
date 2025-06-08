@@ -20,7 +20,7 @@ class ArtistScreen extends AbstractScreen {
 
   final String artistID;
 
-  ArtistScreen({
+  const ArtistScreen({
     super.key,
     required this.artistID,
     required super.onTabSelected,

@@ -6,7 +6,7 @@ import '../../models/song.dart';
 
 class SongList extends StatelessWidget {
   List<Song> songs;
-  SongList({Key? key, required this.songs}) : super(key: key);
+  SongList({super.key, required this.songs});
 
   void _showSongDetail(BuildContext context, Song song) {
     showModalBottomSheet(

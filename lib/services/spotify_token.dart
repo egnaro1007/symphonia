@@ -6,8 +6,8 @@ class SpotifyToken {
   SpotifyToken._();
 
   static Future<String> getTokens() async {
-    String CLIENT_ID = dotenv.env['CLIENT_ID'] ?? '';
-    String CLIENT_SECRET = dotenv.env['CLIENT_SECRET'] ?? '';
+    String clientId = dotenv.env['CLIENT_ID'] ?? '';
+    String clientSecret = dotenv.env['CLIENT_SECRET'] ?? '';
 
 
     String urlStringBasic = 'https://accounts.spotify.com/api/token';
@@ -21,7 +21,7 @@ class SpotifyToken {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization':
-              'Basic ${base64Encode(utf8.encode('$CLIENT_ID:$CLIENT_SECRET'))}',
+              'Basic ${base64Encode(utf8.encode('$clientId:$clientSecret'))}',
         },
         body: {'grant_type': 'client_credentials'},
       );

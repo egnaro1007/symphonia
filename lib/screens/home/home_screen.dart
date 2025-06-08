@@ -15,7 +15,7 @@ class HomeScreen extends AbstractScreen {
   @override
   final Icon icon = const Icon(Icons.home);
 
-  HomeScreen({required super.onTabSelected});
+  const HomeScreen({super.key, required super.onTabSelected});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

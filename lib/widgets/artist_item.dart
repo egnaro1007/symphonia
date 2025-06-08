@@ -15,7 +15,7 @@ class ArtistItem extends StatelessWidget {
   final void Function(int, String)? onTabSelected;
 
   const ArtistItem({
-    Key? key,
+    super.key,
     required this.artist,
     this.showTrailingControls = false,
     this.onTap,
@@ -24,7 +24,7 @@ class ArtistItem extends StatelessWidget {
     this.showIndex = false,
     this.onArtistUpdate,
     this.onTabSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class ArtistItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(

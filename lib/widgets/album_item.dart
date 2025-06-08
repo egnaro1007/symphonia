@@ -16,7 +16,7 @@ class AlbumItem extends StatelessWidget {
   final void Function(int, String)? onTabSelected;
 
   const AlbumItem({
-    Key? key,
+    super.key,
     required this.album,
     this.showTrailingControls = true,
     this.onTap,
@@ -25,7 +25,7 @@ class AlbumItem extends StatelessWidget {
     this.showIndex = false,
     this.onAlbumUpdate,
     this.onTabSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,7 @@ class AlbumItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(

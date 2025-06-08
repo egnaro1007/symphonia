@@ -20,7 +20,7 @@ class UserScreen extends AbstractScreen {
   final String userID;
   final String searchQuery;
 
-  UserScreen({
+  const UserScreen({
     super.key,
     required this.userID,
     required this.searchQuery,

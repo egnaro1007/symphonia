@@ -11,10 +11,10 @@ class PlaylistEditScreen extends AbstractScreen {
   final PlayList playlist;
 
   const PlaylistEditScreen({
-    Key? key,
+    super.key,
     required this.playlist,
     required super.onTabSelected,
-  }) : super(key: key);
+  });
 
   @override
   String get title => 'Chỉnh sửa Playlist';

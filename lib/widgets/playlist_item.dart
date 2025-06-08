@@ -16,7 +16,7 @@ class PlaylistItem extends StatelessWidget {
   final VoidCallback? onPlaylistDeleted;
 
   const PlaylistItem({
-    Key? key,
+    super.key,
     required this.playlist,
     this.showTrailingControls = true,
     this.onTap,
@@ -26,7 +26,7 @@ class PlaylistItem extends StatelessWidget {
     this.onPlaylistUpdate,
     this.isDeleteMode = false,
     this.onPlaylistDeleted,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class PlaylistItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(

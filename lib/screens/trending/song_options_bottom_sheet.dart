@@ -7,10 +7,10 @@ class SongOptionsBottomSheet extends StatelessWidget {
   final ScrollController controller;
 
   const SongOptionsBottomSheet({
-    Key? key,
+    super.key,
     required this.song,
     required this.controller,
-  }) : super(key: key);
+  });
 
   Widget _buildOptionItem(IconData icon, String label) {
     return ListTile(

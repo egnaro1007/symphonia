@@ -9,9 +9,10 @@ import 'package:symphonia/services/user_info_manager.dart';
 import 'package:symphonia/constants/screen_index.dart';
 
 class ProfileScreen extends AbstractScreen {
+  @override
   final void Function(int, String) onTabSelected;
 
-  ProfileScreen({required this.onTabSelected})
+  const ProfileScreen({super.key, required this.onTabSelected})
     : super(onTabSelected: onTabSelected);
 
   @override

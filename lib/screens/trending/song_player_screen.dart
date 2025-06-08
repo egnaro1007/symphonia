@@ -5,7 +5,7 @@ import '../../models/song.dart';
 class SongPlayerScreen extends StatelessWidget {
   final Song song;
 
-  const SongPlayerScreen({Key? key, required this.song}) : super(key: key);
+  const SongPlayerScreen({super.key, required this.song});
 
   @override
   Widget build(BuildContext context) {

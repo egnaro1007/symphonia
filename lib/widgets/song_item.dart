@@ -25,7 +25,7 @@ class SongItem extends StatelessWidget {
   final VoidCallback? onDeletePressed; // New callback for delete action
 
   const SongItem({
-    Key? key,
+    super.key,
     required this.song,
     this.showTrailingControls = true,
     this.onTap,
@@ -39,7 +39,7 @@ class SongItem extends StatelessWidget {
     this.isDragMode = false, // Default to false
     this.showDeleteIcon = false, // Default to false
     this.onDeletePressed, // Can be null when not needed
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +97,7 @@ class SongItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(
@@ -624,8 +624,9 @@ class SongItem extends StatelessWidget {
                                                 child,
                                                 loadingProgress,
                                               ) {
-                                                if (loadingProgress == null)
+                                                if (loadingProgress == null) {
                                                   return child;
+                                                }
                                                 return const Center(
                                                   child:
                                                       CircularProgressIndicator(
