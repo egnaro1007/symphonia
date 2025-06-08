@@ -29,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F1F1),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildQuickAccessButton(
                   Icons.schedule,
                   AppLocalizations.of(context)!.recentlyPlayed,
-                  Colors.orange,
+                  Theme.of(context).colorScheme.tertiary,
                   () {
                     // Navigate to recently played screen using navigation system
                     widget.onTabSelected(ScreenIndex.recentlyPlayed.value, "");
@@ -56,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildQuickAccessButton(
                   Icons.favorite_border,
                   AppLocalizations.of(context)!.favorites,
-                  Colors.blue,
+                  Theme.of(context).colorScheme.primary,
                   () {
                     // Navigate to favorites screen using navigation system
                     widget.onTabSelected(ScreenIndex.favorites.value, "");
@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildQuickAccessButton(
                   Icons.arrow_downward,
                   AppLocalizations.of(context)!.downloaded,
-                  Colors.purple,
+                  Theme.of(context).colorScheme.secondary,
                   () {
                     // Navigate to downloaded screen using navigation system
                     widget.onTabSelected(ScreenIndex.downloaded.value, "");
@@ -96,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         width: 85,
         height: 90,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -119,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -185,10 +185,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: Text(
               AppLocalizations.of(context)!.logout,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.onError),
             ),
           ),
         ],

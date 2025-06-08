@@ -496,11 +496,14 @@ class _LyricsTabState extends State<LyricsTab>
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E0811), Color(0xFF0A0205)],
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
           ),
         ),
         child: Column(
@@ -520,15 +523,17 @@ class _LyricsTabState extends State<LyricsTab>
                 future: _lyricsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     );
                   } else if (snapshot.hasError) {
                     return Center(
                       child: Text(
                         "Error loading lyrics: ${snapshot.error}",
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
@@ -540,11 +545,11 @@ class _LyricsTabState extends State<LyricsTab>
                     // Check if we have lyrics or not
                     if (!_hasLyrics || _lyricsLines.isEmpty) {
                       // No lyrics case - show centered message
-                      return const Center(
+                      return Center(
                         child: Text(
                           "Hiện chưa có lời bài hát.",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.w400,
                           ),
@@ -616,8 +621,12 @@ class _LyricsTabState extends State<LyricsTab>
                                             style: TextStyle(
                                               color:
                                                   isCurrentLine
-                                                      ? Colors.white
-                                                      : Colors.white
+                                                      ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.onSurface
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
                                                           .withOpacity(0.4),
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,

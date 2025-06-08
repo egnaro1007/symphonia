@@ -8,7 +8,6 @@ import '../../../models/album.dart';
 import '../../../models/song.dart';
 import '../../../widgets/artist_item.dart';
 import '../../../widgets/album_item.dart';
-import '../../../constants/screen_index.dart';
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
 
@@ -204,7 +203,7 @@ class _RelatedTabState extends State<RelatedTab>
 
     return Scaffold(
       body: Container(
-        color: const Color(0xFF1E0811), // Dark maroon background
+        color: Theme.of(context).colorScheme.surface,
         child: Column(
           children: [
             // Mini player top bar
@@ -257,15 +256,15 @@ class _RelatedTabState extends State<RelatedTab>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF1A4B8C), // Blue gradient start
-            Color(0xFF2D5AA0), // Blue gradient middle
-            Color(0xFF1E3A8A), // Blue gradient end
+            Theme.of(context).colorScheme.primaryContainer,
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primaryContainer,
           ],
         ),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -287,7 +286,9 @@ class _RelatedTabState extends State<RelatedTab>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.shadow.withOpacity(0.3),
                         blurRadius: 8,
                         offset: Offset(0, 2),
                       ),
@@ -302,19 +303,29 @@ class _RelatedTabState extends State<RelatedTab>
                               fit: BoxFit.cover,
                               errorBuilder:
                                   (context, error, stackTrace) => Container(
-                                    color: Colors.grey[800],
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.surfaceVariant,
                                     child: Icon(
                                       Icons.music_note,
-                                      color: Colors.white54,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                       size: 40,
                                     ),
                                   ),
                             )
                             : Container(
-                              color: Colors.grey[800],
+                              color:
+                                  Theme.of(context).colorScheme.surfaceVariant,
                               child: Icon(
                                 Icons.music_note,
-                                color: Colors.white54,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                 size: 40,
                               ),
                             ),
@@ -330,7 +341,8 @@ class _RelatedTabState extends State<RelatedTab>
                       Text(
                         song.title.isNotEmpty ? song.title : "Không có tiêu đề",
                         style: TextStyle(
-                          color: Colors.white,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -342,7 +354,12 @@ class _RelatedTabState extends State<RelatedTab>
                         song.artist.isNotEmpty
                             ? song.artist
                             : "Không rõ nghệ sĩ",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                          fontSize: 14,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -390,7 +407,9 @@ class _RelatedTabState extends State<RelatedTab>
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.white70,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onPrimaryContainer.withOpacity(0.8),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -400,7 +419,7 @@ class _RelatedTabState extends State<RelatedTab>
             child: Text(
               value,
               style: TextStyle(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),
@@ -428,21 +447,23 @@ class _RelatedTabState extends State<RelatedTab>
         Text(
           "Nghệ sĩ",
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
         SizedBox(height: 12),
         if (_isLoadingArtists)
-          Container(
+          SizedBox(
             height: 80,
             child: Center(
-              child: CircularProgressIndicator(color: Colors.white70),
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           )
         else
-          Container(
+          SizedBox(
             height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -476,21 +497,23 @@ class _RelatedTabState extends State<RelatedTab>
         Text(
           "Album",
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
         SizedBox(height: 12),
         if (_isLoadingAlbums)
-          Container(
+          SizedBox(
             height: 80,
             child: Center(
-              child: CircularProgressIndicator(color: Colors.white70),
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           )
         else
-          Container(
+          SizedBox(
             height: 240,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,

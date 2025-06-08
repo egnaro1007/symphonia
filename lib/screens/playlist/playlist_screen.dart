@@ -67,14 +67,16 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       elevation: 0,
       leading:
           _isDeleteMode
               ? null
               : IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
                 onPressed: () {
                   widget.onTabSelected(-1, "");
                 },
@@ -83,7 +85,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           _isDeleteMode
               ? [
                 IconButton(
-                  icon: const Icon(Icons.done, color: Colors.black),
+                  icon: Icon(Icons.done, color: colorScheme.onSurface),
                   onPressed: _exitDeleteMode,
                 ),
               ]
@@ -102,13 +104,18 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlaylistHeader(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.grey.shade100, Colors.white],
+          colors: [
+            colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            colorScheme.surface,
+          ],
         ),
       ),
       child: Column(
@@ -148,15 +155,17 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlaylistInfo(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         // Playlist title
         Text(
           playlist.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -174,10 +183,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
             const SizedBox(width: 8),
             Text(
               playlist.creator,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -187,6 +196,8 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlaylistStats(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -194,11 +205,14 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           '${playlist.songsCount} bài hát • ${playlist.formattedDuration}',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey.shade600,
+            color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const Text(' • ', style: TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          ' • ',
+          style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
+        ),
         Icon(
           _getPermissionIcon(playlist.sharePermission),
           size: 16,
@@ -218,6 +232,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlayableSongsIndicator(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
     int playableSongs =
         playlist.songs.where((song) => song.getAudioUrl().isNotEmpty).length;
 
@@ -228,7 +243,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           '$playableSongs/${playlist.songsCount} bài có thể phát',
           style: TextStyle(
             fontSize: 12,
-            color: Colors.orange.shade600,
+            color: colorScheme.secondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -269,6 +284,8 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -276,23 +293,28 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         height: 48,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.grey.shade200,
+          color: colorScheme.surfaceContainerHighest,
         ),
-        child: Icon(icon, color: Colors.black87, size: 24),
+        child: Icon(icon, color: colorScheme.onSurfaceVariant, size: 24),
       ),
     );
   }
 
   Widget _buildPlayButton(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ElevatedButton.icon(
       onPressed: () => _handlePlayPlaylist(playlist),
-      icon: const Icon(Icons.play_arrow, color: Colors.white),
-      label: const Text(
+      icon: Icon(Icons.play_arrow, color: colorScheme.onPrimary),
+      label: Text(
         'PHÁT TẤT CẢ',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: colorScheme.onPrimary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: colorScheme.primary,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       ),
@@ -300,8 +322,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildSongsList(PlayList playlist) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      color: Colors.white,
+      color: colorScheme.surface,
       child: Column(
         children:
             playlist.songs.asMap().entries.map((entry) {
@@ -352,9 +376,18 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Widget _buildPlaceholderImage() {
-    return Container(
-      color: Colors.grey.shade300,
-      child: const Icon(Icons.music_note, size: 80, color: Colors.grey),
+    return Builder(
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Container(
+          color: colorScheme.surfaceContainerHighest,
+          child: Icon(
+            Icons.music_note,
+            size: 80,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        );
+      },
     );
   }
 
@@ -367,9 +400,14 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
         if (loadingProgress == null) {
           return child;
         }
-        return Container(
-          color: Colors.grey.shade300,
-          child: const Center(child: CircularProgressIndicator()),
+        return Builder(
+          builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            return Container(
+              color: colorScheme.surfaceContainerHighest,
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          },
         );
       },
     );
@@ -429,7 +467,7 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           content: Text(
             'Bài hát "${selectedSong.title}" không có file âm thanh để phát',
           ),
-          backgroundColor: Colors.red.shade400,
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -441,10 +479,10 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
 
   void _showNoPlayableSongsMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Playlist này không có bài hát nào có thể phát'),
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 3),
+      SnackBar(
+        content: const Text('Playlist này không có bài hát nào có thể phát'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -477,15 +515,16 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
   }
 
   Color _getPermissionColor(String? permission) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (permission?.toLowerCase()) {
       case 'public':
-        return Colors.green;
+        return colorScheme.tertiary;
       case 'friends':
-        return Colors.blue;
+        return colorScheme.primary;
       case 'private':
-        return Colors.orange;
+        return colorScheme.secondary;
       default:
-        return Colors.orange;
+        return colorScheme.secondary;
     }
   }
 

@@ -106,10 +106,13 @@ class _SearchPageState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(0),
-        child: AppBar(backgroundColor: Colors.white, elevation: 0),
+        child: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+        ),
       ),
       body: Column(
         children: [
@@ -140,13 +143,17 @@ class _SearchPageState extends State<SearchScreen>
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Color(0xFFF1F1F1),
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        Icon(Icons.search, color: Colors.grey),
+                        Icon(
+                          Icons.search,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         SizedBox(width: 8),
                         Expanded(
                           child: TextField(
@@ -196,9 +203,10 @@ class _SearchPageState extends State<SearchScreen>
                 children: [
                   TabBar(
                     controller: _tabController,
-                    labelColor: Colors.black,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.deepPurple,
+                    labelColor: Theme.of(context).colorScheme.onSurface,
+                    unselectedLabelColor:
+                        Theme.of(context).colorScheme.onSurfaceVariant,
+                    indicatorColor: Theme.of(context).colorScheme.primary,
                     tabs: [
                       Tab(text: AppLocalizations.of(context)!.songs),
                       Tab(text: AppLocalizations.of(context)!.artists),
@@ -235,7 +243,10 @@ class _SearchPageState extends State<SearchScreen>
                 children:
                     _searchSuggestions.map((suggestion) {
                       return ListTile(
-                        leading: Icon(Icons.search, color: Colors.grey),
+                        leading: Icon(
+                          Icons.search,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         title: Text(suggestion),
                         dense: true,
                         onTap: () {

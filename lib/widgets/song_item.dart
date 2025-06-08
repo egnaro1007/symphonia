@@ -905,7 +905,7 @@ class SongItem extends StatelessWidget {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
 
               // If no qualities available, show default download
               if (song.availableQualities.isEmpty)

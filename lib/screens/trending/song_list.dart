@@ -43,10 +43,9 @@ class SongList extends StatelessWidget {
       child: Row(
         children: [
           // Rank number container
-          Container(
+          SizedBox(
             width: 40,
             height: 72, // Match typical ListTile height
-            decoration: BoxDecoration(color: Colors.deepPurple.shade600),
             child: Center(
               child: Text(
                 rank.toString(),

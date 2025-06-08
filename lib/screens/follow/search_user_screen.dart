@@ -142,7 +142,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.friendRequestSent),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
         // Update user status locally
@@ -170,7 +170,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         } catch (e) {}
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } catch (e) {
@@ -179,7 +182,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           content: Text(
             AppLocalizations.of(context)!.errorOccurredFriendRequest,
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {
@@ -204,9 +207,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã hủy kết bạn'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Đã hủy kết bạn'),
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
           ),
         );
         // Update user status locally
@@ -226,15 +229,15 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             content: Text(
               'Không thể hủy kết bạn (Status: ${response.statusCode})',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xảy ra lỗi khi hủy kết bạn'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Đã xảy ra lỗi khi hủy kết bạn'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -259,7 +262,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                 ? 'Đã chấp nhận lời mời kết bạn'
                 : 'Đã từ chối lời mời kết bạn';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.tertiary,
+          ),
         );
         // Update user status locally
         setState(() {
@@ -282,15 +288,15 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             content: Text(
               'Không thể phản hồi lời mời kết bạn (Status: ${httpResponse.statusCode})',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xảy ra lỗi khi phản hồi lời mời kết bạn'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Đã xảy ra lỗi khi phản hồi lời mời kết bạn'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -304,14 +310,16 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.searchUser),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () {
             // Reset search state before going back
             _resetSearchState();
@@ -329,9 +337,13 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.enterUsername,
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
                   onPressed: () {
                     _searchController.clear();
                     setState(() {
@@ -345,7 +357,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey[200],
+                fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
               ),
               onSubmitted: (value) => _searchUsers(value),
             ),
@@ -356,8 +368,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             ElevatedButton(
               onPressed: () => _searchUsers(_searchController.text),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
@@ -373,10 +385,13 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             Expanded(
               child:
                   _isLoading
-                      ? Center(child: CircularProgressIndicator())
+                      ? const Center(child: CircularProgressIndicator())
                       : _hasSearched && _searchResults.isEmpty
                       ? Center(
-                        child: Text(AppLocalizations.of(context)!.noUsersFound),
+                        child: Text(
+                          AppLocalizations.of(context)!.noUsersFound,
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        ),
                       )
                       : ListView.builder(
                         itemCount: _searchResults.length,
@@ -392,6 +407,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                             child: Card(
                               margin: const EdgeInsets.only(bottom: 16),
                               elevation: 0,
+                              color: colorScheme.surface,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -411,6 +427,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   }
 
   Widget _buildUserCard(User user) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (user.status == 'pending_received') {
       // For pending_received, use vertical layout like friend requests screen
       return Column(
@@ -430,14 +448,18 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                   children: [
                     Text(
                       user.fullName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     Text(
                       '@${user.username}',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -454,8 +476,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                     _respondToFriendRequest(user.id, 'accept');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -471,9 +493,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                     _respondToFriendRequest(user.id, 'reject');
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey[600],
-                    side: BorderSide(color: Colors.grey[300]!),
-                    backgroundColor: Colors.white,
+                    foregroundColor: colorScheme.onSurface,
+                    side: BorderSide(color: colorScheme.outline),
+                    backgroundColor: colorScheme.surface,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -504,14 +526,18 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
               children: [
                 Text(
                   user.fullName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   '@${user.username}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -524,6 +550,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   }
 
   Widget _buildActionButton(User user) {
+    final colorScheme = Theme.of(context).colorScheme;
     bool isPending = _pendingRequests.contains(user.id);
 
     if (user.status == 'none') {
@@ -544,8 +571,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                 : const Icon(Icons.person_add),
         label: Text(isPending ? 'Đang gửi...' : 'Kết bạn'),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.blue,
-          side: const BorderSide(color: Colors.blue),
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.primary),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -556,8 +583,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         icon: const Icon(Icons.access_time),
         label: const Text('Đã gửi yêu cầu'),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.grey,
-          side: const BorderSide(color: Colors.grey),
+          foregroundColor: colorScheme.onSurfaceVariant,
+          side: BorderSide(color: colorScheme.onSurfaceVariant),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -570,8 +597,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         icon: const Icon(Icons.person_remove),
         label: const Text('Hủy kết bạn'),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
+          foregroundColor: colorScheme.error,
+          side: BorderSide(color: colorScheme.error),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),

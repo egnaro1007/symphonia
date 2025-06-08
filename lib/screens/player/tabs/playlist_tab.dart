@@ -124,7 +124,7 @@ class _NextTrackTabState extends State<NextTrackTab>
 
     return Scaffold(
       body: Container(
-        color: const Color(0xFF1E0811), // Dark maroon background
+        color: Theme.of(context).colorScheme.surface,
         child: Column(
           children: [
             // Mini player top bar
@@ -150,10 +150,13 @@ class _NextTrackTabState extends State<NextTrackTab>
         _playerController.currentSongIndexInDisplayOrder;
 
     if (allSongs.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "Không có bài hát nào trong danh sách phát",
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 16,
+          ),
           textAlign: TextAlign.center,
         ),
       );
@@ -170,11 +173,18 @@ class _NextTrackTabState extends State<NextTrackTab>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.shuffle, color: Colors.white, size: 16),
+                    Icon(
+                      Icons.shuffle,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       "Đang phát ngẫu nhiên",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -210,7 +220,9 @@ class _NextTrackTabState extends State<NextTrackTab>
           decoration:
               isCurrentSong
                   ? BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   )
                   : null,
@@ -249,7 +261,9 @@ class _NextTrackTabState extends State<NextTrackTab>
           decoration:
               isCurrentSong
                   ? BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   )
                   : null,

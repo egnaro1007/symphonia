@@ -61,10 +61,12 @@ class _AdaptivePlayerScreenState extends State<AdaptivePlayerScreen> {
     if (_isLoading) {
       return Scaffold(
         body: Container(
-          color: const Color(0xFF1E0811),
+          color: Theme.of(context).colorScheme.surface,
           child: Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ),

@@ -72,19 +72,24 @@ class _FollowScreenState extends State<FollowScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         title: Text(
           AppLocalizations.of(context)!.user,
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           // Nút tìm kiếm
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
+            icon: Icon(Icons.search, color: colorScheme.onSurface),
             onPressed: () {
               widget.onTabSelected(ScreenIndex.searchUser.value, "");
             },
@@ -94,7 +99,7 @@ class _FollowScreenState extends State<FollowScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.black),
+                icon: Icon(Icons.notifications, color: colorScheme.onSurface),
                 onPressed: () {
                   widget.onTabSelected(ScreenIndex.friendRequests.value, "");
                 },
@@ -106,7 +111,7 @@ class _FollowScreenState extends State<FollowScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: colorScheme.error,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     constraints: const BoxConstraints(
@@ -117,8 +122,8 @@ class _FollowScreenState extends State<FollowScreen> {
                       numberOfFriendRequests > 99
                           ? '99+'
                           : numberOfFriendRequests.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colorScheme.onError,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -131,14 +136,18 @@ class _FollowScreenState extends State<FollowScreen> {
         ],
       ),
       body: ListView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         children: [
           // Tiêu đề danh sách bạn bè
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
               AppLocalizations.of(context)!.yourFriends,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
 
@@ -152,6 +161,7 @@ class _FollowScreenState extends State<FollowScreen> {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 elevation: 0,
+                color: colorScheme.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -167,23 +177,27 @@ class _FollowScreenState extends State<FollowScreen> {
                   ),
                   title: GestureDetector(
                     onTap: () {
-                      widget.onTabSelected(ScreenIndex.userProfile.value, friend.id,);
+                      widget.onTabSelected(
+                        ScreenIndex.userProfile.value,
+                        friend.id,
+                      );
                     },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           friend.fullName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         Text(
                           '@${friend.username}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -191,8 +205,8 @@ class _FollowScreenState extends State<FollowScreen> {
                   ),
                   trailing: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[100],
-                      foregroundColor: Colors.red[800],
+                      backgroundColor: colorScheme.errorContainer,
+                      foregroundColor: colorScheme.onErrorContainer,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -203,17 +217,23 @@ class _FollowScreenState extends State<FollowScreen> {
                         context: context,
                         builder:
                             (context) => AlertDialog(
+                              backgroundColor: colorScheme.surface,
                               title: Text(
                                 AppLocalizations.of(context)!.confirm,
+                                style: TextStyle(color: colorScheme.onSurface),
                               ),
                               content: Text(
                                 "${AppLocalizations.of(context)!.friendRemoveConfirmation} ${friend.fullName}?",
+                                style: TextStyle(color: colorScheme.onSurface),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
                                   child: Text(
                                     AppLocalizations.of(context)!.cancel,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
                                 ),
                                 TextButton(
@@ -225,6 +245,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                         content: Text(
                                           '${AppLocalizations.of(context)!.removingFriendWith} ${friend.fullName}...',
                                         ),
+                                        backgroundColor: colorScheme.secondary,
                                       ),
                                     );
 
@@ -241,6 +262,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                           content: Text(
                                             '${AppLocalizations.of(context)!.confirmRemovingFriendWith} ${friend.fullName}',
                                           ),
+                                          backgroundColor: colorScheme.tertiary,
                                         ),
                                       );
                                     } catch (e) {
@@ -251,12 +273,14 @@ class _FollowScreenState extends State<FollowScreen> {
                                           content: Text(
                                             '${AppLocalizations.of(context)!.errorRemoveFriend}: ${e.toString()}',
                                           ),
+                                          backgroundColor: colorScheme.error,
                                         ),
                                       );
                                     }
                                   },
                                   child: Text(
                                     AppLocalizations.of(context)!.confirm,
+                                    style: TextStyle(color: colorScheme.error),
                                   ),
                                 ),
                               ],

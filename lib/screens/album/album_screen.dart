@@ -31,8 +31,10 @@ class _AlbumScreenState extends State<AlbumScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Column(
         children: [
           // Check if albumID is valid before making API call
@@ -41,13 +43,17 @@ class _AlbumScreenState extends State<AlbumScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.album, size: 64, color: Colors.grey),
+                    Icon(
+                      Icons.album,
+                      size: 64,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Không có album được chọn',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.grey.shade600,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -64,17 +70,17 @@ class _AlbumScreenState extends State<AlbumScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
                             size: 64,
-                            color: Colors.grey,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Không thể tải album',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey.shade600,
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -82,7 +88,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
                             snapshot.error.toString(),
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey.shade500,
+                              color: colorScheme.onSurfaceVariant.withOpacity(
+                                0.7,
+                              ),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -93,7 +101,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
                     return const Center(child: Text('Không có dữ liệu'));
                   } else {
                     final album = snapshot.data!;
-                    return _buildAlbumContent(album);
+                    return _buildAlbumContent(album, context);
                   }
                 },
               ),
@@ -102,12 +110,14 @@ class _AlbumScreenState extends State<AlbumScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
         onPressed: () {
           widget.onTabSelected(-1, "");
         },
@@ -115,35 +125,43 @@ class _AlbumScreenState extends State<AlbumScreen> {
     );
   }
 
-  Widget _buildAlbumContent(Album album) {
+  Widget _buildAlbumContent(Album album, BuildContext context) {
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
-          children: [_buildAlbumHeader(album), _buildSongsList(album)],
+          children: [
+            _buildAlbumHeader(album, context),
+            _buildSongsList(album, context),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAlbumHeader(Album album) {
+  Widget _buildAlbumHeader(Album album, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.grey.shade100, Colors.white],
+          colors: [
+            colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            colorScheme.surface,
+          ],
         ),
       ),
       child: Column(
         children: [
           _buildAlbumCover(album),
           const SizedBox(height: 24),
-          _buildAlbumInfo(album),
+          _buildAlbumInfo(album, context),
           const SizedBox(height: 12),
-          _buildAlbumStats(album),
+          _buildAlbumStats(album, context),
           const SizedBox(height: 24),
-          _buildActionButtons(album),
+          _buildActionButtons(album, context),
         ],
       ),
     );
@@ -170,16 +188,18 @@ class _AlbumScreenState extends State<AlbumScreen> {
     );
   }
 
-  Widget _buildAlbumInfo(Album album) {
+  Widget _buildAlbumInfo(Album album, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         // Album title
         Text(
           album.title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -187,10 +207,10 @@ class _AlbumScreenState extends State<AlbumScreen> {
         // Artist info
         Text(
           album.artistNames,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -198,7 +218,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
     );
   }
 
-  Widget _buildAlbumStats(Album album) {
+  Widget _buildAlbumStats(Album album, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return FutureBuilder<List<Song>>(
       future: AlbumOperations.getAlbumSongs(album.id.toString()),
       builder: (context, snapshot) {
@@ -215,7 +237,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
             '${album.trackCount} bài hát',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -228,7 +250,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
               ' • $durationText',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -242,7 +264,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
               ' • ${album.releaseDate!.year}',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -277,63 +299,70 @@ class _AlbumScreenState extends State<AlbumScreen> {
     }
   }
 
-  Widget _buildActionButtons(Album album) {
-    return Center(child: _buildPlayButton(album));
+  Widget _buildActionButtons(Album album, BuildContext context) {
+    return Center(child: _buildPlayButton(album, context));
   }
 
-  Widget _buildPlayButton(Album album) {
+  Widget _buildPlayButton(Album album, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ElevatedButton.icon(
       onPressed: () => _handlePlayAlbum(album),
-      icon: const Icon(Icons.play_arrow, color: Colors.white),
-      label: const Text(
+      icon: Icon(Icons.play_arrow, color: colorScheme.onPrimary),
+      label: Text(
         'PHÁT TẤT CẢ',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: colorScheme.onPrimary,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: colorScheme.primary,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       ),
     );
   }
 
-  Widget _buildSongsList(Album album) {
+  Widget _buildSongsList(Album album, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return FutureBuilder<List<Song>>(
       future: AlbumOperations.getAlbumSongs(album.id.toString()),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.white,
+            color: colorScheme.surface,
             padding: const EdgeInsets.all(20),
             child: const Center(child: CircularProgressIndicator()),
           );
         } else if (snapshot.hasError) {
           return Container(
-            color: Colors.white,
+            color: colorScheme.surface,
             padding: const EdgeInsets.all(20),
             child: Center(
               child: Text(
                 'Không thể tải danh sách bài hát: ${snapshot.error}',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Container(
-            color: Colors.white,
+            color: colorScheme.surface,
             padding: const EdgeInsets.all(20),
             child: Center(
               child: Text(
                 'Album này chưa có bài hát nào',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
           );
         } else {
           final songs = snapshot.data!;
           return Container(
-            color: Colors.white,
+            color: colorScheme.surface,
             child: Column(
               children:
                   songs.asMap().entries.map((entry) {
@@ -372,9 +401,18 @@ class _AlbumScreenState extends State<AlbumScreen> {
   }
 
   Widget _buildPlaceholderImage() {
-    return Container(
-      color: Colors.grey.shade300,
-      child: const Icon(Icons.album, size: 80, color: Colors.grey),
+    return Builder(
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Container(
+          color: colorScheme.surfaceContainerHighest,
+          child: Icon(
+            Icons.album,
+            size: 80,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        );
+      },
     );
   }
 
@@ -387,9 +425,14 @@ class _AlbumScreenState extends State<AlbumScreen> {
         if (loadingProgress == null) {
           return child;
         }
-        return Container(
-          color: Colors.grey.shade300,
-          child: const Center(child: CircularProgressIndicator()),
+        return Builder(
+          builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            return Container(
+              color: colorScheme.surfaceContainerHighest,
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          },
         );
       },
     );
@@ -419,9 +462,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
 
       if (songs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Album không có bài hát nào'),
-            backgroundColor: Colors.orange,
+          SnackBar(
+            content: const Text('Album không có bài hát nào'),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
         );
         return;
@@ -433,9 +476,9 @@ class _AlbumScreenState extends State<AlbumScreen> {
 
       if (playableSongs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Album này không có bài hát nào có thể phát'),
-            backgroundColor: Colors.orange,
+          SnackBar(
+            content: const Text('Album này không có bài hát nào có thể phát'),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
         );
         return;
@@ -452,14 +495,14 @@ class _AlbumScreenState extends State<AlbumScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Đang phát album "${album.title}"'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Không thể phát album: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -476,7 +519,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
             content: Text(
               'Bài hát "${selectedSong.title}" không có file âm thanh để phát',
             ),
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -489,14 +532,14 @@ class _AlbumScreenState extends State<AlbumScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Đang phát "${songs[index].title}"'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Không thể phát bài hát: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }

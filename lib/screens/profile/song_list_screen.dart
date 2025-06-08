@@ -81,12 +81,14 @@ class _SongListScreenState extends State<SongListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () {
             widget.onTabSelected(-1, "");
           },
@@ -97,8 +99,8 @@ class _SongListScreenState extends State<SongListScreen> {
             const SizedBox(width: 8),
             Text(
               widget.screenTitle,
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: colorScheme.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -107,7 +109,7 @@ class _SongListScreenState extends State<SongListScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
+            icon: Icon(Icons.refresh, color: colorScheme.onSurface),
             onPressed: _refreshData,
           ),
         ],
@@ -122,9 +124,16 @@ class _SongListScreenState extends State<SongListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error, size: 64, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.error,
+                    size: 64,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
-                  Text('Lỗi: ${snapshot.error}'),
+                  Text(
+                    'Lỗi: ${snapshot.error}',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
                 ],
               ),
             );
@@ -133,11 +142,18 @@ class _SongListScreenState extends State<SongListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(widget.titleIcon, size: 64, color: Colors.grey.shade400),
+                  Icon(
+                    widget.titleIcon,
+                    size: 64,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Chưa có bài hát nào trong ${widget.screenTitle}',
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -155,7 +171,7 @@ class _SongListScreenState extends State<SongListScreen> {
                       end: Alignment.bottomCenter,
                       colors: [
                         widget.titleColor.withOpacity(0.1),
-                        Colors.white,
+                        colorScheme.surface,
                       ],
                     ),
                   ),
@@ -180,10 +196,10 @@ class _SongListScreenState extends State<SongListScreen> {
                       // Title
                       Text(
                         widget.screenTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -193,7 +209,7 @@ class _SongListScreenState extends State<SongListScreen> {
                         '${songs.length} bài hát',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -218,11 +234,11 @@ class _SongListScreenState extends State<SongListScreen> {
 
                               if (playableSongs.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Danh sách này không có bài hát nào có thể phát',
                                     ),
-                                    backgroundColor: Colors.orange,
+                                    backgroundColor: colorScheme.secondary,
                                   ),
                                 );
                                 return;
@@ -243,7 +259,7 @@ class _SongListScreenState extends State<SongListScreen> {
                                   content: Text(
                                     'Đang phát ${widget.screenTitle}',
                                   ),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: colorScheme.tertiary,
                                 ),
                               );
                             } catch (e) {
@@ -252,7 +268,7 @@ class _SongListScreenState extends State<SongListScreen> {
                                   content: Text(
                                     'Không thể phát nhạc: ${e.toString()}',
                                   ),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: colorScheme.error,
                                 ),
                               );
                             }
@@ -284,7 +300,7 @@ class _SongListScreenState extends State<SongListScreen> {
                 // Song list
                 Expanded(
                   child: Container(
-                    color: Colors.white,
+                    color: colorScheme.surface,
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: songs.length,

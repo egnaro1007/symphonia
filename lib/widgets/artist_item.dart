@@ -40,7 +40,7 @@ class ArtistItem extends StatelessWidget {
       leading:
           showIndex && index != null
               ? _buildIndexedLeading(context)
-              : _buildImageLeading(),
+              : _buildImageLeading(context),
       title: Text(
         artist.name,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -72,7 +72,9 @@ class ArtistItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(
@@ -87,28 +89,32 @@ class ArtistItem extends StatelessWidget {
     );
   }
 
-  Widget _buildImageLeading() {
+  Widget _buildImageLeading(BuildContext context) {
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceVariant,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
-        child: _buildArtistImage(),
+        child: _buildArtistImage(context),
       ),
     );
   }
 
-  Widget _buildArtistImage() {
+  Widget _buildArtistImage(BuildContext context) {
     String imagePath = artist.artistPicture ?? '';
 
     if (imagePath.isEmpty) {
       return Container(
-        color: Colors.grey.shade300,
-        child: const Icon(Icons.person, size: 28, color: Colors.grey),
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        child: Icon(
+          Icons.person,
+          size: 28,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       );
     }
 
@@ -122,16 +128,23 @@ class ArtistItem extends StatelessWidget {
             return child;
           }
           return Container(
-            color: Colors.grey.shade200,
-            child: const Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            child: Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           );
         },
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.person, size: 28, color: Colors.grey),
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            child: Icon(
+              Icons.person,
+              size: 28,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -143,8 +156,12 @@ class ArtistItem extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.person, size: 28, color: Colors.grey),
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            child: Icon(
+              Icons.person,
+              size: 28,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -164,16 +181,23 @@ class ArtistItem extends StatelessWidget {
               return child;
             }
             return Container(
-              color: Colors.grey.shade200,
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             );
           },
           errorBuilder: (context, error, stackTrace) {
             return Container(
-              color: Colors.grey.shade300,
-              child: const Icon(Icons.person, size: 28, color: Colors.grey),
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              child: Icon(
+                Icons.person,
+                size: 28,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             );
           },
         );
@@ -183,8 +207,12 @@ class ArtistItem extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return Container(
-              color: Colors.grey.shade300,
-              child: const Icon(Icons.person, size: 28, color: Colors.grey),
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              child: Icon(
+                Icons.person,
+                size: 28,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             );
           },
         );
@@ -207,22 +235,22 @@ class ArtistItem extends StatelessWidget {
               width: 160,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(80),
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceVariant,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(80),
-                child: _buildArtistImage(),
+                child: _buildArtistImage(context),
               ),
             ),
             const SizedBox(height: 8),
-            Container(
+            SizedBox(
               width: 140,
               child: Text(
                 artist.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold, 
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

@@ -64,7 +64,7 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
-  Locale _currentLocale = Locale('vi');
+  final Locale _currentLocale = Locale('vi');
 
   @override
   void initState() {

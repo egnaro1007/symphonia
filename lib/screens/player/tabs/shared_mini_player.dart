@@ -48,7 +48,9 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
       child: Container(
         height: 80,
         padding: const EdgeInsets.only(left: 15, right: 15),
-        decoration: BoxDecoration(color: Colors.grey[900]),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.inverseSurface,
+        ),
         child: Row(
           children: [
             // Album cover
@@ -57,7 +59,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
               height: 60,
               margin: const EdgeInsets.only(right: 15),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(4),
               ),
               child:
@@ -66,7 +68,10 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                         borderRadius: BorderRadius.circular(4),
                         child: _buildCoverImage(),
                       )
-                      : Icon(Icons.music_note, color: Colors.white),
+                      : Icon(
+                        Icons.music_note,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
             ),
 
             // Title and artist
@@ -82,7 +87,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                           ? _playerController.playingSong.title
                           : "Không có gì đang phát",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onInverseSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -92,7 +97,12 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
                         _playerController.playingSong.artist.isNotEmpty)
                       Text(
                         _playerController.playingSong.artist,
-                        style: TextStyle(color: Colors.grey[400], fontSize: 17),
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onInverseSurface.withOpacity(0.7),
+                          fontSize: 17,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],
@@ -111,7 +121,7 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
               },
               icon: Icon(
                 _isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 size: 30,
               ),
             ),
@@ -130,8 +140,10 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
         imagePath,
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
     // Check if it's an asset path
@@ -140,8 +152,10 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
         imagePath,
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
     // Treat as local file path
@@ -150,8 +164,10 @@ class _SharedMiniPlayerState extends State<SharedMiniPlayer> {
         File(imagePath),
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
   }

@@ -107,7 +107,10 @@ class _UserScreenState extends State<UserScreen> {
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading user data: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error loading user data: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() {
@@ -125,7 +128,10 @@ class _UserScreenState extends State<UserScreen> {
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading playlists: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error loading playlists: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() {
@@ -180,6 +186,7 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     bool isLoading = isLoadingUser || isLoadingPlaylists;
 
     if (isLoading) {
@@ -208,13 +215,13 @@ class _UserScreenState extends State<UserScreen> {
                     leading: IconButton(
                       icon: Container(
                         decoration: BoxDecoration(
-                          color: Colors.black38,
+                          color: colorScheme.surface.withOpacity(0.8),
                           shape: BoxShape.circle,
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       onPressed: () {
@@ -246,8 +253,8 @@ class _UserScreenState extends State<UserScreen> {
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                     colors: [
-                                      Colors.black.withOpacity(0.2),
-                                      Colors.black.withOpacity(0.6),
+                                      colorScheme.surface.withOpacity(0.2),
+                                      colorScheme.surface.withOpacity(0.8),
                                     ],
                                   ),
                                 ),
@@ -267,8 +274,8 @@ class _UserScreenState extends State<UserScreen> {
                                   children: [
                                     Text(
                                       userStatus.fullName,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface,
                                         fontSize: 36,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -276,8 +283,9 @@ class _UserScreenState extends State<UserScreen> {
                                     const SizedBox(height: 8),
                                     Text(
                                       '@${userStatus.username}',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface
+                                            .withOpacity(0.7),
                                         fontSize: 18,
                                         fontWeight: FontWeight.w400,
                                       ),
@@ -327,11 +335,23 @@ class _UserScreenState extends State<UserScreen> {
                                                       BuildContext context,
                                                     ) {
                                                       return AlertDialog(
-                                                        title: const Text(
+                                                        backgroundColor:
+                                                            colorScheme.surface,
+                                                        title: Text(
                                                           'Friend Request',
+                                                          style: TextStyle(
+                                                            color:
+                                                                colorScheme
+                                                                    .onSurface,
+                                                          ),
                                                         ),
                                                         content: Text(
                                                           'Do you want to accept friend request from ${userStatus.username}?',
+                                                          style: TextStyle(
+                                                            color:
+                                                                colorScheme
+                                                                    .onSurface,
+                                                          ),
                                                         ),
                                                         actions: [
                                                           TextButton(

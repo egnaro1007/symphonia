@@ -204,7 +204,9 @@ class MiniPlayerState extends State<MiniPlayer>
         Container(
           height: 76,
           padding: const EdgeInsets.only(left: 15, right: 15),
-          decoration: BoxDecoration(color: Colors.grey[900]),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.inverseSurface,
+          ),
           child: Row(
             children: [
               // Ảnh cover
@@ -213,7 +215,7 @@ class MiniPlayerState extends State<MiniPlayer>
                 height: 60,
                 margin: const EdgeInsets.only(right: 15),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child:
@@ -223,7 +225,11 @@ class MiniPlayerState extends State<MiniPlayer>
                           borderRadius: BorderRadius.circular(4),
                           child: _buildCoverImage(),
                         )
-                        : Icon(Icons.music_note, color: Colors.white),
+                        : Icon(
+                          Icons.music_note,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
               ),
 
               // Tiêu đề và tên nghệ sĩ
@@ -239,7 +245,7 @@ class MiniPlayerState extends State<MiniPlayer>
                             ? _playerController.playingSong.title
                             : "Không có gì đang phát",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onInverseSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -250,7 +256,9 @@ class MiniPlayerState extends State<MiniPlayer>
                         Text(
                           _playerController.playingSong.artist,
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface.withOpacity(0.7),
                             fontSize: 17,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -273,11 +281,16 @@ class MiniPlayerState extends State<MiniPlayer>
                     padding: EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _isPressed ? Colors.white24 : Colors.transparent,
+                      color:
+                          _isPressed
+                              ? Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.1)
+                              : Colors.transparent,
                     ),
                     child: Icon(
                       _isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                       size: 30,
                     ),
                   ),
@@ -290,11 +303,11 @@ class MiniPlayerState extends State<MiniPlayer>
         Container(
           height: 4,
           width: double.infinity,
-          color: Colors.grey[900],
+          color: Theme.of(context).colorScheme.inverseSurface,
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: _progress.clamp(0.0, 1.0),
-            child: Container(color: Colors.red),
+            child: Container(color: Theme.of(context).colorScheme.primary),
           ),
         ),
       ],
@@ -310,8 +323,10 @@ class MiniPlayerState extends State<MiniPlayer>
         imagePath,
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
     // Check if it's an asset path
@@ -320,8 +335,10 @@ class MiniPlayerState extends State<MiniPlayer>
         imagePath,
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
     // Treat as local file path
@@ -330,8 +347,10 @@ class MiniPlayerState extends State<MiniPlayer>
         File(imagePath),
         fit: BoxFit.cover,
         errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.music_note, color: Colors.white),
+            (context, error, stackTrace) => Icon(
+              Icons.music_note,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
       );
     }
   }

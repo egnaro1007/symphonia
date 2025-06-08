@@ -57,17 +57,22 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         title: Text(
           AppLocalizations.of(context)!.friendRequests,
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () {
             // Go back to previous screen using navigation stack
             widget.onTabSelected(-1, "");
@@ -79,7 +84,10 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
               ? Center(
                 child: Text(
                   AppLocalizations.of(context)!.noFriendRequest,
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               )
               : ListView(
@@ -90,9 +98,10 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Text(
                       '${_friendRequests.length} ${AppLocalizations.of(context)!.friendRequests}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -121,7 +130,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                               content: Text(
                                 '${AppLocalizations.of(context)!.acceptFriendRequestFrom} ${request.fullName}',
                               ),
-                              backgroundColor: Colors.green,
+                              backgroundColor: colorScheme.tertiary,
                             ),
                           );
                         },
@@ -140,7 +149,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
                               content: Text(
                                 '${AppLocalizations.of(context)!.declineFriendRequestFrom} ${request.fullName}',
                               ),
-                              backgroundColor: Colors.red,
+                              backgroundColor: colorScheme.error,
                             ),
                           );
                         },
@@ -167,9 +176,12 @@ class FriendRequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
+      color: colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -193,16 +205,17 @@ class FriendRequestCard extends StatelessWidget {
                     children: [
                       Text(
                         request.fullName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       Text(
                         '@${request.name}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -221,8 +234,8 @@ class FriendRequestCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onAccept,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -237,8 +250,8 @@ class FriendRequestCard extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: onDecline,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.grey),
+                      foregroundColor: colorScheme.onSurface,
+                      side: BorderSide(color: colorScheme.outline),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

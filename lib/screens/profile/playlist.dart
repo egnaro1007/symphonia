@@ -49,7 +49,7 @@ class _PlayListComponentState extends State<PlayListComponent> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -98,10 +98,13 @@ class _PlayListComponentState extends State<PlayListComponent> {
         width: 50,
         height: 50,
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Icon(Icons.add, color: Colors.grey),
+        child: Icon(
+          Icons.add,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
       title: Text(
         AppLocalizations.of(context)!.createPlaylist,

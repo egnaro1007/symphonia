@@ -88,7 +88,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading artist data: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error loading artist data: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() {
@@ -114,7 +117,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading albums: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error loading albums: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() {
@@ -140,7 +146,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading songs: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error loading songs: ${e.toString()}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     } finally {
       setState(() {
@@ -172,6 +181,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     bool isLoading = isLoadingArtist || isLoadingAlbums || isLoadingSongs;
 
     if (isLoading) {
@@ -194,13 +204,13 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     leading: IconButton(
                       icon: Container(
                         decoration: BoxDecoration(
-                          color: Colors.black38,
+                          color: colorScheme.surface.withOpacity(0.8),
                           shape: BoxShape.circle,
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       onPressed: () {
@@ -232,8 +242,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                     colors: [
-                                      Colors.black.withOpacity(0.2),
-                                      Colors.black.withOpacity(0.6),
+                                      colorScheme.surface.withOpacity(0.2),
+                                      colorScheme.surface.withOpacity(0.8),
                                     ],
                                   ),
                                 ),
@@ -253,8 +263,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   children: [
                                     Text(
                                       artist.name,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface,
                                         fontSize: 36,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -271,7 +281,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                   // Content
                   SliverToBoxAdapter(
                     child: Container(
-                      color: Colors.white,
+                      color: colorScheme.surface,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -294,16 +304,13 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          color: colorScheme.onSurface,
                                         ),
                                       ),
                                       SizedBox(width: 8),
                                       Icon(
                                         Icons.chevron_right,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface,
+                                        color: colorScheme.onSurface,
                                       ),
                                     ],
                                   ),
@@ -324,11 +331,12 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
+                                          SnackBar(
+                                            content: const Text(
                                               'Nghệ sĩ này không có bài hát nào có thể phát',
                                             ),
-                                            backgroundColor: Colors.orange,
+                                            backgroundColor:
+                                                colorScheme.secondary,
                                           ),
                                         );
                                         return;
@@ -347,11 +355,11 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
+                                        SnackBar(
+                                          content: const Text(
                                             'Đang phát tất cả bài hát của nghệ sĩ',
                                           ),
-                                          backgroundColor: Colors.green,
+                                          backgroundColor: colorScheme.tertiary,
                                         ),
                                       );
                                     },
@@ -360,19 +368,25 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         horizontal: 12,
                                         vertical: 8,
                                       ),
-                                      backgroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withAlpha((0.1 * 255).toInt()),
+                                      backgroundColor: colorScheme.primary
+                                          .withOpacity(0.1),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                     ),
                                     child: Row(
                                       children: [
-                                        Icon(Icons.play_arrow),
+                                        Icon(
+                                          Icons.play_arrow,
+                                          color: colorScheme.primary,
+                                        ),
                                         SizedBox(width: 4),
-                                        Text('Phát tất cả'),
+                                        Text(
+                                          'Phát tất cả',
+                                          style: TextStyle(
+                                            color: colorScheme.primary,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -401,7 +415,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
                                   if (albums.length > 3)
@@ -409,7 +423,12 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                       onPressed: () {
                                         // TODO: Navigate to all albums
                                       },
-                                      child: Text('View All'),
+                                      child: Text(
+                                        'View All',
+                                        style: TextStyle(
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
                                     ),
                                 ],
                               ),
@@ -455,7 +474,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -467,7 +486,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                               child: Text(
                                 artist.bio!,
                                 style: TextStyle(
-                                  color: Colors.black87,
+                                  color: colorScheme.onSurface,
                                   fontSize: 16,
                                   height: 1.5,
                                   fontFamily: 'Roboto',
@@ -489,14 +508,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                     Icon(
                                       Icons.music_note,
                                       size: 64,
-                                      color: Colors.grey,
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
                                       'No content available',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: Colors.grey,
+                                        color: colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -517,6 +536,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
   }
 
   Widget _buildSongsPageView(List<Song> songs) {
+    final colorScheme = Theme.of(context).colorScheme;
     final List<List<Song>> songGroups = [];
 
     for (int i = 0; i < songs.length; i += 3) {
@@ -559,10 +579,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                   decoration: BoxDecoration(
                     color:
                         _currentSongPageIndex == index
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),

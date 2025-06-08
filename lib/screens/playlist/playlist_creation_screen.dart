@@ -80,9 +80,9 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Có lỗi xảy ra khi chọn ảnh'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Có lỗi xảy ra khi chọn ảnh'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -94,19 +94,24 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
     String description,
     IconData icon,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _sharePermission == permission;
+
     return ListTile(
-      leading: Icon(icon, color: isSelected ? Colors.deepPurple : Colors.grey),
+      leading: Icon(
+        icon,
+        color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+      ),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w500,
-          color: isSelected ? Colors.deepPurple : Colors.black,
+          color: isSelected ? colorScheme.primary : colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
         description,
-        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
       ),
       trailing: Radio<SharePermission>(
         value: permission,
@@ -116,7 +121,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
             _sharePermission = value!;
           });
         },
-        activeColor: Colors.deepPurple,
+        activeColor: colorScheme.primary,
       ),
       onTap: () {
         setState(() {
@@ -128,8 +133,10 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -139,7 +146,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
               child: Align(
                 alignment: Alignment.topLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.black),
+                  icon: Icon(Icons.close, color: colorScheme.onSurface),
                   onPressed: () {
                     // Navigate back using the navigation system
                     widget.onTabSelected(-1, "");
@@ -165,14 +172,14 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                           children: [
                             Icon(
                               Icons.image,
-                              color: Colors.deepPurple,
+                              color: colorScheme.primary,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Ảnh bìa',
                               style: TextStyle(
-                                color: Colors.black87,
+                                color: colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -189,15 +196,17 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                               width: 140,
                               height: 140,
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
+                                color: colorScheme.surfaceContainerHighest.withOpacity(
+                                  0.3,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.grey.shade300,
+                                  color: colorScheme.outline,
                                   width: 2,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
+                                    color: colorScheme.shadow.withOpacity(0.1),
                                     spreadRadius: 1,
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
@@ -220,13 +229,14 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                                           Icon(
                                             Icons.add_photo_alternate_outlined,
                                             size: 40,
-                                            color: Colors.grey.shade400,
+                                            color: colorScheme.onSurfaceVariant,
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
                                             'Thêm ảnh bìa',
                                             style: TextStyle(
-                                              color: Colors.grey.shade600,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                               fontSize: 12,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -248,8 +258,8 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                               icon: const Icon(Icons.photo_library, size: 18),
                               label: const Text('Chọn ảnh'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple.shade50,
-                                foregroundColor: Colors.deepPurple,
+                                backgroundColor: colorScheme.primaryContainer,
+                                foregroundColor: colorScheme.onPrimaryContainer,
                                 elevation: 0,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -274,8 +284,8 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                                 ),
                                 label: const Text('Xóa ảnh'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red.shade50,
-                                  foregroundColor: Colors.red,
+                                  backgroundColor: colorScheme.errorContainer,
+                                  foregroundColor: colorScheme.onErrorContainer,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -302,14 +312,14 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                           children: [
                             Icon(
                               Icons.title,
-                              color: Colors.deepPurple,
+                              color: colorScheme.primary,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Tên playlist',
                               style: TextStyle(
-                                color: Colors.black87,
+                                color: colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -321,30 +331,31 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                         // Enhanced text field
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.grey.shade300,
+                              color: colorScheme.outline,
                               width: 1,
                             ),
                           ),
                           child: TextField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Nhập tên của Playlist',
                               hintStyle: TextStyle(
-                                color: Colors.grey,
+                                color: colorScheme.onSurfaceVariant,
                                 fontSize: 16,
                               ),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
+                              contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -354,10 +365,10 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                     const SizedBox(height: 24),
 
                     // Share permission section
-                    const Text(
+                    Text(
                       'Quyền chia sẻ',
                       style: TextStyle(
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -366,7 +377,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
 
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: colorScheme.outline),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -377,14 +388,14 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                             'Mọi người đều có thể xem và tìm kiếm',
                             Icons.public,
                           ),
-                          const Divider(height: 1),
+                          Divider(height: 1, color: colorScheme.outline),
                           _buildSharePermissionTile(
                             SharePermission.friendsOnly,
                             'Chỉ bạn bè',
                             'Chỉ những người bạn theo dõi mới có thể xem',
                             Icons.people,
                           ),
-                          const Divider(height: 1),
+                          Divider(height: 1, color: colorScheme.outline),
                           _buildSharePermissionTile(
                             SharePermission.private,
                             'Riêng tư',
@@ -473,11 +484,11 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
 
                                 // Success
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Playlist đã được tạo thành công!',
                                     ),
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: colorScheme.tertiary,
                                   ),
                                 );
 
@@ -486,22 +497,22 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                               } else {
                                 // Failed
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Có lỗi xảy ra khi tạo playlist',
                                     ),
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: colorScheme.error,
                                   ),
                                 );
                               }
                             } catch (e) {
                               Navigator.pop(context); // Close loading dialog
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
+                                SnackBar(
+                                  content: const Text(
                                     'Có lỗi xảy ra khi tạo playlist',
                                   ),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: colorScheme.error,
                                 ),
                               );
                             }
@@ -510,8 +521,12 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         _isButtonActive
-                            ? Colors.deepPurple
-                            : Colors.grey.shade300,
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
+                    foregroundColor:
+                        _isButtonActive
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurfaceVariant,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -519,11 +534,7 @@ class _PlaylistCreationScreenState extends State<PlaylistCreationScreen> {
                   ),
                   child: const Text(
                     'TẠO PLAYLIST',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

@@ -20,7 +20,7 @@ class _SharedTabNavigatorState extends State<SharedTabNavigator> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF1E0811),
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.only(top: 20, bottom: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -50,7 +50,10 @@ class _SharedTabNavigatorState extends State<SharedTabNavigator> {
         duration: const Duration(milliseconds: 100),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isPressed ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          color:
+              isPressed
+                  ? Theme.of(context).colorScheme.onSurface.withOpacity(0.1)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -58,7 +61,10 @@ class _SharedTabNavigatorState extends State<SharedTabNavigator> {
             Text(
               title,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[600],
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 18,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -68,7 +74,10 @@ class _SharedTabNavigatorState extends State<SharedTabNavigator> {
               width: isSelected ? 60 : 40,
               height: 3,
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.transparent,
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),

@@ -68,7 +68,9 @@ class PlaylistItem extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
       ),
       child: Center(
         child: Text(
@@ -99,9 +101,16 @@ class PlaylistItem extends StatelessWidget {
     String imagePath = playlist.picture;
 
     if (imagePath.isEmpty) {
-      return Container(
-        color: Colors.grey.shade300,
-        child: const Icon(Icons.queue_music, size: 24, color: Colors.grey),
+      return Builder(
+        builder:
+            (context) => Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Icon(
+                Icons.queue_music,
+                size: 24,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
       );
     }
 
@@ -115,7 +124,7 @@ class PlaylistItem extends StatelessWidget {
             return child;
           }
           return Container(
-            color: Colors.grey.shade200,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
             child: const Center(
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
@@ -123,8 +132,12 @@ class PlaylistItem extends StatelessWidget {
         },
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.queue_music, size: 24, color: Colors.grey),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.queue_music,
+              size: 24,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -136,8 +149,12 @@ class PlaylistItem extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.queue_music, size: 24, color: Colors.grey),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.queue_music,
+              size: 24,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -149,8 +166,12 @@ class PlaylistItem extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.queue_music, size: 24, color: Colors.grey),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.queue_music,
+              size: 24,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -178,7 +199,7 @@ class PlaylistItem extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               playlist.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -186,7 +207,7 @@ class PlaylistItem extends StatelessWidget {
               playlist.creator,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 12,
+                fontSize: 16,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -205,9 +226,9 @@ class PlaylistItem extends StatelessWidget {
                               // In delete mode, show only delete icon if user is the owner
                               if (isOwner)
                                 IconButton(
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.delete_outline,
-                                    color: Colors.red,
+                                    color: Theme.of(context).colorScheme.error,
                                     size: 28,
                                   ),
                                   onPressed:
@@ -251,7 +272,10 @@ class PlaylistItem extends StatelessWidget {
     if (isDeleteMode) {
       if (isOwner) {
         return IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.red),
+          icon: Icon(
+            Icons.delete_outline,
+            color: Theme.of(context).colorScheme.error,
+          ),
           onPressed: () => _handleDeletePlaylist(context),
         );
       } else {
@@ -300,7 +324,9 @@ class PlaylistItem extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
               child: const Text('Xóa'),
             ),
           ],
@@ -326,7 +352,7 @@ class PlaylistItem extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Đã xóa playlist "${playlist.title}"'),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -340,20 +366,20 @@ class PlaylistItem extends StatelessWidget {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể xóa playlist'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: const Text('Không thể xóa playlist'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
       Navigator.pop(context); // Close loading dialog
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Có lỗi xảy ra khi xóa playlist'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Có lỗi xảy ra khi xóa playlist'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -381,16 +407,24 @@ class PlaylistItem extends StatelessWidget {
             ),
             // Only show delete option if user is the owner
             if (isOwner)
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text(
-                  'Xóa playlist',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleDeletePlaylist(context);
-                },
+              Builder(
+                builder:
+                    (context) => ListTile(
+                      leading: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      title: Text(
+                        'Xóa playlist',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _handleDeletePlaylist(context);
+                      },
+                    ),
               ),
           ],
         );

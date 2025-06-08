@@ -111,9 +111,9 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Có lỗi xảy ra khi chọn ảnh'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Có lỗi xảy ra khi chọn ảnh'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -133,19 +133,23 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
     String description,
     IconData icon,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _sharePermission == permission;
     return ListTile(
-      leading: Icon(icon, color: isSelected ? Colors.deepPurple : Colors.grey),
+      leading: Icon(
+        icon,
+        color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+      ),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w500,
-          color: isSelected ? Colors.deepPurple : Colors.black,
+          color: isSelected ? colorScheme.primary : colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
         description,
-        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
       ),
       trailing: Radio<SharePermission>(
         value: permission,
@@ -156,7 +160,7 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
           });
           _checkButtonState();
         },
-        activeColor: Colors.deepPurple,
+        activeColor: colorScheme.primary,
       ),
       onTap: () {
         setState(() {
@@ -182,27 +186,41 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
         return Image.file(File(_currentImagePath!), fit: BoxFit.cover);
       }
     } else {
-      return Container(
-        color: Colors.grey.shade100,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 40, color: Colors.grey.shade400),
-            const SizedBox(height: 8),
-            Text(
-              'Chạm để chọn ảnh',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+      return Builder(
+        builder: (context) {
+          final colorScheme = Theme.of(context).colorScheme;
+          return Container(
+            color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.image,
+                  size: 40,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Chạm để chọn ảnh',
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -215,14 +233,17 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                   onPressed: () {
                     // Navigate back to playlist screen with refresh
                     Navigator.pop(context);
-                    widget.onTabSelected(ScreenIndex.playlist.value, widget.playlist.id);
+                    widget.onTabSelected(
+                      ScreenIndex.playlist.value,
+                      widget.playlist.id,
+                    );
                   },
-                  child: const Text(
+                  child: Text(
                     'Done',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.deepPurple,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
@@ -245,14 +266,14 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                           children: [
                             Icon(
                               Icons.image,
-                              color: Colors.deepPurple,
+                              color: colorScheme.primary,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Ảnh bìa',
                               style: TextStyle(
-                                color: Colors.black87,
+                                color: colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -271,10 +292,11 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                                   width: 140,
                                   height: 140,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
+                                    color: colorScheme.surfaceContainerHighest
+                                        .withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.grey.shade300,
+                                      color: colorScheme.outline,
                                       width: 2,
                                     ),
                                   ),
@@ -297,13 +319,13 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                                       width: 24,
                                       height: 24,
                                       decoration: BoxDecoration(
-                                        color: Colors.red,
+                                        color: colorScheme.error,
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
                                         Icons.close,
                                         size: 16,
-                                        color: Colors.white,
+                                        color: colorScheme.onError,
                                       ),
                                     ),
                                   ),
@@ -324,14 +346,14 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                           children: [
                             Icon(
                               Icons.edit,
-                              color: Colors.deepPurple,
+                              color: colorScheme.primary,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Tên Playlist',
                               style: TextStyle(
-                                color: Colors.black87,
+                                color: colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -341,26 +363,27 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                         const SizedBox(height: 12),
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: colorScheme.outline),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Nhập tên playlist...',
                               hintStyle: TextStyle(
-                                color: Colors.grey,
+                                color: colorScheme.onSurfaceVariant,
                                 fontSize: 16,
                               ),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
+                              contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -370,10 +393,10 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                     const SizedBox(height: 24),
 
                     // Share permission section
-                    const Text(
+                    Text(
                       'Quyền chia sẻ',
                       style: TextStyle(
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -382,7 +405,7 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
 
                     Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: colorScheme.outline),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -393,14 +416,14 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                             'Mọi người đều có thể xem và tìm kiếm',
                             Icons.public,
                           ),
-                          const Divider(height: 1),
+                          Divider(height: 1, color: colorScheme.outline),
                           _buildSharePermissionTile(
                             SharePermission.friendsOnly,
                             'Chỉ bạn bè',
                             'Chỉ những người bạn theo dõi mới có thể xem',
                             Icons.people,
                           ),
-                          const Divider(height: 1),
+                          Divider(height: 1, color: colorScheme.outline),
                           _buildSharePermissionTile(
                             SharePermission.private,
                             'Riêng tư',
@@ -430,11 +453,11 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                             // Validate playlist name
                             if (_nameController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
+                                SnackBar(
+                                  content: const Text(
                                     'Tên playlist không thể để trống',
                                   ),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: colorScheme.error,
                                 ),
                               );
                               return;
@@ -475,11 +498,11 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
 
                                 // Success
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Playlist đã được cập nhật thành công!',
                                     ),
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: colorScheme.tertiary,
                                   ),
                                 );
 
@@ -502,22 +525,22 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                                 });
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
+                                  SnackBar(
+                                    content: const Text(
                                       'Có lỗi xảy ra khi cập nhật playlist',
                                     ),
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: colorScheme.error,
                                   ),
                                 );
                               }
                             } catch (e) {
                               Navigator.pop(context); // Close loading dialog
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
+                                SnackBar(
+                                  content: const Text(
                                     'Có lỗi xảy ra khi cập nhật playlist',
                                   ),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: colorScheme.error,
                                 ),
                               );
                             }
@@ -526,8 +549,12 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         _isButtonActive
-                            ? Colors.deepPurple
-                            : Colors.grey.shade300,
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
+                    foregroundColor:
+                        _isButtonActive
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurfaceVariant,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -535,11 +562,7 @@ class _PlaylistEditScreenState extends State<PlaylistEditScreen> {
                   ),
                   child: const Text(
                     'CẬP NHẬT PLAYLIST',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

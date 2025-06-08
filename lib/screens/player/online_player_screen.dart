@@ -236,7 +236,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                   children: _tabWidgets,
                 )
                 : Container(
-                  color: const Color(0xFF1E0811), // Dark maroon background
+                  color: Theme.of(context).colorScheme.surface,
                   height: MediaQuery.of(context).size.height,
                   child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(),
@@ -299,7 +299,11 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       child: Align(
         alignment: Alignment.topLeft,
         child: IconButton(
-          icon: Icon(Icons.expand_more, color: Colors.white, size: 30),
+          icon: Icon(
+            Icons.expand_more,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: 30,
+          ),
           onPressed: widget.closePlayer,
         ),
       ),
@@ -311,12 +315,16 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       height: 250,
       width: 250,
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       child:
           _playerController.playingSong.imagePath.isEmpty
-              ? Icon(Icons.music_note, size: 100, color: Colors.white)
+              ? Icon(
+                Icons.music_note,
+                size: 100,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              )
               : ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: _buildCoverImage(),
@@ -334,8 +342,12 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.music_note,
+              size: 100,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -347,8 +359,12 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.music_note,
+              size: 100,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -360,8 +376,12 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
-            child: const Icon(Icons.music_note, size: 100, color: Colors.white),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.music_note,
+              size: 100,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         },
       );
@@ -375,7 +395,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         Text(
           _playerController.playingSong.title,
           style: TextStyle(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 30,
             fontWeight: FontWeight.bold,
           ),
@@ -383,7 +403,10 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         ),
         Text(
           _playerController.playingSong.artist,
-          style: TextStyle(color: Colors.white70, fontSize: 24),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 24,
+          ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -398,10 +421,12 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             trackHeight: 3,
             thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
             overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
-            activeTrackColor: Colors.white,
-            inactiveTrackColor: Colors.grey.shade600,
-            thumbColor: Colors.white,
-            overlayColor: Colors.white.withValues(alpha: 0.2),
+            activeTrackColor: Theme.of(context).colorScheme.primary,
+            inactiveTrackColor: Theme.of(context).colorScheme.outline,
+            thumbColor: Theme.of(context).colorScheme.primary,
+            overlayColor: Theme.of(
+              context,
+            ).colorScheme.primary.withOpacity(0.2),
           ),
           child: Slider(
             value:
@@ -452,11 +477,17 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                       ? _tempSliderPosition
                       : _currentPosition,
                 ),
-                style: TextStyle(color: Colors.white, fontSize: 17),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 17,
+                ),
               ),
               Text(
                 _formatDuration(_totalDuration),
-                style: TextStyle(color: Colors.white, fontSize: 17),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 17,
+                ),
               ),
             ],
           ),
@@ -481,22 +512,26 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             size: _isShuffleOn ? 32 : 28,
             color:
                 _isShuffleOn
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.primary,
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         IconButton(
           onPressed: () {
             _playerController.previous();
           },
-          icon: Icon(Icons.skip_previous, size: 40, color: Colors.white),
+          icon: Icon(
+            Icons.skip_previous,
+            size: 40,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         Container(
           width: 70,
           height: 70,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.primary,
           ),
           child: IconButton(
             onPressed: () {
@@ -509,7 +544,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             icon: Icon(
               _isPlaying ? Icons.pause : Icons.play_arrow,
               size: 40,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ),
@@ -517,7 +552,11 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
           onPressed: () {
             _playerController.next();
           },
-          icon: Icon(Icons.skip_next, size: 40, color: Colors.white),
+          icon: Icon(
+            Icons.skip_next,
+            size: 40,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         IconButton(
           onPressed: () {
@@ -532,8 +571,8 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             size: _playerController.repeatMode == RepeatMode.noRepeat ? 28 : 32,
             color:
                 _playerController.repeatMode == RepeatMode.noRepeat
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white,
+                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                    : Theme.of(context).colorScheme.primary,
           ),
         ),
       ],
@@ -612,7 +651,10 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
               _isLiked ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích',
             ),
             duration: Duration(seconds: 1),
-            backgroundColor: _isLiked ? Colors.red : Colors.grey,
+            backgroundColor:
+                _isLiked
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
         );
       } else {
@@ -621,14 +663,17 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             content: Text(
               'Có lỗi xảy ra khi ${_isLiked ? 'xóa khỏi' : 'thêm vào'} yêu thích',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
     } catch (e) {
       print('Error toggling like status: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Có lỗi xảy ra'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
     }
   }
@@ -651,7 +696,10 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       onPressed: _toggleLike,
       icon: Icon(
         _isLiked ? Icons.favorite : Icons.favorite_border,
-        color: _isLiked ? Colors.red : Colors.white70,
+        color:
+            _isLiked
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurface,
         size: 28,
       ),
     );
@@ -666,7 +714,9 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white30),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+          ),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -675,13 +725,17 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             Text(
               Song.getQualityDisplayName(_selectedQuality),
               style: TextStyle(
-                color: Colors.white70,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 16),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: Theme.of(context).colorScheme.onSurface,
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -694,7 +748,11 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       onPressed: () {
         _showAddToPlaylistDialog();
       },
-      icon: Icon(Icons.playlist_add, color: Colors.white70, size: 28),
+      icon: Icon(
+        Icons.playlist_add,
+        color: Theme.of(context).colorScheme.onSurface,
+        size: 28,
+      ),
     );
   }
 
@@ -704,7 +762,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Không có chất lượng âm thanh khác cho bài hát này'),
-          backgroundColor: Colors.orange,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           duration: Duration(seconds: 2),
         ),
       );
@@ -713,7 +771,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Color(0xFF2A1219),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -726,7 +784,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
               Text(
                 'Chọn chất lượng âm thanh',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -742,25 +800,34 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                     children: [
                       Text(
                         Song.getQualityDisplayName(quality),
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       if (fileSizeText.isNotEmpty)
                         Text(
                           fileSizeText,
-                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
                         ),
                     ],
                   ),
                   trailing:
                       _selectedQuality == quality
-                          ? Icon(Icons.check, color: Colors.white)
+                          ? Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
                           : null,
                   onTap: () async {
                     Navigator.pop(context);
                     await _changeQuality(quality);
                   },
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -782,7 +849,9 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
             SizedBox(width: 12),
@@ -812,7 +881,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             content: Text(
               'Đã chuyển sang chất lượng ${Song.getQualityDisplayName(quality)}',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: Duration(seconds: 2),
           ),
         );
@@ -823,7 +892,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             content: Text(
               'Không thể chuyển sang chất lượng ${Song.getQualityDisplayName(quality)}',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 2),
           ),
         );
@@ -837,7 +906,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Có lỗi xảy ra khi chuyển chất lượng'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: Duration(seconds: 2),
         ),
       );
@@ -870,7 +939,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Color(0xFF2A1219),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -889,13 +958,15 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
               Text(
                 'Thêm vào danh sách phát',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 10),
-              Divider(color: Colors.white30),
+              Divider(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+              ),
 
               // Scrollable playlist list
               Flexible(
@@ -905,7 +976,9 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                           padding: EdgeInsets.all(20),
                           child: Text(
                             'Chưa có playlist nào',
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         )
@@ -920,7 +993,10 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                                 height: 40,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                                  color: Colors.grey[600],
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHighest,
                                 ),
                                 child:
                                     playlist.picture.isNotEmpty
@@ -938,26 +1014,38 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
                                             ) {
                                               return Icon(
                                                 Icons.queue_music,
-                                                color: Colors.white,
+                                                color:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
                                               );
                                             },
                                           ),
                                         )
                                         : Icon(
                                           Icons.queue_music,
-                                          color: Colors.white,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
                                         ),
                               ),
                               title: Text(
                                 playlist.title,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text(
                                 playlist.creator,
                                 style: TextStyle(
-                                  color: Colors.white70,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                   fontSize: 12,
                                 ),
                                 maxLines: 1,
@@ -999,7 +1087,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
             content: Text(
               'Đã thêm "${_playerController.playingSong.title}" vào "$playlistName"',
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: Duration(seconds: 2),
           ),
         );
@@ -1007,7 +1095,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Không thể thêm bài hát vào playlist'),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: Duration(seconds: 2),
           ),
         );
@@ -1017,7 +1105,7 @@ class _OnlinePlayerScreenState extends State<OnlinePlayerScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Có lỗi xảy ra khi thêm bài hát vào playlist'),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: Duration(seconds: 2),
         ),
       );
