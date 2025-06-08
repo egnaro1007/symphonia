@@ -29,6 +29,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _justReleasedSlider = false; // Track if slider was just released
   int _selectedTabIndex = -1; // No tab selected by default
   bool _showTabContent = false; // Whether to show tab content
+  bool _isShuffleOn = false; // Track shuffle state
 
   // Tab controller to notify all tabs
   late TabController _tabController;
@@ -49,6 +50,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _tabController = TabController(length: 3, vsync: this);
 
     _isPlaying = _playerController.isPlaying();
+    _isShuffleOn = _playerController.shuffleMode == ShuffleMode.on;
     _tempSliderPosition = _currentPosition; // Initialize temp position
 
     _playerController.getDuration().then((duration) {
@@ -114,6 +116,15 @@ class _PlayerScreenState extends State<PlayerScreen>
 
           // Force rebuild all tabs when song changes
           _forceTabsUpdate();
+        });
+      }
+    });
+
+    // Listen to shuffle mode changes
+    _playerController.onShuffleModeChange.listen((shuffleMode) {
+      if (mounted) {
+        setState(() {
+          _isShuffleOn = shuffleMode == ShuffleMode.on;
         });
       }
     });
@@ -350,7 +361,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             activeTrackColor: Colors.white,
             inactiveTrackColor: Colors.grey.shade600,
             thumbColor: Colors.white,
-            overlayColor: Colors.white.withOpacity(0.2),
+            overlayColor: Colors.white.withValues(alpha: 0.2),
           ),
           child: Slider(
             value:
@@ -420,9 +431,19 @@ class _PlayerScreenState extends State<PlayerScreen>
       children: [
         IconButton(
           onPressed: () {
-            // Shuffle functionality (not implemented yet)
+            setState(() {
+              _playerController.changeShuffleMode();
+              _isShuffleOn = _playerController.shuffleMode == ShuffleMode.on;
+            });
           },
-          icon: Icon(Icons.shuffle, size: 28, color: Colors.white),
+          icon: Icon(
+            Icons.shuffle,
+            size: _isShuffleOn ? 32 : 28,
+            color:
+                _isShuffleOn
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.primary,
+          ),
         ),
         IconButton(
           onPressed: () {

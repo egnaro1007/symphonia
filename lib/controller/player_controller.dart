@@ -4,8 +4,11 @@ import 'package:symphonia/models/playlist.dart';
 import 'package:symphonia/services/audio_handler.dart';
 import 'package:symphonia/main.dart';
 import 'dart:async';
+import 'dart:math';
 
 enum RepeatMode { noRepeat, repeatOne, repeatAll }
+
+enum ShuffleMode { off, on }
 
 class PlayerController {
   static PlayerController? _instance;
@@ -13,6 +16,8 @@ class PlayerController {
       StreamController<Song>.broadcast();
   final StreamController<PlayList> _playlistChangeController =
       StreamController<PlayList>.broadcast();
+  final StreamController<ShuffleMode> _shuffleModeChangeController =
+      StreamController<ShuffleMode>.broadcast();
 
   bool _hasSong = false;
   Song _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
@@ -28,6 +33,9 @@ class PlayerController {
 
   int _currentSongIndex = 0;
   RepeatMode _repeatMode = RepeatMode.noRepeat;
+  ShuffleMode _shuffleMode = ShuffleMode.off;
+  List<int> _shuffledIndices = [];
+  int _shufflePosition = 0;
 
   // Lấy audio handler từ main
   SymphoniaAudioHandler get _audioHandler =>
@@ -53,6 +61,8 @@ class PlayerController {
   Stream<Duration?> get onDurationChanged => _audioHandler.durationStream;
   Stream<Song> get onSongChange => _songChangeController.stream;
   Stream<PlayList> get onPlaylistChange => _playlistChangeController.stream;
+  Stream<ShuffleMode> get onShuffleModeChange =>
+      _shuffleModeChangeController.stream;
 
   // Getters
   Song get playingSong => _playingSong;
@@ -63,6 +73,107 @@ class PlayerController {
       _currentSongIndex < _currentPlaylist.songs.length - 1
           ? _currentPlaylist.songs.sublist(_currentSongIndex + 1)
           : [];
+
+  // Get songs in display order (shuffled or normal)
+  List<Song> get songsInDisplayOrder {
+    if (_shuffleMode == ShuffleMode.on && _shuffledIndices.isNotEmpty) {
+      return _shuffledIndices
+          .map((index) => _currentPlaylist.songs[index])
+          .toList();
+    }
+    return _currentPlaylist.songs;
+  }
+
+  // Get current song index in display order
+  int get currentSongIndexInDisplayOrder {
+    if (_shuffleMode == ShuffleMode.on && _shuffledIndices.isNotEmpty) {
+      return _shufflePosition;
+    }
+    return _currentSongIndex;
+  }
+
+  // Convert display index to actual playlist index
+  int displayIndexToPlaylistIndex(int displayIndex) {
+    if (_shuffleMode == ShuffleMode.on && _shuffledIndices.isNotEmpty) {
+      return displayIndex < _shuffledIndices.length
+          ? _shuffledIndices[displayIndex]
+          : -1;
+    }
+    return displayIndex;
+  }
+
+  // Convert playlist index to display index
+  int playlistIndexToDisplayIndex(int playlistIndex) {
+    if (_shuffleMode == ShuffleMode.on && _shuffledIndices.isNotEmpty) {
+      return _shuffledIndices.indexOf(playlistIndex);
+    }
+    return playlistIndex;
+  }
+
+  // Convert current shuffle order to be the main playlist order and turn off shuffle
+  // This is called when adding songs in shuffle mode to "freeze" the current shuffle order
+  // as the new official playlist order before adding new songs
+  void _consolidateShuffleToPlaylist() {
+    if (_shuffleMode != ShuffleMode.on || _shuffledIndices.isEmpty) return;
+
+    // Create new playlist in current shuffle order
+    List<Song> newOrderedSongs = [];
+    for (int shuffleIndex in _shuffledIndices) {
+      if (shuffleIndex < _currentPlaylist.songs.length) {
+        newOrderedSongs.add(_currentPlaylist.songs[shuffleIndex]);
+      }
+    }
+
+    // Update playlist with new order (shuffle order becomes the new normal order)
+    _currentPlaylist.songs.clear();
+    _currentPlaylist.songs.addAll(newOrderedSongs);
+
+    // Update current song index to match new position in consolidated playlist
+    _currentSongIndex = _shufflePosition;
+
+    // Turn off shuffle mode
+    _shuffleMode = ShuffleMode.off;
+    _shuffledIndices.clear();
+    _shufflePosition = 0;
+
+    // Notify UI about changes
+    _shuffleModeChangeController.add(_shuffleMode);
+    _playlistChangeController.add(_currentPlaylist);
+  }
+
+  // Reorder songs in shuffle mode (only affects shuffle order, not original playlist)
+  void reorderSongsInShuffle(int oldDisplayIndex, int newDisplayIndex) {
+    if (_shuffleMode != ShuffleMode.on || _shuffledIndices.isEmpty) return;
+
+    if (oldDisplayIndex < newDisplayIndex) {
+      newDisplayIndex -= 1;
+    }
+
+    if (oldDisplayIndex >= 0 &&
+        oldDisplayIndex < _shuffledIndices.length &&
+        newDisplayIndex >= 0 &&
+        newDisplayIndex < _shuffledIndices.length) {
+      final int playlistIndex = _shuffledIndices.removeAt(oldDisplayIndex);
+      _shuffledIndices.insert(newDisplayIndex, playlistIndex);
+
+      // Update shuffle position if current song was moved
+      if (oldDisplayIndex == _shufflePosition) {
+        _shufflePosition = newDisplayIndex;
+      } else if (oldDisplayIndex < _shufflePosition &&
+          newDisplayIndex >= _shufflePosition) {
+        _shufflePosition--;
+      } else if (oldDisplayIndex > _shufflePosition &&
+          newDisplayIndex <= _shufflePosition) {
+        _shufflePosition++;
+      }
+
+      // Notify playlist change to update UI
+      _playlistChangeController.add(_currentPlaylist);
+
+      // Also notify shuffle mode change to force UI rebuild
+      _shuffleModeChangeController.add(_shuffleMode);
+    }
+  }
 
   bool isPlaying() {
     return _audioHandler.isPlaying;
@@ -79,6 +190,11 @@ class PlayerController {
   RepeatMode get repeatMode => _repeatMode;
   set repeatMode(RepeatMode mode) {
     _repeatMode = mode;
+  }
+
+  ShuffleMode get shuffleMode => _shuffleMode;
+  set shuffleMode(ShuffleMode mode) {
+    _shuffleMode = mode;
   }
 
   Future<void> _playSong(Song song) async {
@@ -133,6 +249,11 @@ class PlayerController {
 
   // Add song to current playlist
   void addSongToPlaylist(Song song) {
+    // If in shuffle mode, consolidate shuffle order first
+    if (_shuffleMode == ShuffleMode.on) {
+      _consolidateShuffleToPlaylist();
+    }
+
     _currentPlaylist.songs.add(song);
     _playlistChangeController.add(_currentPlaylist); // Notify playlist change
   }
@@ -143,6 +264,11 @@ class PlayerController {
       // If no song is playing, play this song immediately
       await loadSong(song);
     } else {
+      // If in shuffle mode, consolidate shuffle order first
+      if (_shuffleMode == ShuffleMode.on) {
+        _consolidateShuffleToPlaylist();
+      }
+
       // Check if the song to add is the currently playing song
       if (_currentPlaylist.songs.isNotEmpty &&
           _currentSongIndex < _currentPlaylist.songs.length &&
@@ -183,6 +309,11 @@ class PlayerController {
 
   // Add songs to current playlist
   void addSongsToPlaylist(List<Song> songs) {
+    // If in shuffle mode, consolidate shuffle order first
+    if (_shuffleMode == ShuffleMode.on) {
+      _consolidateShuffleToPlaylist();
+    }
+
     _currentPlaylist.songs.addAll(songs);
     _playlistChangeController.add(_currentPlaylist); // Notify playlist change
   }
@@ -191,6 +322,7 @@ class PlayerController {
   void removeSongFromPlaylist(int index) {
     if (index >= 0 && index < _currentPlaylist.songs.length) {
       _currentPlaylist.songs.removeAt(index);
+
       // Adjust current index if necessary
       if (index < _currentSongIndex) {
         _currentSongIndex--;
@@ -198,7 +330,46 @@ class PlayerController {
           _currentSongIndex >= _currentPlaylist.songs.length) {
         _currentSongIndex = _currentPlaylist.songs.length - 1;
       }
+
+      // Update shuffle indices if in shuffle mode
+      if (_shuffleMode == ShuffleMode.on && _shuffledIndices.isNotEmpty) {
+        _updateShuffleIndicesAfterRemoval(index);
+      }
+
       _playlistChangeController.add(_currentPlaylist); // Notify playlist change
+    }
+  }
+
+  // Update shuffle indices after removing a song from playlist
+  void _updateShuffleIndicesAfterRemoval(int removedIndex) {
+    // Remove the index from shuffle list
+    int shuffleIndexToRemove = _shuffledIndices.indexOf(removedIndex);
+    if (shuffleIndexToRemove != -1) {
+      _shuffledIndices.removeAt(shuffleIndexToRemove);
+
+      // Adjust shuffle position if necessary
+      if (shuffleIndexToRemove < _shufflePosition) {
+        _shufflePosition--;
+      } else if (shuffleIndexToRemove == _shufflePosition) {
+        // Current song was removed, adjust position
+        if (_shufflePosition >= _shuffledIndices.length) {
+          _shufflePosition = _shuffledIndices.length - 1;
+        }
+      }
+    }
+
+    // Adjust all indices that are greater than the removed index
+    for (int i = 0; i < _shuffledIndices.length; i++) {
+      if (_shuffledIndices[i] > removedIndex) {
+        _shuffledIndices[i]--;
+      }
+    }
+
+    // If shuffle list is empty, turn off shuffle
+    if (_shuffledIndices.isEmpty) {
+      _shuffleMode = ShuffleMode.off;
+      _shufflePosition = 0;
+      _shuffleModeChangeController.add(_shuffleMode);
     }
   }
 
@@ -272,6 +443,8 @@ class PlayerController {
   Future<void> next() async {
     if (_repeatMode == RepeatMode.repeatOne) {
       await _playSong(_playingSong);
+    } else if (_shuffleMode == ShuffleMode.on) {
+      await _nextShuffled();
     } else {
       int nextIndex =
           (_repeatMode == RepeatMode.repeatAll)
@@ -282,7 +455,11 @@ class PlayerController {
   }
 
   Future<void> previous() async {
-    gotoIndex(_currentSongIndex - 1);
+    if (_shuffleMode == ShuffleMode.on) {
+      await _previousShuffled();
+    } else {
+      gotoIndex(_currentSongIndex - 1);
+    }
   }
 
   void changeRepeatMode([RepeatMode? mode]) {
@@ -303,12 +480,80 @@ class PlayerController {
     }
   }
 
+  void changeShuffleMode([ShuffleMode? mode]) {
+    if (mode != null) {
+      _shuffleMode = mode;
+    } else {
+      switch (_shuffleMode) {
+        case ShuffleMode.off:
+          _shuffleMode = ShuffleMode.on;
+          _generateShuffledIndices();
+          break;
+        case ShuffleMode.on:
+          _shuffleMode = ShuffleMode.off;
+          _shuffledIndices.clear();
+          _shufflePosition = 0;
+          break;
+      }
+    }
+    // Notify listeners about shuffle mode change
+    _shuffleModeChangeController.add(_shuffleMode);
+  }
+
+  void _generateShuffledIndices() {
+    if (_currentPlaylist.songs.isEmpty) return;
+
+    _shuffledIndices = List.generate(
+      _currentPlaylist.songs.length,
+      (index) => index,
+    );
+    _shuffledIndices.shuffle(Random());
+
+    // Make sure current song is at the beginning of shuffle
+    int currentIndexInShuffle = _shuffledIndices.indexOf(_currentSongIndex);
+    if (currentIndexInShuffle != -1) {
+      _shuffledIndices.removeAt(currentIndexInShuffle);
+      _shuffledIndices.insert(0, _currentSongIndex);
+    }
+    _shufflePosition = 0;
+  }
+
+  Future<void> _nextShuffled() async {
+    if (_shuffledIndices.isEmpty) {
+      _generateShuffledIndices();
+    }
+
+    if (_shufflePosition < _shuffledIndices.length - 1) {
+      _shufflePosition++;
+      await gotoIndex(_shuffledIndices[_shufflePosition]);
+    } else if (_repeatMode == RepeatMode.repeatAll) {
+      // Regenerate shuffle and start from beginning
+      _generateShuffledIndices();
+      _shufflePosition = 0;
+      await gotoIndex(_shuffledIndices[_shufflePosition]);
+    }
+  }
+
+  Future<void> _previousShuffled() async {
+    if (_shuffledIndices.isEmpty) {
+      _generateShuffledIndices();
+    }
+
+    if (_shufflePosition > 0) {
+      _shufflePosition--;
+      await gotoIndex(_shuffledIndices[_shufflePosition]);
+    }
+  }
+
   Future<void> reset() async {
     try {
       await _audioHandler.stop();
       _hasSong = false;
       _currentSongIndex = 0;
       _repeatMode = RepeatMode.noRepeat;
+      _shuffleMode = ShuffleMode.off;
+      _shuffledIndices.clear();
+      _shufflePosition = 0;
       _playingSong = Song(title: "", artist: "", imagePath: "", audioUrl: "");
       _currentPlaylist = PlayList(
         id: "",
@@ -326,6 +571,7 @@ class PlayerController {
   void dispose() {
     _songChangeController.close();
     _playlistChangeController.close();
+    _shuffleModeChangeController.close();
   }
 
   // Thiết lập callbacks cho audio handler

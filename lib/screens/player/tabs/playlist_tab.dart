@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../controller/player_controller.dart';
+import '../../../models/song.dart';
 import '../../../widgets/song_item.dart';
 import 'shared_mini_player.dart';
 import 'shared_tab_navigator.dart';
@@ -28,10 +29,12 @@ class _NextTrackTabState extends State<NextTrackTab>
   String _currentSongId = '';
   int _currentSongIndex = -1;
   int _playlistLength = 0;
+  bool _isShuffleOn = false;
 
   // Subscriptions for changes
   StreamSubscription? _songChangeSubscription;
   StreamSubscription? _playlistChangeSubscription;
+  StreamSubscription? _shuffleModeChangeSubscription;
 
   // Flag to track initialization
   bool _isInitialized = false;
@@ -52,6 +55,7 @@ class _NextTrackTabState extends State<NextTrackTab>
     _currentSongId = _playerController.playingSong.id.toString();
     _currentSongIndex = _playerController.currentSongIndex;
     _playlistLength = _playerController.currentPlaylist.songs.length;
+    _isShuffleOn = _playerController.shuffleMode == ShuffleMode.on;
 
     // Listen for song changes
     _songChangeSubscription = _playerController.onSongChange.listen((song) {
@@ -86,6 +90,17 @@ class _NextTrackTabState extends State<NextTrackTab>
       }
     });
 
+    // Listen for shuffle mode changes
+    _shuffleModeChangeSubscription = _playerController.onShuffleModeChange
+        .listen((shuffleMode) {
+          if (mounted) {
+            setState(() {
+              _isShuffleOn = shuffleMode == ShuffleMode.on;
+              // Force rebuild to update shuffle order display
+            });
+          }
+        });
+
     _isInitialized = true;
   }
 
@@ -99,6 +114,7 @@ class _NextTrackTabState extends State<NextTrackTab>
   void dispose() {
     _songChangeSubscription?.cancel();
     _playlistChangeSubscription?.cancel();
+    _shuffleModeChangeSubscription?.cancel();
     super.dispose();
   }
 
@@ -129,8 +145,9 @@ class _NextTrackTabState extends State<NextTrackTab>
   }
 
   Widget _buildPlaylistContent() {
-    final allSongs = _playerController.currentPlaylist.songs;
-    final currentIndex = _currentSongIndex;
+    final allSongs = _playerController.songsInDisplayOrder;
+    final currentDisplayIndex =
+        _playerController.currentSongIndexInDisplayOrder;
 
     if (allSongs.isEmpty) {
       return const Center(
@@ -142,6 +159,41 @@ class _NextTrackTabState extends State<NextTrackTab>
       );
     }
 
+    return Column(
+      children: [
+        // Show shuffle indicator
+        if (_isShuffleOn)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.shuffle, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Đang phát ngẫu nhiên",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+        // Playlist content
+        Expanded(
+          child:
+              _isShuffleOn
+                  ? _buildShuffledPlaylist(allSongs, currentDisplayIndex)
+                  : _buildNormalPlaylist(allSongs, currentDisplayIndex),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNormalPlaylist(List<Song> allSongs, int currentDisplayIndex) {
     return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: allSongs.length,
@@ -150,17 +202,15 @@ class _NextTrackTabState extends State<NextTrackTab>
       },
       itemBuilder: (context, index) {
         final isCurrentSong =
-            index == currentIndex &&
+            index == currentDisplayIndex &&
             allSongs[index].id.toString() == _currentSongId;
 
         return Container(
-          key: ValueKey(
-            allSongs[index].id,
-          ), // Important: unique key for each item
+          key: ValueKey(allSongs[index].id),
           decoration:
               isCurrentSong
                   ? BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   )
                   : null,
@@ -170,12 +220,50 @@ class _NextTrackTabState extends State<NextTrackTab>
             isHorizontal: true,
             index: index,
             showIndex: false,
-            isDragMode: true, // Enable drag mode
-            showDeleteIcon:
-                !isCurrentSong, // Show delete icon if not current song
+            isDragMode: true,
+            showDeleteIcon: !isCurrentSong,
             onDeletePressed:
                 !isCurrentSong ? () => _handleDeleteSong(index) : null,
             onTap: () => _handleSongTap(index),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShuffledPlaylist(List<Song> allSongs, int currentDisplayIndex) {
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: allSongs.length,
+      onReorder: (oldIndex, newIndex) {
+        // Only affects shuffle order, not original playlist
+        _playerController.reorderSongsInShuffle(oldIndex, newIndex);
+      },
+      itemBuilder: (context, index) {
+        final isCurrentSong =
+            index == currentDisplayIndex &&
+            allSongs[index].id.toString() == _currentSongId;
+
+        return Container(
+          key: ValueKey(allSongs[index].id),
+          decoration:
+              isCurrentSong
+                  ? BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  )
+                  : null,
+          child: SongItem(
+            song: allSongs[index],
+            showTrailingControls: true,
+            isHorizontal: true,
+            index: index,
+            showIndex: false,
+            isDragMode: true, // Enable drag mode in shuffle
+            showDeleteIcon: !isCurrentSong,
+            onDeletePressed:
+                !isCurrentSong ? () => _handleDeleteSongInShuffle(index) : null,
+            onTap: () => _handleSongTapInShuffle(index),
           ),
         );
       },
@@ -196,5 +284,27 @@ class _NextTrackTabState extends State<NextTrackTab>
   // Handle delete song
   void _handleDeleteSong(int index) {
     _playerController.removeSongFromPlaylist(index);
+  }
+
+  // Handle song tap in shuffle mode
+  void _handleSongTapInShuffle(int displayIndex) {
+    // Convert display index to actual playlist index
+    final playlistIndex = _playerController.displayIndexToPlaylistIndex(
+      displayIndex,
+    );
+    if (playlistIndex >= 0) {
+      _playerController.gotoIndex(playlistIndex);
+    }
+  }
+
+  // Handle delete song in shuffle mode
+  void _handleDeleteSongInShuffle(int displayIndex) {
+    // Convert display index to actual playlist index
+    final playlistIndex = _playerController.displayIndexToPlaylistIndex(
+      displayIndex,
+    );
+    if (playlistIndex >= 0) {
+      _playerController.removeSongFromPlaylist(playlistIndex);
+    }
   }
 }
