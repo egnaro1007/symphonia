@@ -1,4 +1,3 @@
-import 'package:symphonia/controller/download_controller.dart';
 import 'package:symphonia/main.dart';
 import 'package:flutter/material.dart';
 import '../abstract_navigation_screen.dart';
@@ -32,7 +31,6 @@ class _SettingScreenState extends State<SettingScreen> {
       TextEditingController();
 
   // State variables
-  String _selectedAudioQuality = '320kbps';
   String _themeMode = 'Hệ thống';
   String _selectedLanguage = 'Tiếng Việt';
   bool _isChangePasswordLoading = false;
@@ -46,12 +44,6 @@ class _SettingScreenState extends State<SettingScreen> {
           // Account Settings Section
           _buildSectionHeader('Cài đặt tài khoản'),
           _buildAccountSettings(),
-
-          const Divider(thickness: 1),
-
-          // Music Playback Settings Section
-          _buildSectionHeader('Cài đặt phát nhạc'),
-          _buildMusicPlaybackSettings(),
 
           const Divider(thickness: 1),
 
@@ -114,33 +106,6 @@ class _SettingScreenState extends State<SettingScreen> {
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             _showDeleteAccountDialog();
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMusicPlaybackSettings() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Audio Quality
-        ListTile(
-          title: const Text('Chất lượng tải nhạc (offline)'),
-          subtitle: Text(_selectedAudioQuality),
-          leading: const Icon(Icons.high_quality),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            _showAudioQualityDialog();
-          },
-        ),
-
-        // Delete Account
-        ListTile(
-          title: const Text('Xóa dữ liệu tải về'),
-          leading: const Icon(Icons.delete_forever),
-          onTap: () {
-            _showDeleteDataDialog();
           },
         ),
       ],
@@ -447,100 +412,6 @@ class _SettingScreenState extends State<SettingScreen> {
                   foregroundColor: Theme.of(context).colorScheme.error,
                 ),
                 child: const Text('Xóa tài khoản'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showAudioQualityDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Chất lượng tải nhạc'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                RadioListTile<String>(
-                  title: const Text('128kbps'),
-                  subtitle: const Text('Tiết kiệm dung lượng'),
-                  value: '128kbps',
-                  groupValue: _selectedAudioQuality,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAudioQuality = value!;
-                      Navigator.of(context).pop();
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('320kbps'),
-                  subtitle: const Text('Chất lượng cao'),
-                  value: '320kbps',
-                  groupValue: _selectedAudioQuality,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAudioQuality = value!;
-                      Navigator.of(context).pop();
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Lossless'),
-                  subtitle: const Text('Chất lượng tốt nhất, dung lượng lớn'),
-                  value: 'Lossless',
-                  groupValue: _selectedAudioQuality,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAudioQuality = value!;
-                      Navigator.of(context).pop();
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
-  void _showDeleteDataDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Xóa tài dữ liệu tải xuống'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Bạn có chắc chắn muốn dữ liệu tải xuống?',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu đã tải xuống. Thao tác này không thể hoàn tác.',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  DownloadController.deleteAll();
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.error,
-                ),
-                child: const Text('Xóa'),
               ),
             ],
           ),

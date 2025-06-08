@@ -460,21 +460,6 @@ class PlayListOperations {
         // Parse songs if they exist in the response
         if (data['songs'] != null && data['songs'] is List) {
           for (var song in data['songs']) {
-            int id = song['id'];
-
-            // Parse artist information
-            String artist = '';
-            if (song['artist'] != null && song['artist'] is List) {
-              List<dynamic> artists = song['artist'];
-              if (artists.isNotEmpty) {
-                // Join multiple artists with comma
-                artist = artists
-                    .map((a) => a['name'] ?? '')
-                    .where((name) => name.isNotEmpty)
-                    .join(', ');
-              }
-            }
-
             // Process relative URLs to full URLs (similar to SongOperations)
             String serverBase = serverUrl;
             if (!serverBase.startsWith('http://') &&
