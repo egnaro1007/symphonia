@@ -17,6 +17,10 @@ Symphonia is a cross-platform music streaming application built with Flutter, of
 
 *Add screenshots of your app here* -->
 
+## Video Demo
+
+[![Symphonia Demo](https://img.youtube.com/vi/YpQVO6tpNUA/0.jpg)](https://youtu.be/YpQVO6tpNUA)
+
 ## Getting Started
 
 ### Prerequisites
